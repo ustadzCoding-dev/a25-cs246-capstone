@@ -1,0 +1,82 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  pr-validation:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check PR title format
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+          requireScope: false
+      
+      - name: Check for merge conflicts
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          git merge-base --is-ancestor origin/${{ github.base_ref }} HEAD || {
+            echo "❌ Branch is not up to date with base branch"
+            exit 1
+          }
+      
+      - name: Check file size
+        run: |
+          large_files=$(find . -type f -size +5M -not -path "*/node_modules/*" -not -path "*/.git/*")
+          if [ -n "$large_files" ]; then
+            echo "❌ Large files detected (>5MB):"
+            echo "$large_files"
+            exit 1
+          fi
+      
+      - name: Check for console.log
+        run: |
+          if grep -r "console\.log" --include="*.js" --include="*.vue" --exclude-dir=node_modules .; then
+            echo "⚠️ Warning: console.log found in code"
+            echo "Please remove console.log before merging"
+            exit 1
+          fi
+      
+      - name: Comment PR with checklist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `
+            ## 📋 PR Checklist
+            
+            Please ensure you have completed the following:
+            
+            - [ ] Code follows project conventions
+            - [ ] All tests passing
+            - [ ] No console.log() in code
+            - [ ] Documentation updated
+            - [ ] Self-review completed
+            - [ ] No merge conflicts
+            
+            **CI Status:** All checks must pass before merging.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            })
