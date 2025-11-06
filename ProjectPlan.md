@@ -125,26 +125,28 @@ Kami percaya bahwa proyek ini adalah "painkiller" yang mengatasi pain point nyat
 
 | Minggu | Tanggal | Aktivitas Utama | PIC | Status |
 |--------|---------|-----------------|-----|--------|
-| W1 | 31 Okt - 6 Nov | Planning & Setup | All | Not Started |
-| W2 | 7 Nov - 13 Nov | Registrasi Tim Feature | Afrizal, Deby, Ganza | Not Started |
-| W3 | 14 Nov - 20 Nov | Informasi Dokumen Feature | Marsa, Ganza | Not Started |
-| W4 | 21 Nov - 27 Nov | Timeline Feature | Rizky, Deby | Not Started |
-| W5 | 28 Nov - 4 Des | Testing & Deployment | All | Not Started |
-| W6 | 5 Des - 15 Des | Finalisasi & Deliverables | All | Not Started |
+| W1 | 31 Okt - 6 Nov | Planning & Setup | All | ✅ 86% Complete |
+| W2 | 7 Nov - 13 Nov | Registrasi Tim Feature | Afrizal, Deby, Ganza | ⏳ Ready to Start |
+| W3 | 14 Nov - 20 Nov | Informasi Dokumen Feature | Marsa, Ganza | 📅 Scheduled |
+| W4 | 21 Nov - 27 Nov | Timeline Feature | Rizky, Deby | 📅 Scheduled |
+| W5 | 28 Nov - 4 Des | Testing & Deployment | All | 📅 Scheduled |
+| W6 | 5 Des - 15 Des | Finalisasi & Deliverables | All | 📅 Scheduled |
 
 ### Jadwal Detail Mingguan
 
 #### Week 1: Planning & Setup (31 Okt - 6 Nov)
 
-| Hari | Aktivitas | PIC | Deliverable |
-|------|-----------|-----|-------------|
-| Kamis (31 Okt) | Kickoff meeting, diskusi tech stack | All | Meeting notes, Submit Project Plan |
-| Jumat (1 Nov) | Setup GitHub repo (private), branching strategy | Rizky | Repository structure |
-| Sabtu (2 Nov) | Database design (ERD), API specification | Ganza | ERD diagram, API docs |
-| Minggu (3 Nov) | Wireframe & UI design Figma | Deby | Wireframe mockup |
-| Senin (4 Nov) | Setup Vue 3 + Vite, install dependencies | All | Dev environment ready |
-| Selasa (5 Nov) | Inisialisasi project structure (front & back) | Afrizal, Marsa | Boilerplate code |
-| Rabu (6 Nov) | Code review setup, CI/CD pipeline | Rizky | CI/CD configured |
+| Hari | Aktivitas | PIC | Status | Deliverable |
+|------|-----------|-----|--------|-------------|
+| Kamis (31 Okt) | Kickoff meeting, diskusi tech stack | All | ✅ Done | Meeting notes, Submit Project Plan |
+| Jumat (1 Nov) | Setup GitHub repo (private), branching strategy | Rizky | ✅ Done | Repository structure |
+| Sabtu (2 Nov) | Database design (ERD), API specification | Ganza | ✅ Done | ERD diagram, Mongoose models |
+| Minggu (3 Nov) | Wireframe & UI design Figma | Deby | ⏳ In Progress | Wireframe mockup |
+| Senin (4 Nov) | Setup Vue 3 + Vite, install dependencies | All | ✅ Done | Dev environment ready |
+| Selasa (5 Nov) | Inisialisasi project structure (front & back) | Afrizal, Marsa | ✅ Done | Boilerplate code |
+| Rabu (6 Nov) | Code review setup, CI/CD pipeline | Rizky | ✅ Done | CI/CD configured |
+
+**Week 1 Progress:** 6/7 tasks completed (86%)
 
 #### Week 2: Registrasi Tim Feature (7 Nov - 13 Nov)
 
