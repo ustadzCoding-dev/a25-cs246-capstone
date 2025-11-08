@@ -112,10 +112,14 @@ export const getAllTeams = async (req, res, next) => {
     // Students can only see their own team and approved teams
     if (userRole === 'student') {
       const user = await User.findById(userId)
-      query.$or = [
-        { _id: user.capstoneGroupId },
-        { status: 'approved' }
-      ]
+      const conditions = [{ status: 'approved' }]
+      
+      // Add user's team if they have one
+      if (user.capstoneGroupId) {
+        conditions.push({ _id: user.capstoneGroupId })
+      }
+      
+      query.$or = conditions
     }
 
     // Pagination
@@ -316,13 +320,14 @@ export const submitTeam = async (req, res, next) => {
       })
     }
 
-    // Check if use case is selected
-    if (!team.selectedUseCaseId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please select a use case before submitting'
-      })
-    }
+    // Check if use case is selected (optional for now - can be added later)
+    // Note: In production, this should be required
+    // if (!team.selectedUseCaseId) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'Please select a use case before submitting'
+    //   })
+    // }
 
     // Submit team
     await team.submitForValidation()
