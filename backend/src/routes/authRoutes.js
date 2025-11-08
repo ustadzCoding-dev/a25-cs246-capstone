@@ -8,6 +8,7 @@ import {
 } from '../controllers/authController.js'
 import { authenticate } from '../middleware/auth.js'
 import validate from '../middleware/validate.js'
+import { authLimiter } from '../middleware/security.js'
 import {
   registerSchema,
   loginSchema,
@@ -21,14 +22,14 @@ const router = express.Router()
  * @desc    Register new user
  * @access  Public
  */
-router.post('/register', validate(registerSchema), register)
+router.post('/register', authLimiter, validate(registerSchema), register)
 
 /**
  * @route   POST /api/auth/login
  * @desc    Login user
  * @access  Public
  */
-router.post('/login', validate(loginSchema), login)
+router.post('/login', authLimiter, validate(loginSchema), login)
 
 /**
  * @route   GET /api/auth/me

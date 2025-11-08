@@ -5,6 +5,14 @@ import connectDB from './config/database.js'
 import routes from './routes/index.js'
 import errorHandler from './middleware/errorHandler.js'
 import logger from './utils/logger.js'
+import {
+  helmetMiddleware,
+  limiter,
+  sanitizeData,
+  preventXSS,
+  preventHPP,
+  customHeaders
+} from './middleware/security.js'
 
 // Load environment variables
 dotenv.config()
@@ -16,13 +24,24 @@ const PORT = process.env.PORT || 3000
 // Connect to MongoDB
 connectDB()
 
-// Middleware
+// Security Middleware (apply first)
+app.use(helmetMiddleware)
+app.use(customHeaders)
+app.use(limiter)
+app.use(preventHPP)
+
+// CORS
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+
+// Body parsers
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+
+// Note: mongo-sanitize and xss-clean removed due to compatibility issues
+// Input validation is handled by Joi schemas in routes
 
 // Request logging
 app.use((req, res, next) => {
