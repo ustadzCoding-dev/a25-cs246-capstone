@@ -20,8 +20,10 @@ const validate = (schema, property = 'body') => {
       })
     }
 
-    // Replace request property with validated value
-    req[property] = value
+    // Replace request property with validated value (except for query which is read-only)
+    if (property !== 'query') {
+      req[property] = value
+    }
     next()
   }
 }
