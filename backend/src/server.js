@@ -1,10 +1,12 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import swaggerUi from 'swagger-ui-express'
 import connectDB from './config/database.js'
 import routes from './routes/index.js'
 import errorHandler from './middleware/errorHandler.js'
 import logger from './utils/logger.js'
+import swaggerSpec from './config/swagger.js'
 import {
   helmetMiddleware,
   limiter,
@@ -47,6 +49,18 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`)
   next()
+})
+
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Dicoding Capstone API Docs',
+}))
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json')
+  res.send(swaggerSpec)
 })
 
 // Routes
