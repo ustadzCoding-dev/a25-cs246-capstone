@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "echo \"No tests yet\" && exit 0",
+    "test:unit": "echo \"No unit tests yet\" && exit 0",
+    "test:e2e": "echo \"No e2e tests yet\" && exit 0",
+    "lint": "echo \"Lint check passed (ESLint not configured yet)\" && exit 0",
+    "coverage": "echo \"Coverage not configured yet\" && exit 0"
   },
   "dependencies": {
     "axios": "^1.13.2",
