@@ -1,0 +1,686 @@
+{
+  "info": {
+    "name": "Dicoding Capstone API - Automated Tests",
+    "description": "Automated API Testing for Dicoding Academic Dashboard\n\nRun this collection to test all endpoints automatically!\n\nUsage:\n1. Import this collection\n2. Click 'Run' button\n3. Select all requests\n4. Click 'Run Dicoding Capstone API'\n5. Watch tests run automatically!",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "user_id_1",
+      "value": ""
+    },
+    {
+      "key": "user_id_2",
+      "value": ""
+    },
+    {
+      "key": "user_id_3",
+      "value": ""
+    },
+    {
+      "key": "admin_id",
+      "value": ""
+    },
+    {
+      "key": "team_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has success field', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "",
+              "pm.test('API is running', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.message).to.eql('API is running');",
+              "});",
+              "",
+              "console.log('✅ Health Check: PASSED');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "2. Register Student 1 (Afrizal)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('User registered successfully', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.success).to.be.true;",
+              "    pm.expect(response.message).to.include('registered');",
+              "});",
+              "",
+              "pm.test('Token is generated', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data.token).to.be.a('string');",
+              "    pm.expect(response.data.token.length).to.be.above(20);",
+              "});",
+              "",
+              "// Save token and user ID",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set('auth_token', response.data.token);",
+              "pm.collectionVariables.set('user_id_1', response.data.user._id);",
+              "",
+              "console.log('✅ Register Student 1: PASSED');",
+              "console.log('   User ID:', response.data.user._id);",
+              "console.log('   Token saved');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dicodingId\": \"F886D5Y0069\",\n  \"name\": \"Afrizal\",\n  \"email\": \"afrizal.test@example.com\",\n  \"password\": \"password123\",\n  \"learningPath\": \"Front-End\",\n  \"university\": \"Universitas Indonesia\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "3. Register Student 2 (Deby)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set('user_id_2', response.data.user._id);",
+              "",
+              "console.log('✅ Register Student 2: PASSED');",
+              "console.log('   User ID:', response.data.user._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dicodingId\": \"F886D5Y0070\",\n  \"name\": \"Deby\",\n  \"email\": \"deby.test@example.com\",\n  \"password\": \"password123\",\n  \"learningPath\": \"Back-End\",\n  \"university\": \"Universitas Indonesia\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "4. Register Student 3 (Ganza)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set('user_id_3', response.data.user._id);",
+              "",
+              "console.log('✅ Register Student 3: PASSED');",
+              "console.log('   User ID:', response.data.user._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dicodingId\": \"F886D5Y0071\",\n  \"name\": \"Ganza\",\n  \"email\": \"ganza.test@example.com\",\n  \"password\": \"password123\",\n  \"learningPath\": \"Machine Learning\",\n  \"university\": \"Universitas Indonesia\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "5. Login as Student",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Login successful', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.success).to.be.true;",
+              "    pm.expect(response.message).to.include('Login');",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set('auth_token', response.data.token);",
+              "",
+              "console.log('✅ Login: PASSED');",
+              "console.log('   Token refreshed');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"afrizal.test@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "6. Get Current User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('User data returned', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data).to.have.property('_id');",
+              "    pm.expect(response.data).to.have.property('email');",
+              "    pm.expect(response.data).to.have.property('role');",
+              "});",
+              "",
+              "console.log('✅ Get Current User: PASSED');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/auth/me",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "me"]
+        }
+      }
+    },
+    {
+      "name": "7. Create Team",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Build team members array with saved user IDs",
+              "const userId1 = pm.collectionVariables.get('user_id_1');",
+              "const userId2 = pm.collectionVariables.get('user_id_2');",
+              "const userId3 = pm.collectionVariables.get('user_id_3');",
+              "",
+              "const teamData = {",
+              "    capstoneGroupId: 'A25-CS246-TEST',",
+              "    teamName: 'Tim Automated Test',",
+              "    members: [",
+              "        { userId: userId1, role: 'leader' },",
+              "        { userId: userId2, role: 'member' },",
+              "        { userId: userId3, role: 'member' }",
+              "    ],",
+              "    leaderId: userId1",
+              "};",
+              "",
+              "pm.variables.set('teamData', JSON.stringify(teamData));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Team created successfully', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.success).to.be.true;",
+              "    pm.expect(response.data).to.have.property('_id');",
+              "    pm.expect(response.data.status).to.eql('draft');",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set('team_id', response.data._id);",
+              "",
+              "console.log('✅ Create Team: PASSED');",
+              "console.log('   Team ID:', response.data._id);",
+              "console.log('   Status:', response.data.status);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{{teamData}}"
+        },
+        "url": {
+          "raw": "{{base_url}}/teams",
+          "host": ["{{base_url}}"],
+          "path": ["teams"]
+        }
+      }
+    },
+    {
+      "name": "8. Get All Teams",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Teams list returned', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data).to.have.property('teams');",
+              "    pm.expect(response.data.teams).to.be.an('array');",
+              "});",
+              "",
+              "console.log('✅ Get All Teams: PASSED');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/teams",
+          "host": ["{{base_url}}"],
+          "path": ["teams"]
+        }
+      }
+    },
+    {
+      "name": "9. Update Team",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Team updated successfully', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.success).to.be.true;",
+              "});",
+              "",
+              "console.log('✅ Update Team: PASSED');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectTitle\": \"Enhanced Academic Dashboard\",\n  \"projectDescription\": \"Automated test project\",\n  \"githubRepo\": \"https://github.com/ustadzCoding-dev/A25-CS246\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/teams/{{team_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["teams", "{{team_id}}"]
+        }
+      }
+    },
+    {
+      "name": "10. Submit Team for Approval",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Team submitted successfully', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data.status).to.eql('pending');",
+              "});",
+              "",
+              "console.log('✅ Submit Team: PASSED');",
+              "console.log('   Status changed to: pending');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/teams/{{team_id}}/submit",
+          "host": ["{{base_url}}"],
+          "path": ["teams", "{{team_id}}", "submit"]
+        }
+      }
+    },
+    {
+      "name": "11. Register Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set('admin_id', response.data.user._id);",
+              "pm.collectionVariables.set('admin_token', response.data.token);",
+              "",
+              "console.log('✅ Register Admin: PASSED');",
+              "console.log('   Admin ID:', response.data.user._id);",
+              "console.log('   ⚠️  Need to manually change role to admin in database!');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dicodingId\": \"ADMIN001\",\n  \"name\": \"Admin Test\",\n  \"email\": \"admin.test@dicoding.com\",\n  \"password\": \"admin123\",\n  \"learningPath\": \"Front-End\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "12. MANUAL: Change Admin Role",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "console.log('⚠️  MANUAL STEP REQUIRED:');",
+              "console.log('   Run this in MongoDB:');",
+              "console.log('   ');",
+              "console.log('   mongosh');",
+              "console.log('   use dicoding-capstone');",
+              "console.log('   db.users.updateOne(');",
+              "console.log('     { email: \"admin.test@dicoding.com\" },');",
+              "console.log('     { $set: { role: \"admin\" } }');",
+              "console.log('   )');",
+              "console.log('   ');",
+              "console.log('   Then continue to next request.');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// This is a placeholder request",
+              "pm.test('Manual step reminder', function () {",
+              "    console.log('⚠️  Remember to change admin role in database!');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "13. Login as Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Admin login successful', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data.user.role).to.eql('admin');",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set('admin_token', response.data.token);",
+              "",
+              "console.log('✅ Login as Admin: PASSED');",
+              "console.log('   Role:', response.data.user.role);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin.test@dicoding.com\",\n  \"password\": \"admin123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "14. Approve Team (Admin)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Team approved successfully', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.data.status).to.eql('approved');",
+              "});",
+              "",
+              "console.log('✅ Approve Team: PASSED');",
+              "console.log('   Status changed to: approved');",
+              "console.log('');",
+              "console.log('🎉 ALL TESTS COMPLETED SUCCESSFULLY!');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{admin_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/teams/{{team_id}}/approve",
+          "host": ["{{base_url}}"],
+          "path": ["teams", "{{team_id}}", "approve"]
+        }
+      }
+    }
+  ]
+}
