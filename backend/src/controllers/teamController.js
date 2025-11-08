@@ -127,9 +127,18 @@ export const getAllTeams = async (req, res, next) => {
     const total = await CapstoneGroup.countDocuments(query)
 
     const teams = await CapstoneGroup.find(query)
-      .populate('members.userId', 'name email learningPath')
-      .populate('leaderId', 'name email')
-      .populate('selectedUseCaseId', 'useCaseCode title partner')
+      .populate({
+        path: 'members.userId',
+        select: 'name email learningPath'
+      })
+      .populate({
+        path: 'leaderId',
+        select: 'name email'
+      })
+      .populate({
+        path: 'selectedUseCaseId',
+        select: 'useCaseCode title partner'
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))

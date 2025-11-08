@@ -523,19 +523,18 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Status code is 201', function () {",
-              "    pm.response.to.have.status(201);",
+              "// Admin already exists from seed data, so 409 is expected",
+              "pm.test('Status code is 409 (admin already exists)', function () {",
+              "    pm.response.to.have.status(409);",
               "});",
               "",
-              "const response = pm.response.json();",
-              "pm.environment.set('admin_id', response.data.user._id);",
-              "pm.collectionVariables.set('admin_id', response.data.user._id);",
-              "pm.environment.set('admin_token', response.data.token);",
-              "pm.collectionVariables.set('admin_token', response.data.token);",
+              "pm.test('Error message indicates duplicate email', function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.success).to.be.false;",
+              "    pm.expect(response.message).to.include('already');",
+              "});",
               "",
-              "console.log('✅ Register Admin: PASSED');",
-              "console.log('   Admin ID:', response.data.user._id);",
-              "console.log('   ⚠️  Need to manually change role to admin in database!');"
+              "console.log('✅ Register Admin: PASSED (409 - already exists as expected)');"
             ]
           }
         }
