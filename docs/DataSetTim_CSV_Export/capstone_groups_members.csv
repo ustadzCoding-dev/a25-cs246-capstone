@@ -1,0 +1,11 @@
+id,group_id,user_id,role,state,joined_at
+1,1,FUI0001,leader,accepted,Sun Nov 02 2025 16:00:25 GMT+0700 (Western Indonesia Time)
+2,1,FUI0002,member,accepted,Mon Nov 03 2025 16:05:14 GMT+0700 (Western Indonesia Time)
+3,1,MITB0024,member,accepted,Mon Nov 03 2025 16:05:15 GMT+0700 (Western Indonesia Time)
+4,1,MITB0025,member,accepted,Mon Nov 03 2025 16:05:16 GMT+0700 (Western Indonesia Time)
+5,1,RUI0001,member,accepted,Mon Nov 03 2025 16:00:29 GMT+0700 (Western Indonesia Time)
+6,2,MUI0001,leader,accepted,Sun Nov 02 2025 16:07:36 GMT+0700 (Western Indonesia Time)
+7,2,FBINUS0011,member,invited,
+8,2,FBINUS0012,member,invited,
+9,2,MUT0035,member,invited,
+10,2,RPB0059,member,accepted,Mon Nov 03 2025 16:07:45 GMT+0700 (Western Indonesia Time)
