@@ -155,10 +155,13 @@ const seedUsers = async () => {
     for (const userData of usersData) {
       const hashedPassword = await bcrypt.hash(userData.password, 10);
       const { password, ...userDataWithoutPassword } = userData;
-      const user = await User.create({
+      
+      // Create user without triggering pre-save hook (insertMany bypasses hooks)
+      const [user] = await User.insertMany([{
         ...userDataWithoutPassword,
         passwordHash: hashedPassword
-      });
+      }], { validateBeforeSave: true });
+      
       users.push(user);
       logger.info(`Created user: ${user.name} (${user.dicodingId})`);
     }
