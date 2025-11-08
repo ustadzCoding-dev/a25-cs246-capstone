@@ -1,4 +1,6 @@
 import express from 'express'
+import authRoutes from './authRoutes.js'
+import teamRoutes from './teamRoutes.js'
 
 const router = express.Router()
 
@@ -11,14 +13,19 @@ router.get('/health', (req, res) => {
   })
 })
 
-// Placeholder routes - will be added based on ERD
-// Example:
-// import teamRoutes from './teamRoutes.js'
+// Auth routes
+router.use('/auth', authRoutes)
+
+// Team routes
+router.use('/teams', teamRoutes)
+
+// Placeholder routes - will be added later
 // import documentRoutes from './documentRoutes.js'
 // import timelineRoutes from './timelineRoutes.js'
+// import useCaseRoutes from './useCaseRoutes.js'
 // 
-// router.use('/teams', teamRoutes)
 // router.use('/documents', documentRoutes)
-// router.use('/timelines', timelineRoutes)
+// router.use('/timeline', timelineRoutes)
+// router.use('/usecases', useCaseRoutes)
 
 export default router
