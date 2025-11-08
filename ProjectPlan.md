@@ -141,7 +141,7 @@ Kami percaya bahwa proyek ini adalah "painkiller" yang mengatasi pain point nyat
 | Kamis (31 Okt) | Kickoff meeting, diskusi tech stack | All | ✅ Done | Meeting notes, Submit Project Plan |
 | Jumat (1 Nov) | Setup GitHub repo (private), branching strategy | Rizky | ✅ Done | Repository structure |
 | Sabtu (2 Nov) | Database design (ERD), API specification | Ganza | ✅ Done | ERD diagram, Mongoose models |
-| Minggu (3 Nov) | Wireframe & UI design Figma | Deby | ⏳ In Progress | Wireframe mockup |
+| Minggu (3 Nov) | Wireframe & UI design Figma | Deby | 🔄 Partially Done | Wireframe mockup (partial) |
 | Senin (4 Nov) | Setup Vue 3 + Vite, install dependencies | All | ✅ Done | Dev environment ready |
 | Selasa (5 Nov) | Inisialisasi project structure (front & back) | Afrizal, Marsa | ✅ Done | Boilerplate code |
 | Rabu (6 Nov) | Code review setup, CI/CD pipeline | Rizky | ✅ Done | CI/CD configured |
