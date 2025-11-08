@@ -542,7 +542,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"dicodingId\": \"ADMIN001\",\n  \"name\": \"Admin Test\",\n  \"email\": \"admin.test@dicoding.com\",\n  \"password\": \"admin123\",\n  \"learningPath\": \"Front-End\"\n}"
+          "raw": "{\n  \"dicodingId\": \"ADMIN_1\",\n  \"name\": \"Paramita Zulaika\",\n  \"email\": \"admin_1@student.devacademy.id\",\n  \"password\": \"admin123\",\n  \"learningPath\": \"Front-End\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/auth/register",
@@ -564,7 +564,7 @@
               "console.log('   mongosh');",
               "console.log('   use dicoding-capstone');",
               "console.log('   db.users.updateOne(');",
-              "console.log('     { email: \"admin.test@dicoding.com\" },');",
+              "console.log('     { email: \"admin_1@student.devacademy.id\" },');",
               "console.log('     { $set: { role: \"admin\" } }');",
               "console.log('   )');",
               "console.log('   ');",
@@ -629,7 +629,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"email\": \"admin.test@dicoding.com\",\n  \"password\": \"admin123\"\n}"
+          "raw": "{\n  \"email\": \"admin_1@student.devacademy.id\",\n  \"password\": \"admin123\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/auth/login",
