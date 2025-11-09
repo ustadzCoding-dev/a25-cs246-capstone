@@ -14,8 +14,9 @@ export const helmetMiddleware = helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts for Swagger UI
+      imgSrc: ["'self'", 'data:', 'https:', 'validator.swagger.io'],
+      connectSrc: ["'self'"],
     },
   },
   crossOriginEmbedderPolicy: false,
