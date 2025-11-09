@@ -90,7 +90,7 @@ GET /api/health
 
 Routes will be added based on ERD design:
 
-- `/api/teams` - Team management
+- `/api/capstone-groups` - Team management
 - `/api/documents` - Document management
 - `/api/timelines` - Timeline management
 - `/api/users` - User management

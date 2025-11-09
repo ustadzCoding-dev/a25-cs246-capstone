@@ -1,18 +1,24 @@
 import mongoose from 'mongoose'
-import bcrypt from 'bcrypt'
 
+// MENYIMPAN DATA USER
 const userSchema = new mongoose.Schema({
+  // DidicodingId
+  // Contoh: "A25-CS246"
   dicodingId: {
     type: String,
     required: [true, 'Dicoding ID is required'],
     unique: true,
     trim: true
   },
+  // Name
+  // Contoh: "John Doe"
   name: {
     type: String,
     required: [true, 'Name is required'],
     trim: true
   },
+  // Email
+  // Contoh: "nVf3o@example.com"
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -21,61 +27,49 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
   },
-  passwordHash: {
+  // Password Hash
+  // Contoh: "$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6LhY5Pq7vH6jIW3e"
+  password: {
     type: String,
     required: [true, 'Password is required'],
-    select: false // Don't include in queries by default
+    select: false
   },
+  // Learning Path
+  // Contoh: "Front-End Web & Back-End with AI"
   learningPath: {
     type: String,
     enum: [
-      'Front-End',
-      'Back-End',
-      'Android',
-      'iOS',
-      'Machine Learning',
-      'DevOps',
-      'Multi-Platform',
-      'React',
-      'Flutter'
+      'Front-End Web & Back-End with AI',
+      'React & Back-End with AI',
+      'Machine Learning'
     ],
     required: [true, 'Learning path is required']
   },
+  // Role
+  // Contoh: "student"
   role: {
     type: String,
     enum: ['student', 'admin', 'mentor'],
     default: 'student'
   },
+  // University
+  // Contoh: "Institut Teknologi Bandung"
   university: {
     type: String,
     trim: true
   },
-  phoneNumber: {
-    type: String,
-    trim: true
-  },
-  profilePicture: {
-    type: String,
-    default: null
-  },
-  // References
+  // Capstone Group
+  // Contoh: "ObjectId of CapstoneGroup"
   capstoneGroupId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CapstoneGroup',
     default: null
   },
+  // Learning Group
+  // Contoh: "ObjectId of LearningGroup"
   learningGroupId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'LearningGroup',
-    default: null
-  },
-  // Status
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  lastLogin: {
-    type: Date,
     default: null
   }
 }, {
@@ -84,63 +78,14 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 })
 
-// Indexes
-userSchema.index({ email: 1 })
-userSchema.index({ dicodingId: 1 })
-userSchema.index({ capstoneGroupId: 1 })
-
-// Virtual for capstone group
-userSchema.virtual('capstoneGroup', {
-  ref: 'CapstoneGroup',
-  localField: 'capstoneGroupId',
-  foreignField: '_id',
-  justOne: true
-})
-
-// Virtual for learning group
-userSchema.virtual('learningGroup', {
-  ref: 'LearningGroup',
-  localField: 'learningGroupId',
-  foreignField: '_id',
-  justOne: true
-})
-
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('passwordHash')) return next()
-  
-  try {
-    const salt = await bcrypt.genSalt(10)
-    this.passwordHash = await bcrypt.hash(this.passwordHash, salt)
-    next()
-  } catch (error) {
-    next(error)
+userSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    ret.id = ret._id.toString(),
+    delete ret._id,
+    delete ret.__v
   }
 })
-
-// Method to compare password
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  try {
-    return await bcrypt.compare(candidatePassword, this.passwordHash)
-  } catch (error) {
-    throw error
-  }
-}
-
-// Method to generate auth token (will be implemented with JWT)
-userSchema.methods.generateAuthToken = function() {
-  // Will be implemented in auth controller
-  return null
-}
-
-// Remove sensitive data from JSON response
-userSchema.methods.toJSON = function() {
-  const user = this.toObject()
-  delete user.passwordHash
-  delete user.__v
-  return user
-}
 
 const User = mongoose.model('User', userSchema)
-
 export default User

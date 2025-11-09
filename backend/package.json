@@ -9,11 +9,17 @@
     "start": "node src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["express", "mongodb", "api", "dicoding", "capstone"],
+  "keywords": [
+    "express",
+    "mongodb",
+    "api",
+    "dicoding",
+    "capstone"
+  ],
   "author": "Tim A25-CS246",
   "license": "MIT",
   "dependencies": {
-    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",

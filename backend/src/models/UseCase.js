@@ -1,124 +1,79 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
+// MENYIMPAN DATA USE CASE
 const useCaseSchema = new mongoose.Schema({
-  useCaseCode: {
+  // UsecaseId
+  // Contoh: "DC-09"
+  usecaseId: {
     type: String,
-    required: [true, 'Use case code is required'],
-    unique: true,
-    trim: true,
-    uppercase: true
-    // Example: "DC-09"
+    required: true,
   },
+  // Judul
+  // Contoh: "Enhancing Academic Dashboard"
   title: {
     type: String,
-    required: [true, 'Title is required'],
-    trim: true
+    required: true,
   },
+  // Deskripsi
+  // Contoh: "Panduan lengkap pengerjaan dan submission capstone project."
   description: {
     type: String,
-    required: [true, 'Description is required']
+    required: true,
   },
+  // Partner
+  // Contoh: "Dicoding" atau "Accenture"
   partner: {
     type: String,
-    required: [true, 'Partner is required'],
-    trim: true
-    // Example: "Accenture", "Dicoding"
+    required: true,
   },
+  // Total Slot
+  // Contoh: 5
   totalSlots: {
     type: Number,
-    required: [true, 'Total slots is required'],
-    min: [1, 'Total slots must be at least 1']
+    required: true,
+    default: 1
   },
+  // Capstone Groups
+  // Contoh: [ObjectId of CapstoneGroup]
+  capstoneGroup: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CapstoneGroup',
+    default: []
+  }],
+  // Available Slots
+  // Contoh: 5
   availableSlots: {
     type: Number,
     required: true,
-    min: [0, 'Available slots cannot be negative']
+    default: 1
   },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  requirements: {
-    learningPaths: [{
-      type: String,
-      enum: [
-        'Front-End',
-        'Back-End',
-        'Android',
-        'iOS',
-        'Machine Learning',
-        'DevOps',
-        'Multi-Platform',
-        'React',
-        'Flutter'
-      ]
-    }],
-    minTeamSize: {
-      type: Number,
-      default: 3
-    },
-    maxTeamSize: {
-      type: Number,
-      default: 5
-    }
-  },
+  // Difficulty
+  // Contoh: "beginner", "intermediate", "advanced"
   difficulty: {
     type: String,
-    enum: ['beginner', 'intermediate', 'advanced'],
-    default: 'intermediate'
+    enum: ["beginner", "intermediate", "advanced"],
+    required: true,
   },
-  tags: [{
+  // Status
+  // Contoh: "open" atau "closed"
+  status: {
     type: String,
-    trim: true
-  }]
-}, {
-  timestamps: true
-})
-
-// Indexes
-useCaseSchema.index({ useCaseCode: 1 })
-useCaseSchema.index({ isActive: 1 })
-useCaseSchema.index({ partner: 1 })
-
-// Virtual for assigned teams count
-useCaseSchema.virtual('assignedTeamsCount', {
-  ref: 'CapstoneGroup',
-  localField: '_id',
-  foreignField: 'selectedUseCaseId',
-  count: true
-})
-
-// Method to check if slots available
-useCaseSchema.methods.hasAvailableSlots = function() {
-  return this.availableSlots > 0 && this.isActive
-}
-
-// Method to reserve a slot
-useCaseSchema.methods.reserveSlot = async function() {
-  if (this.availableSlots <= 0) {
-    throw new Error('No available slots')
+    enum: ["open", "closed"],
+    default: "open",
   }
-  this.availableSlots -= 1
-  await this.save()
-}
+},{
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
 
-// Method to release a slot
-useCaseSchema.methods.releaseSlot = async function() {
-  if (this.availableSlots >= this.totalSlots) {
-    throw new Error('Cannot release slot, already at maximum')
+useCaseSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    ret.id = ret._id.toString(),
+    delete ret._id,
+    delete ret.__v
   }
-  this.availableSlots += 1
-  await this.save()
-}
+});
 
-// Pre-save hook to set availableSlots on creation
-useCaseSchema.pre('save', function(next) {
-  if (this.isNew && this.availableSlots === undefined) {
-    this.availableSlots = this.totalSlots
-  }
-  next()
-})
-
-const UseCase = mongoose.model('UseCase', useCaseSchema)
-
-export default UseCase
+const UseCase = mongoose.model("UseCase", useCaseSchema);
+export default UseCase;

@@ -33,20 +33,10 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api', routes)
 
-// Health check
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    message: 'Server is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  })
-})
-
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
-    success: false,
+    status: false,
     message: 'Route not found'
   })
 })
