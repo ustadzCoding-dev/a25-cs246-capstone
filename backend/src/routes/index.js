@@ -1,6 +1,7 @@
 import express from 'express'
 import authRoutes from './authRoutes.js'
 import teamRoutes from './teamRoutes.js'
+import useCaseRoutes from './useCaseRoutes.js'
 
 const router = express.Router()
 
@@ -19,13 +20,14 @@ router.use('/auth', authRoutes)
 // Team routes
 router.use('/teams', teamRoutes)
 
+// Use case routes
+router.use('/use-cases', useCaseRoutes)
+
 // Placeholder routes - will be added later
 // import documentRoutes from './documentRoutes.js'
 // import timelineRoutes from './timelineRoutes.js'
-// import useCaseRoutes from './useCaseRoutes.js'
 // 
 // router.use('/documents', documentRoutes)
 // router.use('/timeline', timelineRoutes)
-// router.use('/usecases', useCaseRoutes)
 
 export default router

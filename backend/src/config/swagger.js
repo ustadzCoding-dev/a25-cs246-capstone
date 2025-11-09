@@ -263,6 +263,10 @@ const options = {
         description: 'Capstone team management',
       },
       {
+        name: 'Use Cases',
+        description: 'Capstone project use case management',
+      },
+      {
         name: 'Health',
         description: 'Health check endpoints',
       },
