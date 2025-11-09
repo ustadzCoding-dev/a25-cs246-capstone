@@ -116,8 +116,19 @@ export const registerTeam = async (req, res) => {
 
 export const getAllCapstoneGroups = async (req, res) => {
   try {
+    // Ambil query pagination
+    const { page = 1, limit = 10 } = req.query;
+
+    // Konversi ke integer
+    const currentPage = parseInt(page);
+
+    // Hitung total data
+    const totalData = await CapstoneGroup.countDocuments();
+
     // Mengambil data dari database
-    const capstoneGroups = await CapstoneGroup.find({});
+    const capstoneGroups = await CapstoneGroup.find({})
+    .skip((currentPage - 1) * limit)
+    .limit(parseInt(limit));
 
     // Pengecekan apakah capstone group ada
     if (!capstoneGroups || capstoneGroups.length === 0) {
@@ -125,7 +136,17 @@ export const getAllCapstoneGroups = async (req, res) => {
     }
 
     // Mengirimkan data capstone group
-    res.status(200).json({ capstoneGroups });
+    res.status(200).json({
+      success: true,
+      data: {
+        capstoneGroups,
+        pagination: {
+          currentPage,
+          totalItems: totalData,
+          limit: parseInt(limit),
+        }
+      }
+     });
   } catch (error) {
     if (error.name === "ValidationError") {
       return res.status(400).json({ message: error.message });
