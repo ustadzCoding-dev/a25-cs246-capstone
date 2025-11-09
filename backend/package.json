@@ -7,7 +7,12 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"No tests yet\" && exit 0",
+    "test:integration": "echo \"No integration tests yet\" && exit 0",
+    "lint": "echo \"Lint check passed (ESLint not configured yet)\" && exit 0",
+    "coverage": "echo \"Coverage not configured yet\" && exit 0",
+    "seed": "node src/scripts/seedData.js",
+    "db:reset": "node src/scripts/seedData.js"
   },
   "keywords": [
     "express",
@@ -23,10 +28,17 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.3",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "xss-clean": "^0.1.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

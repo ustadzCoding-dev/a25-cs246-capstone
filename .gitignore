@@ -60,6 +60,6 @@ uploads/
 public/uploads/
 
 # Package manager
-package-lock.json
+# package-lock.json - KEEP THIS for CI/CD
 yarn.lock
 pnpm-lock.yaml

@@ -1,0 +1,9 @@
+id,group_id,inviter_user_id,invitee_user_id,token,state,created_at,acted_at
+1,1,FUI0001,FUI0002,a8fmsg311,accepted,Sun Nov 02 2025 16:00:25 GMT+0700 (Western Indonesia Time),Mon Nov 03 2025 16:05:14 GMT+0700 (Western Indonesia Time)
+2,1,FUI0001,MITB0024,a8fmsg311,accepted,Sun Nov 02 2025 16:00:25 GMT+0700 (Western Indonesia Time),Mon Nov 03 2025 16:05:15 GMT+0700 (Western Indonesia Time)
+3,1,FUI0001,MITB0025,a8fmsg311,accepted,Sun Nov 02 2025 16:00:25 GMT+0700 (Western Indonesia Time),Mon Nov 03 2025 16:05:16 GMT+0700 (Western Indonesia Time)
+4,1,FUI0001,RUI0001,a8fmsg311,accepted,Sun Nov 02 2025 16:00:25 GMT+0700 (Western Indonesia Time),Mon Nov 03 2025 16:00:29 GMT+0700 (Western Indonesia Time)
+5,2,MUI0001,FBINUS0011,kgo943vf0,pending,Sun Nov 02 2025 16:07:36 GMT+0700 (Western Indonesia Time),
+6,2,MUI0001,FBINUS0012,kgo943vf0,pending,Sun Nov 02 2025 16:07:36 GMT+0700 (Western Indonesia Time),
+7,2,MUI0001,MUT0035,kgo943vf0,pending,Sun Nov 02 2025 16:07:36 GMT+0700 (Western Indonesia Time),
+8,2,MUI0001,RPB0059,kgo943vf0,accepted,Sun Nov 02 2025 16:07:36 GMT+0700 (Western Indonesia Time),Mon Nov 03 2025 16:07:45 GMT+0700 (Western Indonesia Time)

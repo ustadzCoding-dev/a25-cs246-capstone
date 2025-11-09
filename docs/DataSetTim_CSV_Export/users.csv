@@ -1,0 +1,62 @@
+id,batch_id,email,name,learning_path,role,university,learning_group
+ADMIN_1,asah-batch-1,admin_1@student.devacademy.id,Paramita Zulaika,,ADMIN,,
+FUI0001,asah-batch-1,fui0001@student.devacademy.id,Lutfan Gunawan,Front-End Web & Back-End with AI,STUDENT,Universitas Indonesia,F-01
+FUI0002,asah-batch-1,fui0002@student.devacademy.id,Darimin Jailani,Front-End Web & Back-End with AI,STUDENT,Universitas Indonesia,F-02
+FUI0003,asah-batch-1,fui0003@student.devacademy.id,Hana Yulianti,Front-End Web & Back-End with AI,STUDENT,Universitas Indonesia,F-03
+FITB0004,asah-batch-1,fitb0004@student.devacademy.id,Dinda Yulianti,Front-End Web & Back-End with AI,STUDENT,Institut Teknologi Bandung,F-01
+FITB0005,asah-batch-1,fitb0005@student.devacademy.id,Maras Dongoran,Front-End Web & Back-End with AI,STUDENT,Institut Teknologi Bandung,F-02
+FITB0006,asah-batch-1,fitb0006@student.devacademy.id,Sari Utami,Front-End Web & Back-End with AI,STUDENT,Institut Teknologi Bandung,F-03
+FUGM0007,asah-batch-1,fugm0007@student.devacademy.id,Sari Wijayanti,Front-End Web & Back-End with AI,STUDENT,Universitas Gadjah Mada,F-01
+FUGM0008,asah-batch-1,fugm0008@student.devacademy.id,Marsudi Saefullah,Front-End Web & Back-End with AI,STUDENT,Universitas Gadjah Mada,F-02
+FUGM0009,asah-batch-1,fugm0009@student.devacademy.id,Raden Natsir,Front-End Web & Back-End with AI,STUDENT,Universitas Gadjah Mada,F-03
+FBINUS0010,asah-batch-1,fbinus0010@student.devacademy.id,Damu Simanjuntak,Front-End Web & Back-End with AI,STUDENT,Universitas Bina Nusantara,F-04
+FBINUS0011,asah-batch-1,fbinus0011@student.devacademy.id,Icha Hasanah,Front-End Web & Back-End with AI,STUDENT,Universitas Bina Nusantara,F-05
+FBINUS0012,asah-batch-1,fbinus0012@student.devacademy.id,Agnes Widiastuti,Front-End Web & Back-End with AI,STUDENT,Universitas Bina Nusantara,F-06
+FUT0013,asah-batch-1,fut0013@student.devacademy.id,Artawan Santoso,Front-End Web & Back-End with AI,STUDENT,Universitas Terbuka,F-04
+FUT0014,asah-batch-1,fut0014@student.devacademy.id,Simon Simanjuntak,Front-End Web & Back-End with AI,STUDENT,Universitas Terbuka,F-05
+FUT0015,asah-batch-1,fut0015@student.devacademy.id,Ganjaran Mahendra,Front-End Web & Back-End with AI,STUDENT,Universitas Terbuka,F-06
+FUNJ0016,asah-batch-1,funj0016@student.devacademy.id,Zizi Suryatmi,Front-End Web & Back-End with AI,STUDENT,Universitas Negeri Jakarta,F-04
+FUNJ0017,asah-batch-1,funj0017@student.devacademy.id,Karman Samosir,Front-End Web & Back-End with AI,STUDENT,Universitas Negeri Jakarta,F-05
+FUNJ0018,asah-batch-1,funj0018@student.devacademy.id,Karimah Wijayanti,Front-End Web & Back-End with AI,STUDENT,Universitas Negeri Jakarta,F-06
+FPB0019,asah-batch-1,fpb0019@student.devacademy.id,Rafid Putra,Front-End Web & Back-End with AI,STUDENT,Politeknik Negeri Bandung,F-04
+FPB0020,asah-batch-1,fpb0020@student.devacademy.id,Dewi Astuti,Front-End Web & Back-End with AI,STUDENT,Politeknik Negeri Bandung,F-05
+MUI0021,asah-batch-1,mui0021@student.devacademy.id,Anastasia Utami,Machine Learning,STUDENT,Universitas Indonesia,F-01
+MUI0022,asah-batch-1,mui0022@student.devacademy.id,Daliono Saptono,Machine Learning,STUDENT,Universitas Indonesia,F-02
+MUI0023,asah-batch-1,mui0023@student.devacademy.id,Okta Hidayat,Machine Learning,STUDENT,Universitas Indonesia,F-03
+MITB0024,asah-batch-1,mitb0024@student.devacademy.id,Tantri Zulaika,Machine Learning,STUDENT,Institut Teknologi Bandung,F-01
+MITB0025,asah-batch-1,mitb0025@student.devacademy.id,Icha Riyanti,Machine Learning,STUDENT,Institut Teknologi Bandung,F-02
+MITB0026,asah-batch-1,mitb0026@student.devacademy.id,Makuta Sihombing,Machine Learning,STUDENT,Institut Teknologi Bandung,F-03
+MUGM0027,asah-batch-1,mugm0027@student.devacademy.id,Victoria Permata,Machine Learning,STUDENT,Universitas Gadjah Mada,F-01
+MUGM0028,asah-batch-1,mugm0028@student.devacademy.id,Hilda Handayani,Machine Learning,STUDENT,Universitas Gadjah Mada,F-02
+MUGM0029,asah-batch-1,mugm0029@student.devacademy.id,Ajiman Gunawan,Machine Learning,STUDENT,Universitas Gadjah Mada,F-03
+MBINUS0030,asah-batch-1,mbinus0030@student.devacademy.id,Paiman Saefullah,Machine Learning,STUDENT,Universitas Bina Nusantara,F-04
+MBINUS0031,asah-batch-1,mbinus0031@student.devacademy.id,Emas Salahudin,Machine Learning,STUDENT,Universitas Bina Nusantara,F-05
+MBINUS0032,asah-batch-1,mbinus0032@student.devacademy.id,Kambali Maryadi,Machine Learning,STUDENT,Universitas Bina Nusantara,F-06
+MUT0033,asah-batch-1,mut0033@student.devacademy.id,Teguh Mansur,Machine Learning,STUDENT,Universitas Terbuka,F-04
+MUT0034,asah-batch-1,mut0034@student.devacademy.id,Karimah Suartini,Machine Learning,STUDENT,Universitas Terbuka,F-05
+MUT0035,asah-batch-1,mut0035@student.devacademy.id,Jagapati Permadi,Machine Learning,STUDENT,Universitas Terbuka,F-06
+MUNJ0036,asah-batch-1,munj0036@student.devacademy.id,Ida Palastri,Machine Learning,STUDENT,Universitas Negeri Jakarta,F-04
+MUNJ0037,asah-batch-1,munj0037@student.devacademy.id,Hana Aryani,Machine Learning,STUDENT,Universitas Negeri Jakarta,F-05
+MUNJ0038,asah-batch-1,munj0038@student.devacademy.id,Harja Budiman,Machine Learning,STUDENT,Universitas Negeri Jakarta,F-06
+MPB0039,asah-batch-1,mpb0039@student.devacademy.id,Fitria Agustina,Machine Learning,STUDENT,Politeknik Negeri Bandung,F-04
+MPB0040,asah-batch-1,mpb0040@student.devacademy.id,Uchita Usada,Machine Learning,STUDENT,Politeknik Negeri Bandung,F-05
+RUI0041,asah-batch-1,rui0041@student.devacademy.id,Cahyadi Putra,React & Back-End with AI,STUDENT,Universitas Indonesia,F-01
+RUI0042,asah-batch-1,rui0042@student.devacademy.id,Cayadi Hakim,React & Back-End with AI,STUDENT,Universitas Indonesia,F-02
+RUI0043,asah-batch-1,rui0043@student.devacademy.id,Yulia Palastri,React & Back-End with AI,STUDENT,Universitas Indonesia,F-03
+RITB0044,asah-batch-1,ritb0044@student.devacademy.id,Diana Uyainah,React & Back-End with AI,STUDENT,Institut Teknologi Bandung,F-01
+RITB0045,asah-batch-1,ritb0045@student.devacademy.id,Harjaya Dongoran,React & Back-End with AI,STUDENT,Institut Teknologi Bandung,F-02
+RITB0046,asah-batch-1,ritb0046@student.devacademy.id,Siska Palastri,React & Back-End with AI,STUDENT,Institut Teknologi Bandung,F-03
+RUGM0047,asah-batch-1,rugm0047@student.devacademy.id,Putri Yuliarti,React & Back-End with AI,STUDENT,Universitas Gadjah Mada,F-01
+RUGM0048,asah-batch-1,rugm0048@student.devacademy.id,Cakrawala Prakasa,React & Back-End with AI,STUDENT,Universitas Gadjah Mada,F-02
+RUGM0049,asah-batch-1,rugm0049@student.devacademy.id,Endra Hutasoit,React & Back-End with AI,STUDENT,Universitas Gadjah Mada,F-03
+RBINUS0050,asah-batch-1,rbinus0050@student.devacademy.id,Sadina Rahimah,React & Back-End with AI,STUDENT,Universitas Bina Nusantara,F-04
+RBINUS0051,asah-batch-1,rbinus0051@student.devacademy.id,Oni Permata,React & Back-End with AI,STUDENT,Universitas Bina Nusantara,F-05
+RBINUS0052,asah-batch-1,rbinus0052@student.devacademy.id,Hana Padmasari,React & Back-End with AI,STUDENT,Universitas Bina Nusantara,F-06
+RUT0053,asah-batch-1,rut0053@student.devacademy.id,Ani Haryanti,React & Back-End with AI,STUDENT,Universitas Terbuka,F-04
+RUT0054,asah-batch-1,rut0054@student.devacademy.id,Panca Adriansyah,React & Back-End with AI,STUDENT,Universitas Terbuka,F-05
+RUT0055,asah-batch-1,rut0055@student.devacademy.id,Asirwanda Halim,React & Back-End with AI,STUDENT,Universitas Terbuka,F-06
+RUNJ0056,asah-batch-1,runj0056@student.devacademy.id,Rendy Nugroho,React & Back-End with AI,STUDENT,Universitas Negeri Jakarta,F-04
+RUNJ0057,asah-batch-1,runj0057@student.devacademy.id,Jumadi Waluyo,React & Back-End with AI,STUDENT,Universitas Negeri Jakarta,F-05
+RUNJ0058,asah-batch-1,runj0058@student.devacademy.id,Restu Widiastuti,React & Back-End with AI,STUDENT,Universitas Negeri Jakarta,F-06
+RPB0059,asah-batch-1,rpb0059@student.devacademy.id,Almira Purnawati,React & Back-End with AI,STUDENT,Politeknik Negeri Bandung,F-04
+RPB0060,asah-batch-1,rpb0060@student.devacademy.id,Ina Anggraini,React & Back-End with AI,STUDENT,Politeknik Negeri Bandung,F-05

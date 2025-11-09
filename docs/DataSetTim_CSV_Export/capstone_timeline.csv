@@ -1,0 +1,6 @@
+id,batch_id,title,start_at,end_at,description,order_idx
+1,asah-batch-1,Registrasi Grup Capstone,Mon Sep 15 2025 00:00:00 GMT+0700 (Western Indonesia Time),Fri Oct 10 2025 00:00:00 GMT+0700 (Western Indonesia Time),Peserta melakukan registrasi grup capstone melalui Academic Program Dashboard,1
+2,asah-batch-1,Pengumuman Final Grup Capstone,Fri Oct 10 2025 00:00:00 GMT+0700 (Western Indonesia Time),Fri Oct 10 2025 00:00:00 GMT+0700 (Western Indonesia Time),Tim program mengumumkan final grup capstone di Discord, Email, dan Academic Program Dashboard,2
+3,asah-batch-1,Penyusunan Project Plan,Fri Oct 10 2025 00:00:00 GMT+0700 (Western Indonesia Time),Fri Oct 17 2025 00:00:00 GMT+0700 (Western Indonesia Time),,3
+4,asah-batch-1,Pengerjaan Proyek Capstone,Mon Oct 13 2025 00:00:00 GMT+0700 (Western Indonesia Time),Fri Dec 05 2025 00:00:00 GMT+0700 (Western Indonesia Time),Peserta mengerjakan proyek capstone,4
+5,asah-batch-1,Presentasi Hasil Proyek Capstone,Mon Dec 08 2025 00:00:00 GMT+0700 (Western Indonesia Time),Fri Dec 12 2025 00:00:00 GMT+0700 (Western Indonesia Time),,5

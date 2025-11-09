@@ -1,0 +1,6 @@
+id,batch_id,is_active,is_required,created_at,criteria,user_attribute,attribute_value,operator,value
+1,asah-batch-1,true,true,Mon Sep 01 2025 15:24:42 GMT+0700 (Western Indonesia Time),GROUP_SIZE,,,EQUAL_TO,5
+2,asah-batch-1,true,true,Mon Sep 01 2025 15:24:42 GMT+0700 (Western Indonesia Time),USER_ATTRIBUTE_COUNT,learning_path,Front-End Web & Back-End with AI,EQUAL_TO,2
+3,asah-batch-1,true,true,Mon Sep 01 2025 15:24:42 GMT+0700 (Western Indonesia Time),USER_ATTRIBUTE_COUNT,learning_path,React & Back-End with AI,EQUAL_TO,1
+4,asah-batch-1,true,true,Mon Sep 01 2025 15:24:42 GMT+0700 (Western Indonesia Time),USER_ATTRIBUTE_COUNT,learning_path,Machine Learning,EQUAL_TO,2
+5,asah-batch-1,true,true,Mon Sep 01 2025 15:24:42 GMT+0700 (Western Indonesia Time),SAME_USER_ATTRIBUTE,university,,AT_MOST,3

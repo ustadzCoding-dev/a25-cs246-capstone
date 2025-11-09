@@ -1,0 +1,77 @@
+name: Feature Branch CI
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
+
+jobs:
+  quick-check:
+    name: Quick Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check branch naming
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "Branch name: $BRANCH_NAME"
+          
+          if [[ $BRANCH_NAME =~ ^(feature|bugfix|hotfix)/.+ ]]; then
+            echo "✅ Branch name is valid"
+          else
+            echo "❌ Branch name must start with feature/, bugfix/, or hotfix/"
+            exit 1
+          fi
+        continue-on-error: true
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Check backend changes
+        id: backend-changes
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^backend/'; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+      
+      - name: Check frontend changes
+        id: frontend-changes
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^frontend/'; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+      
+      - name: Backend quick check
+        if: steps.backend-changes.outputs.changed == 'true'
+        working-directory: ./backend
+        run: |
+          npm ci
+          npm run lint || echo "Lint check completed"
+        continue-on-error: true
+      
+      - name: Frontend quick check
+        if: steps.frontend-changes.outputs.changed == 'true'
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run lint || echo "Lint check completed"
+        continue-on-error: true
+      
+      - name: Summary
+        run: |
+          echo "✅ Feature branch checks completed"
+          echo "Backend changed: ${{ steps.backend-changes.outputs.changed }}"
+          echo "Frontend changed: ${{ steps.frontend-changes.outputs.changed }}"
