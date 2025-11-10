@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 // MENYIMPAN DATA LEARNING GROUP
 const learningGroupSchema = new mongoose.Schema({
   // Learning Group ID
-  // Contoh: "ASAH-2025-01"
+  // Contoh: "FB-04"
   learningGroupId: {
     type: String,
     required: [true, 'Learning group ID is required'],
@@ -11,19 +11,16 @@ const learningGroupSchema = new mongoose.Schema({
     trim: true,
     uppercase: true
   },
-  // Group Name
-  // Contoh: "Asah Frontend Batch 1"
-  name: {
-    type: String,
-    required: [true, 'Group name is required'],
-    trim: true
-  },
   // Cohort
-  // Contoh: "Asah 2025 Batch 1"
+  // Contoh: "Front-End Web & Back-End with AI"
   cohort: {
     type: String,
-    required: [true, 'Cohort is required'],
-    trim: true
+    enum: [
+      'Front-End Web & Back-End with AI',
+      'React & Back-End with AI',
+      'Machine Learning'
+    ],
+    required: [true, 'Learning path is required']
   },
   // Mentor Info
   mentorName: {

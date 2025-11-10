@@ -35,6 +35,13 @@ import {
   updateTimeline,
   deleteTimeline,
  } from "../controllers/timelineController.js";
+ import {
+  getAllLearningGroups,
+  getLearningGroupById,
+  addLearningGroup,
+  updateLearningGroup,
+  deleteLearningGroup
+} from "../controllers/learningGroupController.js";
 
 const router = express.Router();
 
@@ -83,5 +90,12 @@ router.get("/timelines/overdue", protect, getOverdueTimeline);
 router.post("/timeline/add", protect, addTimeline);
 router.put("/timeline/update/:id", protect, updateTimeline);
 router.delete("/timeline/:id/delete", protect, deleteTimeline);
+
+// Learning Groups
+router.get("/learning-groups", protect, getAllLearningGroups);
+router.get("/learning-group/:id", protect, getLearningGroupById);
+router.post("/learning-group/add", protect, addLearningGroup);
+router.put("/learning-group/update/:id", protect, updateLearningGroup);
+router.delete("/learning-group/:id/delete", protect, deleteLearningGroup);
 
 export default router;

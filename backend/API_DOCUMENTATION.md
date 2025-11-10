@@ -118,7 +118,7 @@ POST: /api/auth/register
 ### Get Current User Profile
 
 ```http
-GET: /api/users/profile
+GET: /api/user/profile
 ```
 
 **Headers:** `Authorization: Bearer <token>`
@@ -145,7 +145,7 @@ GET: /api/users/profile
 ### Update User Profile
 
 ```http
-PUT: /api/users/profile
+PUT: /api/user/profile/update
 ```
 
 **Headers:** `Authorization: Bearer <token>`
@@ -189,6 +189,8 @@ PUT: /api/users/profile
 GET: /api/users
 ```
 
+**Headers:** `Authorization: Bearer <token>`
+
 **Query Parameters:**
 
 - `role` - Filter by role (student, admin, mentor)
@@ -222,6 +224,8 @@ GET: /api/users
 POST: /api/capstone-group/add
 ```
 
+**Headers:** `Authorization: Bearer <token>`
+
 **Request Body:**
 
 ```json
@@ -242,7 +246,7 @@ POST: /api/capstone-group/add
 {
   "success": true,
   "data": {
-    "_id": "6910d07b416556324d0eb025",
+    "id": "6910d07b41...",
     "capstoneGroupId": "TI-015",
     "useCaseId": "690eb63cbf...",
     "teamName": "example",
@@ -251,8 +255,7 @@ POST: /api/capstone-group/add
     "validatedBy": null,
     "validatedAt": null,
     "rejectionReason": null,
-    "submittedAt": "2025-11-09T17:33:47.416Z",
-    "__v": 0
+    "submittedAt": "2025-11-09T17:33:47.416Z"
   }
 }
 ```
@@ -262,6 +265,7 @@ POST: /api/capstone-group/add
 ```http
 GET: /api/capstone-groups
 ```
+**Headers:** `Authorization: Bearer <token>`
 
 **Query Parameters:**
 
@@ -293,6 +297,8 @@ GET: /api/capstone-groups
 GET: /api/capstone-group/:id
 ```
 
+**Headers:** `Authorization: Bearer <token>`
+
 **Response (200 OK):**
 
 ```json
@@ -318,6 +324,8 @@ GET: /api/capstone-group/:id
 ```http
 PUT: /api/capstone-group/update/:id
 ```
+
+**Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 
@@ -348,6 +356,8 @@ PUT: /api/capstone-group/update/:id
 POST: /api/capstone-group/:id/approve
 ```
 
+**Headers:** `Authorization: Bearer <token>`
+
 **Response (200 OK):**
 
 ```json
@@ -367,6 +377,8 @@ POST: /api/capstone-group/:id/approve
 ```http
 POST: /api/capstone-group/:id/reject
 ```
+
+**Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 
@@ -397,6 +409,8 @@ POST: /api/capstone-group/:id/reject
 DELETE: /api/capstone-group/:id/delete
 ```
 
+**Headers:** `Authorization: Bearer <token>`
+
 **Response (200 OK):**
 
 ```json
@@ -415,6 +429,8 @@ DELETE: /api/capstone-group/:id/delete
 ```http
 GET: /api/usecases
 ```
+
+**Headers:** `Authorization: Bearer <token>`
 
 **Query Parameters:**
 
@@ -443,6 +459,8 @@ GET: /api/usecases
 GET: /api/usecase/:id
 ```
 
+**Headers:** `Authorization: Bearer <token>`
+
 **Response (200 OK):**
 
 ```json
@@ -469,6 +487,8 @@ GET: /api/usecase/:id
 ```http
 POST: /api/usecase/add
 ```
+
+**Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 
@@ -513,6 +533,8 @@ POST: /api/usecase/add
 GET: /api/documents
 ```
 
+**Headers:** `Authorization: Bearer <token>`
+
 **Query Parameters:**
 
 - `category` - Filter by category (guideline, template, reference, submission)
@@ -556,6 +578,8 @@ GET: /api/documents
 GET /api/document/:id
 ```
 
+**Headers:** `Authorization: Bearer <token>`
+
 **Response (200 OK):**
 
 ```json
@@ -584,6 +608,8 @@ GET /api/document/:id
 ```http
 POST: /api/document/add
 ```
+
+**Headers:** `Authorization: Bearer <token>`
 
 **Form Data:**
 
@@ -635,6 +661,8 @@ POST: /api/document/add
 ```http
 GET /api/documents/:id/download
 ```
+
+**Headers:** `Authorization: Bearer <token>`
 
 **Response:** File download
 
@@ -823,7 +851,7 @@ PUT: /api/timeline/update/:id
 ### Delete Timeline Item (Admin Only)
 
 ```http
-DELETE /api/timeline/:id/delete
+DELETE: /api/timeline/:id/delete
 ```
 
 **Response (200 OK):**
@@ -842,7 +870,7 @@ DELETE /api/timeline/:id/delete
 ### Get All Learning Groups
 
 ```http
-GET /api/learning-groups
+GET: /api/learning-groups
 ```
 
 **Response (200 OK):**
@@ -850,26 +878,23 @@ GET /api/learning-groups
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439060",
-      "learningGroupId": "ASAH-2025-01",
-      "name": "Group Alpha",
-      "cohort": "Asah 2025 Batch 1",
-      "mentor": "Mentor Name",
-      "memberCount": 25,
-      "maxMembers": 30,
-      "availableSlots": 5,
-      "isActive": true
+  "data": {
+    "learningGroups": [
+      {...}
+    ],
+    "pagination": {
+      "currentPage": 1,
+      "totalItems": 1,
+      "limit": 10
     }
-  ]
+  }
 }
 ```
 
 ### Get Learning Group by ID
 
 ```http
-GET /api/learning-groups/:id
+GET: /api/learning-groups/:id
 ```
 
 **Response (200 OK):**
@@ -893,6 +918,92 @@ GET /api/learning-groups/:id
     "startDate": "2025-10-01T00:00:00.000Z",
     "endDate": "2025-12-31T23:59:59.000Z"
   }
+}
+```
+
+### Create Learning Group (Admin Only)
+
+```http
+POST: /api/learning-groups/add
+```
+
+**Request Body:**
+
+```json
+{
+    "cohort" : "Front-End Web & Back-End with AI",
+    "mentorName" : "example",
+    "maxMember": 20
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+    "success": true,
+    "message": "Learning group created successfully",
+    "data": {
+      "id": "6912106995...",
+        "learningGroupId": "FB-XX",
+        "cohort": "Front-End Web & Back-End with AI",
+        "mentorName": "example",
+        "maxMembers": 20,
+        "currentMembers": 0,
+        "isActive": true,
+        "createdAt": "2025-11-10T16:18:49.393Z",
+        "updatedAt": "2025-11-10T16:18:49.393Z",
+    }
+}
+```
+
+### Update Learning Group (Admin Only)
+
+```http
+PUT: /api/learning-groups/update/:id
+```
+
+**Request Body:**
+
+```json
+{
+  "mentorName": "exampleUpdate"
+  // All data can be edited
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+    "success": true,
+    "message": "Learning group created successfully",
+    "data": {
+      "id": "6912106995...",
+        "learningGroupId": "FB-XX",
+        "cohort": "Front-End Web & Back-End with AI",
+        "mentorName": "exampleUpdate",
+        "maxMembers": 20,
+        "currentMembers": 0,
+        "isActive": true,
+        "createdAt": "2025-11-10T16:18:49.393Z",
+        "updatedAt": "2025-11-10T16:18:49.393Z",
+    }
+}
+```
+
+### Delete Learning Group (Admin Only)
+
+```http
+DELETE: /api/learning-group/:id/delete
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "success": true,
+  "message": "Timeline item deleted successfully"
 }
 ```
 
