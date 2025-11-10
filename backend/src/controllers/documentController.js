@@ -136,3 +136,33 @@ export const addDocument = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
+export const deleteDocument = async (req, res) => {
+  try {
+    // Hanya admin yang bisa menghapus dokumen
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    // Mengambil ID dokumen dari parameter URL
+    const { id } = req.params;
+
+    // Mencari dan menghapus dokumen berdasarkan ID
+    const document = await Document.findByIdAndDelete(id);
+    if (!document) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    // Mengirimkan response sukses
+    res.status(200).json({
+      success: true,
+      message: "Document deleted successfully"
+    });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.log('Error in deleteDocument', error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}

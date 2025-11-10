@@ -13,6 +13,7 @@ import {
   approveCapstoneGroup,
   rejectCapstoneGroup,
   deleteCapstoneGroup,
+  getCapstoneGroupById,
 } from "../controllers/capstoneGroupController.js";
 import {
   getAllUseCases,
@@ -24,6 +25,7 @@ import {
   getAllDocuments,
   getDocumentById,
   addDocument,
+  deleteDocument,
 } from "../controllers/documentController.js";
 
 const router = express.Router();
@@ -49,6 +51,7 @@ router.put("/user/profile/update", protect, updateUserProfile);
 // Capstone Groups
 router.post("/capstone-group/add", protect, registerTeam);
 router.get("/capstone-groups", protect, getAllCapstoneGroups);
+router.get("/capstone-group/:id", protect, getCapstoneGroupById);
 router.put("/capstone-group/update/:id", protect, updateCapstoneGroup);
 router.put("/capstone-group/:id/approve", protect, approveCapstoneGroup);
 router.put("/capstone-group/:id/reject", protect, rejectCapstoneGroup);
@@ -63,5 +66,7 @@ router.post("/usecase/add", protect, addUseCase);
 router.get("/documents", protect, getAllDocuments);
 router.get("/document/:id", protect, getDocumentById);
 router.post("/document/add", protect, addDocument);
+router.delete("/document/:id/delete", protect, deleteDocument);
+
 
 export default router;

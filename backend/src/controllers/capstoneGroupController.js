@@ -352,3 +352,29 @@ export const deleteCapstoneGroup = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
+
+export const getCapstoneGroupById = async (req, res) => {
+  try {
+    // Pastikan user login
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Mengambil ID user dari parameter
+    const {id} = req.params;
+
+    // Cari capstone group berdasarkan ID user
+    const capstoneGroup = await CapstoneGroup.findById(id);
+    if (!capstoneGroup) {
+      return res.status(404).json({ message: "Capstone group not found for this user" });
+    }
+
+    res.status(200).json({ success: true, data: capstoneGroup });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.log("Error in getCapstoneGroupsById", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}

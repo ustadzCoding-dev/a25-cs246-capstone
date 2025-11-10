@@ -216,7 +216,7 @@ GET: /api/users
 
 ## 👨‍👩‍👧‍👦 Capstone Groups (Teams)
 
-### Create Team
+### Create Capstone Group
 
 ```http
 POST: /api/capstone-group/add
@@ -257,7 +257,7 @@ POST: /api/capstone-group/add
 }
 ```
 
-### Get All Teams
+### Get All Capstone Groups
 
 ```http
 GET: /api/capstone-groups
@@ -287,10 +287,10 @@ GET: /api/capstone-groups
 }
 ```
 
-### Get Team by ID
+### Get Capstone Group by ID
 
 ```http
-GET /api/capstone-group/:id
+GET: /api/capstone-group/:id
 ```
 
 **Response (200 OK):**
@@ -299,13 +299,16 @@ GET /api/capstone-group/:id
 {
   "success": true,
   "data": {
-    "_id": "507f1f77bc...",
+    "_id": "6910d07b41...",
     "capstoneGroupId": "TI-XXX",
-    "useCaseId": "690eb63cbf9...",
-    "teamName": "Example Name",
-    "membersUserId": ["690f1c4586cb...", "690f4546de42..."],
+    "useCaseId": "690eb63cbf...",
+    "teamName": "example",
+    "membersUserId": ["690f50f35a...", "690f51065a..."],
     "status": "pending",
-    "submittedAt": "2025-11-07T00:00:00.000Z"
+    "validatedBy": null,
+    "validatedAt": null,
+    "rejectionReason": null,
+    "submittedAt": "2025-11-09T17:33:47.416Z"
   }
 }
 ```
@@ -313,7 +316,7 @@ GET /api/capstone-group/:id
 ### Update Team
 
 ```http
-PUT /api/teams/:id
+PUT: /api/capstone-group/update/:id
 ```
 
 **Request Body:**
@@ -321,7 +324,11 @@ PUT /api/teams/:id
 ```json
 {
   "teamName": "exampleUpdate",
-  "updateUserId": ["dicodingID"]
+  "updateUserId": [
+    "690f50f35a...",
+    "690f51065a...",
+    ...
+  ]
 }
 ```
 
@@ -338,7 +345,7 @@ PUT /api/teams/:id
 ### Approve Team (Admin Only)
 
 ```http
-POST /api/teams/:id/approve
+POST: /api/capstone-group/:id/approve
 ```
 
 **Response (200 OK):**
@@ -346,7 +353,7 @@ POST /api/teams/:id/approve
 ```json
 {
   "success": true,
-  "message": "Team approved successfully",
+  "message": "Capstone group approved successfully",
   "data": {
     "status": "approved",
     "validatedBy": "507f1f77bcf...",
@@ -358,7 +365,7 @@ POST /api/teams/:id/approve
 ### Reject Team (Admin Only)
 
 ```http
-POST /api/teams/:id/reject
+POST: /api/capstone-group/:id/reject
 ```
 
 **Request Body:**
@@ -387,7 +394,7 @@ POST /api/teams/:id/reject
 ### Delete Team
 
 ```http
-DELETE /api/teams/:id
+DELETE: /api/capstone-group/:id/delete
 ```
 
 **Response (200 OK):**
@@ -406,7 +413,7 @@ DELETE /api/teams/:id
 ### Get All Use Cases
 
 ```http
-GET /api/usecases
+GET: /api/usecases
 ```
 
 **Query Parameters:**
@@ -433,7 +440,7 @@ GET /api/usecases
 ### Get Use Case by ID
 
 ```http
-GET /api/usecases/:id
+GET: /api/usecase/:id
 ```
 
 **Response (200 OK):**
@@ -460,15 +467,15 @@ GET /api/usecases/:id
 ### Create Use Case (Admin Only)
 
 ```http
-POST /api/usecases
+POST: /api/usecase/add
 ```
 
 **Request Body:**
 
 ```json
 {
-  "title": "New Use Case",
-  "description": "Description here",
+  "title": "example",
+  "description": "example",
   "partner": "Partner Name",
   "totalSlots": 5,
   "difficulty": "intermediate"
@@ -503,7 +510,7 @@ POST /api/usecases
 ### Get All Documents
 
 ```http
-GET /api/documents
+GET: /api/documents
 ```
 
 **Query Parameters:**
@@ -546,7 +553,7 @@ GET /api/documents
 ### Get Document by ID
 
 ```http
-GET /api/documents/:id
+GET /api/document/:id
 ```
 
 **Response (200 OK):**
@@ -555,17 +562,19 @@ GET /api/documents/:id
 {
   "success": true,
   "data": {
-    "_id": "507f1f77bcf86cd799439040",
-    "title": "Capstone Guidelines",
-    "description": "Complete guidelines",
-    "fileName": "guidelines.pdf",
-    "fileUrl": "https://storage.example.com/guidelines.pdf",
-    "fileSize": 2048576,
-    "fileType": "application/pdf",
+    "id": "690f9e1d62...",
+    "title": "example",
+    "description": "example",
+    "fileName": "example.pdf",
+    "fileUrl": "example.com",
     "category": "guideline",
     "visibility": "public",
-    "downloadCount": 150,
-    "uploader": { ... }
+    "uploadedBy": "690f1c4586...",
+    "downloadCount": 0,
+    "lastDownloadedAt": null,
+    "isActive": true,
+    "createdAt": "2025-11-08T19:46:37.571Z",
+    "updatedAt": "2025-11-08T19:46:37.571Z"
   }
 }
 ```
@@ -573,7 +582,7 @@ GET /api/documents/:id
 ### Upload Document (Admin Only)
 
 ```http
-POST /api/documents
+POST: /api/document/add
 ```
 
 **Form Data:**
@@ -651,7 +660,7 @@ DELETE /api/documents/:id
 ### Get All Timeline Items
 
 ```http
-GET /api/timeline
+GET: /api/timeline
 ```
 
 **Query Parameters:**
