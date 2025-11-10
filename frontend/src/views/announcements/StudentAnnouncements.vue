@@ -1,0 +1,221 @@
+<template>
+  <DashboardLayout :user="user" :menu-items="studentMenuItems" @logout="handleLogout">
+    <div class="space-y-6">
+      <!-- Page Header -->
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Pengumuman</h1>
+        <p class="mt-2 text-gray-600">Lihat pengumuman terbaru dari admin</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <BaseSearch
+            v-model="searchQuery"
+            placeholder="Cari pengumuman..."
+          />
+          
+          <BaseSelect
+            v-model="filterPriority"
+            :options="priorityOptions"
+            placeholder="Semua Prioritas"
+          />
+        </div>
+      </div>
+
+      <!-- Important Announcements Banner -->
+      <div v-if="importantAnnouncements.length > 0" class="bg-danger-50 border-l-4 border-danger-500 p-6 rounded-lg">
+        <div class="flex items-start">
+          <svg class="w-6 h-6 text-danger-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div class="flex-1">
+            <h3 class="text-base font-semibold text-danger-900 mb-2">
+              Pengumuman Penting ({{ importantAnnouncements.length }})
+            </h3>
+            <p class="text-sm text-danger-700">
+              Ada {{ importantAnnouncements.length }} pengumuman penting yang perlu Anda perhatikan.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcements List -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold text-gray-900">Semua Pengumuman</h2>
+            <span class="text-sm text-gray-500">{{ filteredAnnouncements.length }} pengumuman</span>
+          </div>
+        </div>
+
+        <div v-if="loading" class="p-12">
+          <BaseSpinner centered size="lg" label="Memuat pengumuman..." />
+        </div>
+
+        <div v-else-if="filteredAnnouncements.length === 0" class="p-12 text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+          </svg>
+          <p class="mt-2 text-sm text-gray-500">
+            {{ searchQuery || filterPriority ? 'Tidak ada pengumuman yang sesuai' : 'Belum ada pengumuman' }}
+          </p>
+        </div>
+
+        <div v-else class="divide-y divide-gray-200">
+          <div
+            v-for="announcement in filteredAnnouncements"
+            :key="announcement._id"
+            class="p-6 hover:bg-gray-50 transition-colors duration-200"
+          >
+            <AnnouncementCard
+              :title="announcement.title"
+              :content="announcement.content"
+              :date="announcement.date"
+              :priority="announcement.priority"
+              :can-delete="false"
+              class="!bg-transparent !border-0 !shadow-none !p-0"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination (if needed) -->
+      <div v-if="totalPages > 1" class="flex justify-center">
+        <nav class="inline-flex rounded-md shadow-sm -space-x-px">
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            @click="currentPage = page"
+            :class="[
+              'px-4 py-2 border text-sm font-medium',
+              page === currentPage
+                ? 'z-10 bg-primary-50 border-primary-500 text-primary-600'
+                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+            ]"
+          >
+            {{ page }}
+          </button>
+        </nav>
+      </div>
+    </div>
+  </DashboardLayout>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/authStore'
+import DashboardLayout from '../../components/layout/DashboardLayout.vue'
+import AnnouncementCard from '../../components/display/AnnouncementCard.vue'
+import BaseSearch from '../../components/base/BaseSearch.vue'
+import BaseSelect from '../../components/base/BaseSelect.vue'
+import BaseSpinner from '../../components/base/BaseSpinner.vue'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+const user = computed(() => authStore.user)
+const loading = ref(false)
+
+const searchQuery = ref('')
+const filterPriority = ref('')
+const currentPage = ref(1)
+const itemsPerPage = 10
+
+const announcements = ref([
+  {
+    _id: '1',
+    title: 'Deadline Submission Minggu 3',
+    content: 'Harap submit laporan kemajuan minggu 3 sebelum tanggal 15 November 2025. Pastikan semua dokumen lengkap dan sesuai dengan template yang telah disediakan.',
+    date: '2025-11-10',
+    priority: 'important'
+  },
+  {
+    _id: '2',
+    title: 'Sesi Mentoring Pekan Ini',
+    content: 'Sesi mentoring akan diadakan pada hari Rabu, 13 November 2025 pukul 19:00 WIB. Link Zoom akan dikirimkan via email 30 menit sebelum sesi dimulai. Harap hadir tepat waktu.',
+    date: '2025-11-09',
+    priority: 'normal'
+  },
+  {
+    _id: '3',
+    title: 'Update Template Laporan',
+    content: 'Template laporan akhir telah diperbarui dengan format baru. Silakan download versi terbaru dari halaman Dokumen. Template lama tidak akan diterima.',
+    date: '2025-11-08',
+    priority: 'normal'
+  },
+  {
+    _id: '4',
+    title: 'Pengingat: Code Review Minggu Depan',
+    content: 'Code review untuk semua tim akan dilakukan minggu depan. Pastikan repository GitHub tim Anda sudah up-to-date dan dokumentasi lengkap.',
+    date: '2025-11-07',
+    priority: 'important'
+  },
+  {
+    _id: '5',
+    title: 'Tips: Best Practices Development',
+    content: 'Jangan lupa untuk selalu melakukan commit secara berkala, gunakan branch strategy yang benar, dan tulis commit message yang deskriptif. Happy coding!',
+    date: '2025-11-06',
+    priority: 'normal'
+  }
+])
+
+const priorityOptions = [
+  { value: '', label: 'Semua Prioritas' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'important', label: 'Penting' }
+]
+
+const studentMenuItems = [
+  { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
+  { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
+  { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
+  { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
+  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] }
+]
+
+const filteredAnnouncements = computed(() => {
+  let result = announcements.value
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(a =>
+      a.title.toLowerCase().includes(query) ||
+      a.content.toLowerCase().includes(query)
+    )
+  }
+
+  if (filterPriority.value) {
+    result = result.filter(a => a.priority === filterPriority.value)
+  }
+
+  // Sort by date (newest first)
+  result = result.sort((a, b) => new Date(b.date) - new Date(a.date))
+
+  return result
+})
+
+const importantAnnouncements = computed(() => {
+  return announcements.value.filter(a => a.priority === 'important')
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredAnnouncements.value.length / itemsPerPage)
+})
+
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/login')
+}
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    // TODO: Fetch announcements from API
+    await new Promise(resolve => setTimeout(resolve, 500))
+  } finally {
+    loading.value = false
+  }
+})
+</script>
