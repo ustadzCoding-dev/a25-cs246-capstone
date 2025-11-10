@@ -59,7 +59,7 @@ src/
 Create `.env` file:
 
 ```env
-PORT=3000
+PORT=8000
 NODE_ENV=development
 MONGODB_URI=mongodb://localhost:27017/dicoding-capstone
 JWT_SECRET=your-secret-key-here
@@ -71,18 +71,16 @@ CORS_ORIGIN=http://localhost:5173
 
 ### Health Check
 
-```
-GET /health
-GET /api/health
+```http
+GET: /api/health
 ```
 
 **Response:**
 ```json
 {
-  "status": "ok",
-  "message": "Server is running",
-  "timestamp": "2025-11-07T00:15:00.000Z",
-  "environment": "development"
+"success": true,
+"message": "API is running",
+"timestamp": "2025-11-10T18:29:48.077Z"
 }
 ```
 
@@ -90,11 +88,13 @@ GET /api/health
 
 Routes will be added based on ERD design:
 
-- `/api/capstone-groups` - Team management
+- `/api/auth` - Auth management
+- `/api/capstone-groups` - Capstone group management
 - `/api/documents` - Document management
+- `/api/learning-groups` - Learning group management
 - `/api/timelines` - Timeline management
+- `/api/usecases` - Usecase management
 - `/api/users` - User management
-- `/api/auth` - Authentication
 
 ## 🗄️ Database
 
@@ -159,56 +159,13 @@ Set these in Railway dashboard:
 - `JWT_SECRET=<strong-secret-key>`
 - `CORS_ORIGIN=<your-frontend-url>`
 
-## 📝 Development Notes
-
-### Models (To be added after ERD)
-
-Example structure:
-```javascript
-// models/Team.js
-import mongoose from 'mongoose'
-
-const teamSchema = new mongoose.Schema({
-  name: String,
-  members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  status: { type: String, enum: ['pending', 'approved', 'rejected'] }
-}, { timestamps: true })
-
-export default mongoose.model('Team', teamSchema)
-```
-
-### Controllers (To be added)
-
-Example structure:
-```javascript
-// controllers/teamController.js
-export const createTeam = async (req, res, next) => {
-  try {
-    // Logic here
-    res.status(201).json({ success: true, data: team })
-  } catch (error) {
-    next(error)
-  }
-}
-```
-
-### Validators (To be added)
-
-Example structure:
-```javascript
-// validators/teamValidator.js
-import Joi from 'joi'
-
-export const createTeamSchema = Joi.object({
-  name: Joi.string().required(),
-  members: Joi.array().items(Joi.string()).min(1).required()
-})
-```
-
 ## 👥 Team
 
 Tim A25-CS246 - Dicoding Indonesia x Accenture
 
-## 📄 License
+**Happy Testing! 🧪**
 
-MIT
+**Last Updated:** 11 November 2025
+
+**Maintained by:** Tim A25-CS246
+
