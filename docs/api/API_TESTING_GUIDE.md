@@ -1,7 +1,7 @@
 # API Testing Guide
 
-**Project:** Dicoding Academic Dashboard - DC-09  
-**Version:** 1.0.0  
+**Project:** Dicoding Academic Dashboard - DC-09
+**Version:** 1.0.0
 **Last Updated:** 8 November 2025
 
 ---
@@ -20,7 +20,7 @@ npm run dev
 [INFO] Database: dicoding-capstone
 [INFO] Server running on port 3000
 [INFO] Environment: development
-[INFO] Health check: http://localhost:3000/health
+[INFO] Health check: http://localhost:8000/health
 ```
 
 ### **2. MongoDB Running**
@@ -43,7 +43,7 @@ mongosh
 
 **2. Import Collection:**
 - Click "Import" button
-- Select file: `docs/api/Dicoding_Capstone_API.postman_collection.json`
+- Select file: `docs/api/Dicoding_Capstone_Test_API.postman_collection.json`
 - Click "Import"
 
 **3. Collection Ready!**
