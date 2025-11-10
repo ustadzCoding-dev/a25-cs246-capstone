@@ -1,4 +1,6 @@
 import Document from '../models/Document.js'
+import path from 'path';
+import fs from 'fs';
 
 export const getAllDocuments = async (req, res) => {
     try {
@@ -163,6 +165,41 @@ export const deleteDocument = async (req, res) => {
       return res.status(400).json({ message: error.message });
     }
     console.log('Error in deleteDocument', error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export const downloadDocument = async (req, res) => {
+  try {
+    // Pastikan user sudah login
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Mengambil ID dokumen dari parameter URL
+    const { id } = req.params;
+
+    // Mencari dokumen berdasarkan ID
+    const document = await Document.findById(id);
+    if (!document) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    // Mendapatkan path file dari URL
+    const filePath = path.join(process.cwd(), "src", "uploads", document.fileName);
+    console.log('Looking for file at:', filePath);
+    // Mengecek apakah file ada
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found on server" });
+    }
+
+    // Mengirimkan file untuk diunduh
+    res.download(filePath, document.fileName);
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    console.log('Error in downloadDocument', error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
