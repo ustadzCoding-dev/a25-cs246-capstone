@@ -1,21 +1,143 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/authStore'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // Public Routes
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/auth/LoginPage.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/signup',
+      name: 'signup',
+      component: () => import('../views/auth/SignUpPage.vue'),
+      meta: { requiresGuest: true }
+    },
+    
+    // Protected Routes - Admin
+    {
+      path: '/admin',
+      redirect: '/admin/dashboard',
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/dashboard',
+      name: 'admin-dashboard',
+      component: () => import('../views/dashboard/AdminDashboard.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin Dashboard' }
+    },
+    {
+      path: '/admin/teams',
+      name: 'admin-teams',
+      component: () => import('../views/team/AdminTeamManagement.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Kelola Tim' }
+    },
+    {
+      path: '/admin/documents',
+      name: 'admin-documents',
+      component: () => import('../views/documents/AdminDocuments.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Kelola Dokumen' }
+    },
+    {
+      path: '/admin/timeline',
+      name: 'admin-timeline',
+      component: () => import('../views/timeline/AdminTimeline.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Kelola Timeline' }
+    },
+    {
+      path: '/admin/announcements',
+      name: 'admin-announcements',
+      component: () => import('../views/announcements/AdminAnnouncements.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Kelola Pengumuman' }
+    },
+    
+    // Protected Routes - Student
     {
       path: '/',
-      name: 'home',
-      component: () => import('../views/HomeView.vue')
+      redirect: '/dashboard'
     },
-    // Routes will be added here as features are developed
-    // Example:
-    // {
-    //   path: '/register',
-    //   name: 'register',
-    //   component: () => import('../views/RegisterView.vue')
-    // },
+    {
+      path: '/dashboard',
+      name: 'student-dashboard',
+      component: () => import('../views/dashboard/StudentDashboard.vue'),
+      meta: { requiresAuth: true, title: 'Dashboard' }
+    },
+    {
+      path: '/team',
+      name: 'student-team',
+      component: () => import('../views/team/StudentTeam.vue'),
+      meta: { requiresAuth: true, title: 'Tim Saya' }
+    },
+    {
+      path: '/documents',
+      name: 'student-documents',
+      component: () => import('../views/documents/StudentDocuments.vue'),
+      meta: { requiresAuth: true, title: 'Dokumen' }
+    },
+    {
+      path: '/timeline',
+      name: 'student-timeline',
+      component: () => import('../views/timeline/StudentTimeline.vue'),
+      meta: { requiresAuth: true, title: 'Timeline' }
+    },
+    {
+      path: '/announcements',
+      name: 'student-announcements',
+      component: () => import('../views/announcements/StudentAnnouncements.vue'),
+      meta: { requiresAuth: true, title: 'Pengumuman' }
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/profile/ProfilePage.vue'),
+      meta: { requiresAuth: true, title: 'Profil' }
+    },
+    
+    // 404 Not Found
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFound.vue')
+    }
   ]
+})
+
+// Navigation Guards
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  
+  // Check if route requires authentication
+  if (to.meta.requiresAuth) {
+    if (!authStore.isAuthenticated) {
+      // Redirect to login if not authenticated
+      next({ name: 'login', query: { redirect: to.fullPath } })
+      return
+    }
+    
+    // Check if route requires admin role
+    if (to.meta.requiresAdmin && !authStore.isAdmin) {
+      // Redirect to student dashboard if not admin
+      next({ name: 'student-dashboard' })
+      return
+    }
+  }
+  
+  // Check if route requires guest (not authenticated)
+  if (to.meta.requiresGuest && authStore.isAuthenticated) {
+    // Redirect to appropriate dashboard based on role
+    if (authStore.isAdmin) {
+      next({ name: 'admin-dashboard' })
+    } else {
+      next({ name: 'student-dashboard' })
+    }
+    return
+  }
+  
+  next()
 })
 
 export default router
