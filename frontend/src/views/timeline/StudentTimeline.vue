@@ -1,0 +1,305 @@
+<template>
+  <DashboardLayout :user="user" :menu-items="studentMenuItems" @logout="handleLogout">
+    <div class="space-y-6">
+      <!-- Page Header -->
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Timeline Capstone</h1>
+        <p class="mt-2 text-gray-600">Pantau progress dan deadline project Anda</p>
+      </div>
+
+      <!-- Current Week Highlight -->
+      <div v-if="currentTimeline" class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center space-x-2 mb-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span class="text-sm font-semibold uppercase tracking-wide">Timeline Aktif</span>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">{{ currentTimeline.title }}</h2>
+            <p class="text-primary-100 mb-4">{{ currentTimeline.description }}</p>
+            <div class="flex items-center space-x-6 text-sm">
+              <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{{ formatDateRange(currentTimeline.startDate, currentTimeline.endDate) }}</span>
+              </div>
+              <div class="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded-full">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="font-semibold">{{ getDaysRemaining(currentTimeline.endDate) }} hari tersisa</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Overview -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600">Selesai</p>
+              <p class="text-2xl font-bold text-success-600">{{ stats.completed }}</p>
+            </div>
+            <div class="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600">Sedang Berjalan</p>
+              <p class="text-2xl font-bold text-warning-600">{{ stats.active }}</p>
+            </div>
+            <div class="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600">Mendatang</p>
+              <p class="text-2xl font-bold text-gray-600">{{ stats.upcoming }}</p>
+            </div>
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Visualization -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-900">Timeline Project</h2>
+        </div>
+
+        <div v-if="loading" class="p-12">
+          <BaseSpinner centered size="lg" label="Memuat timeline..." />
+        </div>
+
+        <div v-else-if="timelineItems.length === 0" class="p-12 text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p class="mt-2 text-sm text-gray-500">Belum ada timeline</p>
+        </div>
+
+        <div v-else class="p-6">
+          <div class="space-y-8">
+            <TimelineItem
+              v-for="(item, index) in timelineItems"
+              :key="item._id"
+              :title="item.title"
+              :description="item.description"
+              :start-date="item.startDate"
+              :end-date="item.endDate"
+              :status="item.status"
+              :is-last="index === timelineItems.length - 1"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Deadlines -->
+      <div v-if="upcomingDeadlines.length > 0" class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-900">Deadline Terdekat</h2>
+        </div>
+        
+        <div class="divide-y divide-gray-200">
+          <div
+            v-for="deadline in upcomingDeadlines"
+            :key="deadline._id"
+            class="p-6 hover:bg-gray-50 transition-colors duration-200"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h3 class="text-base font-semibold text-gray-900">{{ deadline.title }}</h3>
+                <p class="text-sm text-gray-600 mt-1">{{ deadline.description }}</p>
+                <div class="mt-2 flex items-center space-x-4 text-sm">
+                  <span class="text-gray-500">{{ formatDate(deadline.endDate) }}</span>
+                  <span
+                    :class="[
+                      'font-medium',
+                      getDaysRemaining(deadline.endDate) <= 3 ? 'text-danger-600' : 'text-warning-600'
+                    ]"
+                  >
+                    {{ getDaysRemaining(deadline.endDate) }} hari lagi
+                  </span>
+                </div>
+              </div>
+              
+              <div
+                :class="[
+                  'flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold',
+                  getDaysRemaining(deadline.endDate) <= 3 ? 'bg-danger-100 text-danger-600' : 'bg-warning-100 text-warning-600'
+                ]"
+              >
+                {{ getDaysRemaining(deadline.endDate) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div class="flex items-start">
+          <svg class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="flex-1">
+            <h3 class="text-base font-semibold text-blue-900 mb-2">Tips Mengelola Timeline</h3>
+            <ul class="text-sm text-blue-700 space-y-1 list-disc list-inside">
+              <li>Pantau deadline secara berkala agar tidak terlewat</li>
+              <li>Koordinasi dengan tim untuk pembagian tugas yang efektif</li>
+              <li>Mulai mengerjakan task lebih awal untuk menghindari deadline mepet</li>
+              <li>Komunikasikan kendala ke mentor jika ada kesulitan</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </DashboardLayout>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/authStore'
+import DashboardLayout from '../../components/layout/DashboardLayout.vue'
+import TimelineItem from '../../components/display/TimelineItem.vue'
+import BaseSpinner from '../../components/base/BaseSpinner.vue'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+const user = computed(() => authStore.user)
+const loading = ref(false)
+
+const timelineItems = ref([
+  {
+    _id: '1',
+    title: 'Minggu 1 - Planning & Setup',
+    description: 'Setup project, database design, dan wireframing',
+    startDate: '2025-10-31',
+    endDate: '2025-11-06',
+    status: 'completed'
+  },
+  {
+    _id: '2',
+    title: 'Minggu 2 - Team Registration',
+    description: 'Implementasi fitur registrasi tim dan approval admin',
+    startDate: '2025-11-07',
+    endDate: '2025-11-13',
+    status: 'active'
+  },
+  {
+    _id: '3',
+    title: 'Minggu 3 - Document Management',
+    description: 'Fitur upload dan download dokumen',
+    startDate: '2025-11-14',
+    endDate: '2025-11-20',
+    status: 'upcoming'
+  },
+  {
+    _id: '4',
+    title: 'Minggu 4 - Timeline Feature',
+    description: 'Implementasi timeline dan deadline tracking',
+    startDate: '2025-11-21',
+    endDate: '2025-11-27',
+    status: 'upcoming'
+  },
+  {
+    _id: '5',
+    title: 'Minggu 5 - Testing & Deployment',
+    description: 'UAT, deployment, dan performance optimization',
+    startDate: '2025-11-28',
+    endDate: '2025-12-04',
+    status: 'upcoming'
+  }
+])
+
+const studentMenuItems = [
+  { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
+  { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
+  { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
+  { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
+  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] }
+]
+
+const currentTimeline = computed(() => {
+  return timelineItems.value.find(item => item.status === 'active')
+})
+
+const stats = computed(() => {
+  return {
+    completed: timelineItems.value.filter(item => item.status === 'completed').length,
+    active: timelineItems.value.filter(item => item.status === 'active').length,
+    upcoming: timelineItems.value.filter(item => item.status === 'upcoming').length
+  }
+})
+
+const upcomingDeadlines = computed(() => {
+  const today = new Date()
+  return timelineItems.value
+    .filter(item => {
+      const endDate = new Date(item.endDate)
+      const daysRemaining = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24))
+      return daysRemaining > 0 && daysRemaining <= 14 && item.status !== 'completed'
+    })
+    .sort((a, b) => new Date(a.endDate) - new Date(b.endDate))
+    .slice(0, 3)
+})
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+const formatDateRange = (start, end) => {
+  const startDate = new Date(start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+  const endDate = new Date(end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+  return `${startDate} - ${endDate}`
+}
+
+const getDaysRemaining = (endDate) => {
+  const today = new Date()
+  const end = new Date(endDate)
+  const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24))
+  return diff > 0 ? diff : 0
+}
+
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/login')
+}
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    // TODO: Fetch timeline from API
+    await new Promise(resolve => setTimeout(resolve, 500))
+  } finally {
+    loading.value = false
+  }
+})
+</script>

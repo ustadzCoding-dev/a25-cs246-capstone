@@ -1,0 +1,237 @@
+<template>
+  <DashboardLayout :user="user" :menu-items="studentMenuItems" @logout="handleLogout">
+    <div class="space-y-6">
+      <!-- Page Header -->
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Dokumen</h1>
+        <p class="mt-2 text-gray-600">Akses dokumen panduan dan referensi capstone</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <BaseSearch
+            v-model="searchQuery"
+            placeholder="Cari dokumen..."
+          />
+          
+          <BaseSelect
+            v-model="filterCategory"
+            :options="categoryOptions"
+            placeholder="Semua Kategori"
+          />
+        </div>
+      </div>
+
+      <!-- Documents Grid -->
+      <div v-if="loading" class="bg-white rounded-lg shadow p-12">
+        <BaseSpinner centered size="lg" label="Memuat dokumen..." />
+      </div>
+
+      <div v-else-if="filteredDocuments.length === 0" class="bg-white rounded-lg shadow p-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="mt-2 text-sm text-gray-500">
+          {{ searchQuery || filterCategory ? 'Tidak ada dokumen yang sesuai' : 'Belum ada dokumen tersedia' }}
+        </p>
+      </div>
+
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <DocumentCard
+          v-for="doc in filteredDocuments"
+          :key="doc._id"
+          :title="doc.title"
+          :description="doc.description"
+          :date="doc.uploadDate"
+          :link="doc.link"
+          @click="downloadDocument(doc)"
+        >
+          <template #footer>
+            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div class="flex items-center space-x-3 text-xs text-gray-500">
+                <span>{{ doc.fileSize }}</span>
+                <span>•</span>
+                <span>{{ doc.downloads }} downloads</span>
+              </div>
+              <BaseBadge size="sm" :variant="getCategoryVariant(doc.category)">
+                {{ doc.category }}
+              </BaseBadge>
+            </div>
+          </template>
+        </DocumentCard>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="bg-primary-50 border border-primary-200 rounded-lg p-6">
+        <div class="flex items-start">
+          <svg class="w-6 h-6 text-primary-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="flex-1">
+            <h3 class="text-base font-semibold text-primary-900 mb-2">Tips Menggunakan Dokumen</h3>
+            <ul class="text-sm text-primary-700 space-y-1 list-disc list-inside">
+              <li>Download dokumen yang relevan dengan tahap project Anda saat ini</li>
+              <li>Gunakan template yang disediakan untuk memudahkan pekerjaan</li>
+              <li>Baca panduan dengan teliti sebelum memulai</li>
+              <li>Jika ada pertanyaan, hubungi mentor atau admin</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </DashboardLayout>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/authStore'
+import DashboardLayout from '../../components/layout/DashboardLayout.vue'
+import DocumentCard from '../../components/display/DocumentCard.vue'
+import BaseSearch from '../../components/base/BaseSearch.vue'
+import BaseSelect from '../../components/base/BaseSelect.vue'
+import BaseSpinner from '../../components/base/BaseSpinner.vue'
+import BaseBadge from '../../components/base/BaseBadge.vue'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+const user = computed(() => authStore.user)
+const loading = ref(false)
+
+const searchQuery = ref('')
+const filterCategory = ref('')
+
+const documents = ref([
+  {
+    _id: '1',
+    title: 'Panduan Capstone Project',
+    description: 'Panduan lengkap untuk menyelesaikan capstone project dari awal hingga akhir',
+    category: 'Panduan',
+    uploadDate: '2025-11-10',
+    fileSize: '2.5 MB',
+    downloads: 45,
+    link: 'https://example.com/doc1.pdf'
+  },
+  {
+    _id: '2',
+    title: 'Template Laporan Akhir',
+    description: 'Template untuk laporan akhir capstone project sesuai format yang ditentukan',
+    category: 'Template',
+    uploadDate: '2025-11-09',
+    fileSize: '1.2 MB',
+    downloads: 38,
+    link: 'https://example.com/doc2.docx'
+  },
+  {
+    _id: '3',
+    title: 'Rubrik Penilaian',
+    description: 'Rubrik penilaian capstone project untuk referensi tim',
+    category: 'Referensi',
+    uploadDate: '2025-11-08',
+    fileSize: '850 KB',
+    downloads: 52,
+    link: 'https://example.com/doc3.pdf'
+  },
+  {
+    _id: '4',
+    title: 'Panduan Git & GitHub',
+    description: 'Best practices menggunakan Git dan GitHub untuk kolaborasi tim',
+    category: 'Panduan',
+    uploadDate: '2025-11-07',
+    fileSize: '1.8 MB',
+    downloads: 41,
+    link: 'https://example.com/doc4.pdf'
+  },
+  {
+    _id: '5',
+    title: 'Template Presentasi',
+    description: 'Template PowerPoint untuk presentasi akhir capstone project',
+    category: 'Template',
+    uploadDate: '2025-11-06',
+    fileSize: '3.2 MB',
+    downloads: 35,
+    link: 'https://example.com/doc5.pptx'
+  },
+  {
+    _id: '6',
+    title: 'Contoh Project Terbaik',
+    description: 'Kumpulan contoh capstone project terbaik dari batch sebelumnya',
+    category: 'Referensi',
+    uploadDate: '2025-11-05',
+    fileSize: '5.4 MB',
+    downloads: 67,
+    link: 'https://example.com/doc6.pdf'
+  }
+])
+
+const categoryOptions = [
+  { value: '', label: 'Semua Kategori' },
+  { value: 'Panduan', label: 'Panduan' },
+  { value: 'Template', label: 'Template' },
+  { value: 'Referensi', label: 'Referensi' },
+  { value: 'Lainnya', label: 'Lainnya' }
+]
+
+const studentMenuItems = [
+  { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
+  { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
+  { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
+  { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
+  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] }
+]
+
+const filteredDocuments = computed(() => {
+  let result = documents.value
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(d =>
+      d.title.toLowerCase().includes(query) ||
+      d.description.toLowerCase().includes(query)
+    )
+  }
+
+  if (filterCategory.value) {
+    result = result.filter(d => d.category === filterCategory.value)
+  }
+
+  // Sort by date (newest first)
+  result = result.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate))
+
+  return result
+})
+
+const getCategoryVariant = (category) => {
+  const variants = {
+    'Panduan': 'primary',
+    'Template': 'success',
+    'Referensi': 'warning',
+    'Lainnya': 'secondary'
+  }
+  return variants[category] || 'secondary'
+}
+
+const downloadDocument = (doc) => {
+  console.log('Downloading:', doc.title)
+  doc.downloads++
+  // TODO: Call API to track download
+  window.open(doc.link, '_blank')
+}
+
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/login')
+}
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    // TODO: Fetch documents from API
+    await new Promise(resolve => setTimeout(resolve, 500))
+  } finally {
+    loading.value = false
+  }
+})
+</script>
