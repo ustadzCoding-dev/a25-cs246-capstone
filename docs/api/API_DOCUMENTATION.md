@@ -1115,7 +1115,7 @@ Supported formats: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, ZIP
 
 ## 🔗 Postman Collection
 
-Postman collection will be available at: `docs/api/postman_collection.json`
+Postman collection will be available at: `docs/api/Dicoding_Capstone_Test_API.postman_collection.json`
 
 ---
 
