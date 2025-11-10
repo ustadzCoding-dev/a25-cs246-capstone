@@ -37,8 +37,11 @@ export const getAllUsers = async (req, res) => {
         }
     });
     } catch (error) {
+      if (error.name === "ValidationError") {
+        return res.status(400).json({ success: false, message: error.message });
+      }
     console.error("Error in getAllUsers:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({success: false, message: "Internal Server Error" });
   }
 
 };
@@ -48,6 +51,9 @@ export const getUserById = async (req, res) => {
     // req.user sudah diisi oleh middleware protect
     res.status(200).json({ success: true, data: req.user });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     console.log("Error in getUserProfile", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
@@ -82,6 +88,9 @@ export const updateUserProfile = async (req, res) => {
         data: updateUser,
       });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     console.log("Error in updateUserProfile", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }

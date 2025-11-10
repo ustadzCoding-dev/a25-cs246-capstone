@@ -149,9 +149,9 @@ export const getAllCapstoneGroups = async (req, res) => {
      });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -323,6 +323,9 @@ export const rejectCapstoneGroup = async (req, res) => {
         },
       });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     console.log("Error in rejectCapstoneGroup", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
@@ -348,6 +351,9 @@ export const deleteCapstoneGroup = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Capstone group deleted successfully" });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
     console.log("Error in deleteCapstoneGroup", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
@@ -372,9 +378,9 @@ export const getCapstoneGroupById = async (req, res) => {
     res.status(200).json({ success: true, data: capstoneGroup });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log("Error in getCapstoneGroupsById", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }

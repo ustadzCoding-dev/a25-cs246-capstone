@@ -1030,7 +1030,6 @@ All errors follow this format:
 - `401` - Unauthorized (missing or invalid token)
 - `403` - Forbidden (insufficient permissions)
 - `404` - Not Found
-- `409` - Conflict (duplicate resource)
 - `500` - Internal Server Error
 
 ### Common Error Examples
@@ -1040,8 +1039,7 @@ All errors follow this format:
 ```json
 {
   "success": false,
-  "message": "Validation Error",
-  "errors": ["Email is required", "Password must be at least 6 characters"]
+  "message": "Validation Error"
 }
 ```
 
@@ -1049,8 +1047,7 @@ All errors follow this format:
 
 ```json
 {
-  "success": false,
-  "message": "Invalid or expired token"
+  "message": "Unauthorized"
 }
 ```
 
@@ -1059,7 +1056,7 @@ All errors follow this format:
 ```json
 {
   "success": false,
-  "message": "Access denied. Admin role required."
+  "message": "Forbidden"
 }
 ```
 
@@ -1067,17 +1064,15 @@ All errors follow this format:
 
 ```json
 {
-  "success": false,
   "message": "Team not found"
 }
 ```
-
-**409 Conflict:**
+**500 Internal Server:**
 
 ```json
 {
-  "success": false,
-  "message": "Email already exists"
+  "success" : false,
+  "message": "Internal Server Error"
 }
 ```
 
@@ -1097,19 +1092,17 @@ Response includes pagination info:
 ```json
 {
   "pagination": {
-    "currentPage": 1,
-    "totalPages": 5,
-    "totalItems": 50,
-    "itemsPerPage": 10,
-    "hasNextPage": true,
-    "hasPrevPage": false
-  }
+      "currentPage": 1,
+      "totalItems": 1,
+      "limit": 10
+    }
 }
 ```
 
 ### Date Format
 
 All dates use ISO 8601 format: `YYYY-MM-DDTHH:mm:ss.sssZ`
+Just dates format: `YYYY-MM-DD`
 
 Example: `2025-11-07T00:00:00.000Z`
 
@@ -1126,6 +1119,6 @@ Postman collection will be available at: `docs/api/postman_collection.json`
 
 ---
 
-**Last Updated:** 7 November 2025  
+**Last Updated:** 11 November 2025  
 **Maintained by:** Tim A25-CS246  
 **Contact:** asah@dicoding.com

@@ -43,10 +43,10 @@ export const getAllTimelines = async (req, res) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({success: false, message: error.message });
     }
     console.log("Error in getAllTimeline", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -67,10 +67,10 @@ export const getUpcomingTimeline = async (req, res) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log("Error in getUpcomingTimeline", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -90,10 +90,10 @@ export const getOverdueTimeline = async (req, res) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log("Error in getOverdueTimeline", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -160,10 +160,10 @@ export const addTimeline = async (req, res) => {
 
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log("Error in addTimeline", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -205,7 +205,11 @@ export const updateTimeline = async (req, res) => {
       data: timeline
     });
   } catch (error) {
-
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.log("Error in updateTimeline", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -232,9 +236,9 @@ export const deleteTimeline = async (req, res) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log("Error in deleteTimeline", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }

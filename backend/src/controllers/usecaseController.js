@@ -102,10 +102,10 @@ export const getAllUseCases = async (req, res) => {
       });
     } catch (error) {
         if (error.name === "ValidationError") {
-            return res.status(400).json({ message: error.message });
+            return res.status(400).json({success: false, message: error.message });
         }
         console.log('Error in getAllUseCase', error);
-        res.status(500).json({ message: "Internal Server Error" });
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
 
@@ -130,9 +130,9 @@ export const getUseCaseById = async (req, res) => {
     res.status(200).json({ success: true, data: useCase });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log('Error in getUseCaseById', error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }

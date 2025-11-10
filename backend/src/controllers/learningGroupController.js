@@ -48,10 +48,10 @@ export const getAllLearningGroups = async (req, res) => {
 
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({success: false, message: error.message });
     }
     console.log("Error in getAllLearningGroups", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -79,10 +79,10 @@ export const getLearningGroupById = async (req, res) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log("Error in getLearningGroupById", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -142,10 +142,10 @@ export const addLearningGroup = async (req, res) => {
     // Membuat ID
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log("Error in createLearningGroup", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -184,7 +184,11 @@ export const updateLearningGroup = async (req, res) => {
       data: learningGroup
     });
   } catch (error) {
-
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.log("Error in updateLearningGroup", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -215,9 +219,9 @@ export const deleteLearningGroup = async (req, res) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log("Error in deleteLearningGroup", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }

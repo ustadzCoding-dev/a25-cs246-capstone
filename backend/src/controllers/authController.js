@@ -72,10 +72,10 @@ export const registerUser = async (req, res) => {
       .json({success: true, message: "User registered successfully", data: newUser });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log("Error in registerUser", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 

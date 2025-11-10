@@ -44,10 +44,10 @@ export const getAllDocuments = async (req, res) => {
       });
     } catch (error) {
         if (error.name === "ValidationError") {
-            return res.status(400).json({message: error.message});
+            return res.status(400).json({ success: false, message: error.message});
         }
         console.log('Error in getAllDocuments', error);
-        res.status(500).json({message: "Internal Server Error"});
+        res.status(500).json({ success: false, message: "Internal Server Error"});
     }
 }
 
@@ -76,10 +76,10 @@ export const getDocumentById = async (req, res) => {
     });
   } catch (error) {
       if (error.name === "ValidationError") {
-          return res.status(400).json({message: error.message});
+          return res.status(400).json({ success: false, message: error.message});
       }
       console.log('Error in getDocumentById', error);
-      res.status(500).json({message: "Internal Server Error"});
+      res.status(500).json({ success: false, message: "Internal Server Error"});
   }
 }
 
@@ -132,10 +132,10 @@ export const addDocument = async (req, res) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log('Error in addDocument', error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -162,10 +162,10 @@ export const deleteDocument = async (req, res) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log('Error in deleteDocument', error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
 
@@ -197,9 +197,9 @@ export const downloadDocument = async (req, res) => {
     res.download(filePath, document.fileName);
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res.status(400).json({ message: error.message });
+      return res.status(400).json({ success: false, message: error.message });
     }
     console.log('Error in downloadDocument', error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
