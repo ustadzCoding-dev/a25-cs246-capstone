@@ -319,7 +319,7 @@ GET: /api/capstone-group/:id
 }
 ```
 
-### Update Team
+### Update Capstone Group
 
 ```http
 PUT: /api/capstone-group/update/:id
@@ -350,7 +350,7 @@ PUT: /api/capstone-group/update/:id
 }
 ```
 
-### Approve Team (Admin Only)
+### Approve Capstone Group (Admin Only)
 
 ```http
 POST: /api/capstone-group/:id/approve
@@ -372,7 +372,7 @@ POST: /api/capstone-group/:id/approve
 }
 ```
 
-### Reject Team (Admin Only)
+### Reject Capstone Group (Admin Only)
 
 ```http
 POST: /api/capstone-group/:id/reject
@@ -403,7 +403,7 @@ POST: /api/capstone-group/:id/reject
 }
 ```
 
-### Delete Team
+### Delete Capstone Group
 
 ```http
 DELETE: /api/capstone-group/:id/delete
@@ -659,7 +659,7 @@ POST: /api/document/add
 ### Download Document
 
 ```http
-GET /api/documents/:id/download
+GET: /api/document/:id/download
 ```
 
 **Headers:** `Authorization: Bearer <token>`
@@ -669,7 +669,7 @@ GET /api/documents/:id/download
 ### Delete Document (Admin Only)
 
 ```http
-DELETE /api/documents/:id
+DELETE: /api/document/:id/delete
 ```
 
 **Response (200 OK):**
@@ -894,7 +894,7 @@ GET: /api/learning-groups
 ### Get Learning Group by ID
 
 ```http
-GET: /api/learning-groups/:id
+GET: /api/learning-group/:id
 ```
 
 **Response (200 OK):**
@@ -924,7 +924,7 @@ GET: /api/learning-groups/:id
 ### Create Learning Group (Admin Only)
 
 ```http
-POST: /api/learning-groups/add
+POST: /api/learning-group/add
 ```
 
 **Request Body:**
@@ -960,7 +960,7 @@ POST: /api/learning-groups/add
 ### Update Learning Group (Admin Only)
 
 ```http
-PUT: /api/learning-groups/update/:id
+PUT: /api/learning-group/update/:id
 ```
 
 **Request Body:**
@@ -1018,8 +1018,7 @@ All errors follow this format:
 ```json
 {
   "success": false,
-  "message": "Error message here",
-  "errors": ["Detailed error 1", "Detailed error 2"]
+  "message": "Error message here"
 }
 ```
 

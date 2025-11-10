@@ -26,6 +26,7 @@ import {
   getDocumentById,
   addDocument,
   deleteDocument,
+  downloadDocument
 } from "../controllers/documentController.js";
 import {
   getAllTimelines,
@@ -82,6 +83,7 @@ router.get("/documents", protect, getAllDocuments);
 router.get("/document/:id", protect, getDocumentById);
 router.post("/document/add", protect, addDocument);
 router.delete("/document/:id/delete", protect, deleteDocument);
+router.get("/document/:id/download", protect, downloadDocument);
 
 // Timelines
 router.get("/timelines", protect, getAllTimelines);
