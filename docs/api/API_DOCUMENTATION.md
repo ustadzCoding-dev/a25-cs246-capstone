@@ -1,6 +1,6 @@
 # API Documentation - Dicoding Academic Dashboard
 
-**Last Updated:** 10 November 2025  
+**Last Updated:** 10 November 2025
 **Base URL:**
 
 - Development: `http://localhost:8000/api/`
@@ -9,7 +9,7 @@
 
 ## 𝄜 Relational Database (ERD)
 
-![Diagram ERD](./src/public/img/diagram-database.png)
+![Diagram ERD](../../backend/src/public/img/diagram-database.png)
 
 ---
 
@@ -1108,7 +1108,7 @@ Example: `2025-11-07T00:00:00.000Z`
 
 ### File Upload
 
-Maximum file size: 5MB  
+Maximum file size: 5MB
 Supported formats: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, ZIP
 
 ---
@@ -1119,6 +1119,8 @@ Postman collection will be available at: `docs/api/postman_collection.json`
 
 ---
 
-**Last Updated:** 11 November 2025  
-**Maintained by:** Tim A25-CS246  
-**Contact:** asah@dicoding.com
+**Happy Testing! 🧪**
+
+**Last Updated:** 11 November 2025
+
+**Maintained by:** Tim A25-CS246
