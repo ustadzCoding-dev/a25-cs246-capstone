@@ -27,6 +27,14 @@ import {
   addDocument,
   deleteDocument,
 } from "../controllers/documentController.js";
+import {
+  getAllTimelines,
+  getUpcomingTimeline,
+  getOverdueTimeline,
+  addTimeline,
+  updateTimeline,
+  deleteTimeline,
+ } from "../controllers/timelineController.js";
 
 const router = express.Router();
 
@@ -68,5 +76,12 @@ router.get("/document/:id", protect, getDocumentById);
 router.post("/document/add", protect, addDocument);
 router.delete("/document/:id/delete", protect, deleteDocument);
 
+// Timelines
+router.get("/timelines", protect, getAllTimelines);
+router.get("/timelines/upcoming", protect, getUpcomingTimeline);
+router.get("/timelines/overdue", protect, getOverdueTimeline);
+router.post("/timeline/add", protect, addTimeline);
+router.put("/timeline/update/:id", protect, updateTimeline);
+router.delete("/timeline/:id/delete", protect, deleteTimeline);
 
 export default router;

@@ -660,7 +660,7 @@ DELETE /api/documents/:id
 ### Get All Timeline Items
 
 ```http
-GET: /api/timeline
+GET: /api/timelines
 ```
 
 **Query Parameters:**
@@ -675,32 +675,24 @@ GET: /api/timeline
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439050",
-      "title": "Project Plan Submission",
-      "description": "Submit project plan document",
-      "type": "submission",
-      "startDate": "2025-10-31T00:00:00.000Z",
-      "endDate": "2025-10-31T23:59:59.000Z",
-      "status": "completed",
-      "priority": "high",
-      "daysRemaining": -7,
-      "isOverdue": false
+  "data": {
+    "timelines": [
+      {...}
+    ],
+    "pagination": {
+      "currentPage": 1,
+      "totalItems": 1,
+      "limit": 10
     }
-  ]
+  }
 }
 ```
 
 ### Get Upcoming Deadlines
 
 ```http
-GET /api/timeline/upcoming
+GET: /api/timelines/upcoming
 ```
-
-**Query Parameters:**
-
-- `days` - Number of days ahead (default: 7)
 
 **Response (200 OK):**
 
@@ -709,12 +701,21 @@ GET /api/timeline/upcoming
   "success": true,
   "data": [
     {
-      "_id": "507f1f77bcf86cd799439051",
-      "title": "Week 2 Deliverable",
-      "endDate": "2025-11-13T23:59:59.000Z",
-      "daysRemaining": 6,
-      "priority": "high"
-    }
+      "id": "6911b4a1...",
+      "title": "example",
+      "description": "example",
+      "type": "milestone",
+      "startDate": "YYYY-MM-DD",
+      "endDate": "YYYY-MM-DD",
+      "status": "upcoming",
+      "priority": "high",
+      "daysRemaining": 9,
+      "isOverdue": false,
+      "createdBy": "690f1c4586....",
+      "createdAt": "2025-11-10T09:47:13.842Z",
+      "updatedAt": "2025-11-10T09:47:13.842Z"
+    },
+    {...}
   ]
 }
 ```
@@ -722,7 +723,7 @@ GET /api/timeline/upcoming
 ### Get Overdue Items
 
 ```http
-GET /api/timeline/overdue
+GET: /api/timelines/overdue
 ```
 
 **Response (200 OK):**
@@ -730,27 +731,43 @@ GET /api/timeline/overdue
 ```json
 {
   "success": true,
-  "data": [ ... ]
+  "data": [
+    {
+      "id": "6911b4a1...",
+      "title": "example",
+      "description": "example",
+      "type": "milestone",
+      "startDate": "YYYY-MM-DD",
+      "endDate": "YYYY-MM-DD",
+      "status": "upcoming",
+      "priority": "high",
+      "daysRemaining": 9,
+      "isOverdue": false,
+      "createdBy": "690f1c4586....",
+      "createdAt": "2025-11-10T09:47:13.842Z",
+      "updatedAt": "2025-11-10T09:47:13.842Z"
+    },
+    {...}
+  ]
 }
 ```
 
 ### Create Timeline Item (Admin Only)
 
 ```http
-POST /api/timeline
+POST: /api/timeline/add
 ```
 
 **Request Body:**
 
 ```json
 {
-  "title": "New Milestone",
-  "description": "Description here",
+  "title": "example",
+  "description": "example",
   "type": "milestone",
-  "startDate": "2025-11-15T00:00:00.000Z",
-  "endDate": "2025-11-20T23:59:59.000Z",
-  "priority": "high",
-  "relatedTo": "all"
+  "startDate": "YYYY-MM-DD",
+  "endDate": "YYYY-MM-DD",
+  "priority": "high"
 }
 ```
 
@@ -759,23 +776,37 @@ POST /api/timeline
 ```json
 {
   "success": true,
-  "message": "Timeline item created successfully",
-  "data": { ... }
+  "message": "Timeline added successfully",
+  "data": {
+    "id": "6911b4a1...",
+    "title": "example",
+    "description": "example",
+    "type": "milestone",
+    "startDate": "YYYY-MM-DD",
+    "endDate": "YYYY-MM-DD",
+    "status": "upcoming",
+    "priority": "high",
+    "daysRemaining": 9,
+    "isOverdue": false,
+    "createdBy": "690f1c4586....",
+    "createdAt": "2025-11-10T09:47:13.842Z",
+    "updatedAt": "2025-11-10T09:47:13.842Z"
+  }
 }
 ```
 
 ### Update Timeline Item (Admin Only)
 
 ```http
-PUT /api/timeline/:id
+PUT: /api/timeline/update/:id
 ```
 
 **Request Body:**
 
 ```json
 {
-  "title": "Updated Title",
   "status": "completed"
+  // All data can be edited
 }
 ```
 
@@ -792,7 +823,7 @@ PUT /api/timeline/:id
 ### Delete Timeline Item (Admin Only)
 
 ```http
-DELETE /api/timeline/:id
+DELETE /api/timeline/:id/delete
 ```
 
 **Response (200 OK):**
