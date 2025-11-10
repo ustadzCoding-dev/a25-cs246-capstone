@@ -54,5 +54,14 @@ const learningGroupSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 })
 
+learningGroupSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    ret.id = ret._id.toString(),
+    delete ret._id,
+    delete ret.__v
+  }
+})
+
 const LearningGroup = mongoose.model('LearningGroup', learningGroupSchema)
 export default LearningGroup

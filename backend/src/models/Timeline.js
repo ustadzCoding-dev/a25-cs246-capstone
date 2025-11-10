@@ -73,5 +73,14 @@ const timelineSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 })
 
+timelineSchema.set('toJSON', {
+  virtuals: true,
+  transform: (doc, ret) => {
+    ret.id = ret._id.toString(),
+    delete ret._id,
+    delete ret.__v
+  }
+})
+
 const Timeline = mongoose.model('Timeline', timelineSchema)
 export default Timeline
