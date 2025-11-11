@@ -9,7 +9,7 @@
 
 ## 𝄜 Relational Database (ERD)
 
-![Diagram ERD](../../backend/src/public/img/diagram-database.png)
+![Diagram ERD](../public/schema-database.drawio.png)
 
 ---
 
