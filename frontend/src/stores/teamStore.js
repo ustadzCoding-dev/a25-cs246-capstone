@@ -1,0 +1,281 @@
+import { defineStore } from 'pinia'
+import * as teamService from '../services/teamService'
+
+export const useTeamStore = defineStore('team', {
+  state: () => ({
+    // Teams data
+    teams: [],
+    currentTeam: null,
+    useCases: [],
+    
+    // Pagination
+    pagination: {
+      total: 0,
+      page: 1,
+      limit: 10,
+      totalPages: 0
+    },
+    
+    // Loading states
+    loading: false,
+    teamsLoading: false,
+    useCasesLoading: false,
+    
+    // Error handling
+    error: null
+  }),
+
+  getters: {
+    // Get teams by status
+    pendingTeams: (state) => state.teams.filter(team => team.status === 'pending'),
+    approvedTeams: (state) => state.teams.filter(team => team.status === 'approved'),
+    rejectedTeams: (state) => state.teams.filter(team => team.status === 'rejected'),
+    
+    // Check if user has a team
+    hasTeam: (state) => state.currentTeam !== null,
+    
+    // Get team status
+    teamStatus: (state) => state.currentTeam?.status || null
+  },
+
+  actions: {
+    /**
+     * Fetch all teams (Admin)
+     */
+    async fetchTeams(params = {}) {
+      this.teamsLoading = true
+      this.error = null
+      
+      try {
+        const response = await teamService.getAllTeams(params)
+        
+        if (response.success) {
+          this.teams = response.data.teams || response.data
+          
+          // Update pagination if available
+          if (response.data.pagination) {
+            this.pagination = response.data.pagination
+          }
+        }
+        
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch teams'
+        throw error
+      } finally {
+        this.teamsLoading = false
+      }
+    },
+
+    /**
+     * Fetch team by ID
+     */
+    async fetchTeamById(id) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await teamService.getTeamById(id)
+        
+        if (response.success) {
+          this.currentTeam = response.data
+        }
+        
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch team'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Create new team
+     */
+    async createTeam(teamData) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await teamService.createTeam(teamData)
+        
+        if (response.success) {
+          this.currentTeam = response.data
+          this.teams.push(response.data)
+        }
+        
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to create team'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Update team
+     */
+    async updateTeam(id, teamData) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await teamService.updateTeam(id, teamData)
+        
+        if (response.success) {
+          // Update current team if it's the same
+          if (this.currentTeam?.id === id) {
+            this.currentTeam = response.data
+          }
+          
+          // Update in teams list
+          const index = this.teams.findIndex(team => team.id === id)
+          if (index !== -1) {
+            this.teams[index] = response.data
+          }
+        }
+        
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to update team'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Approve team (Admin)
+     */
+    async approveTeam(id, reason = '') {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await teamService.approveTeam(id, reason)
+        
+        if (response.success) {
+          // Update team status in list
+          const index = this.teams.findIndex(team => team.id === id)
+          if (index !== -1) {
+            this.teams[index].status = 'approved'
+          }
+        }
+        
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to approve team'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Reject team (Admin)
+     */
+    async rejectTeam(id, reason) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await teamService.rejectTeam(id, reason)
+        
+        if (response.success) {
+          // Update team status in list
+          const index = this.teams.findIndex(team => team.id === id)
+          if (index !== -1) {
+            this.teams[index].status = 'rejected'
+          }
+        }
+        
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to reject team'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Delete team (Admin)
+     */
+    async deleteTeam(id) {
+      this.loading = true
+      this.error = null
+      
+      try {
+        const response = await teamService.deleteTeam(id)
+        
+        if (response.success) {
+          // Remove from teams list
+          this.teams = this.teams.filter(team => team.id !== id)
+          
+          // Clear current team if it's the same
+          if (this.currentTeam?.id === id) {
+            this.currentTeam = null
+          }
+        }
+        
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to delete team'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Fetch all use cases
+     */
+    async fetchUseCases() {
+      this.useCasesLoading = true
+      this.error = null
+      
+      try {
+        const response = await teamService.getAllUseCases()
+        
+        if (response.success) {
+          this.useCases = response.data
+        }
+        
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch use cases'
+        throw error
+      } finally {
+        this.useCasesLoading = false
+      }
+    },
+
+    /**
+     * Clear error
+     */
+    clearError() {
+      this.error = null
+    },
+
+    /**
+     * Reset store
+     */
+    reset() {
+      this.teams = []
+      this.currentTeam = null
+      this.useCases = []
+      this.pagination = {
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0
+      }
+      this.loading = false
+      this.teamsLoading = false
+      this.useCasesLoading = false
+      this.error = null
+    }
+  }
+})

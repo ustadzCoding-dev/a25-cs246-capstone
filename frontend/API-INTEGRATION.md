@@ -496,6 +496,10 @@ Delete announcement (admin only).
 
 ## 🔧 Frontend Implementation
 
+### Frontend Configuration
+- **Dev Server:** http://localhost:5173
+- **API Base URL:** http://localhost:8000/api
+
 ### API Service Location
 - **File:** `src/services/api.js`
 - **Auth Service:** `src/services/authService.js`
@@ -514,7 +518,7 @@ Automatically handles:
 ## 📝 Notes for Backend Developer
 
 1. **CORS Configuration**
-   - Allow origin: `http://localhost:9000`
+   - Allow origin: `http://localhost:5173`
    - Allow methods: `GET, POST, PUT, DELETE`
    - Allow headers: `Authorization, Content-Type`
 

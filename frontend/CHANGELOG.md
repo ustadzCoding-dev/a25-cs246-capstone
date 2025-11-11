@@ -93,7 +93,7 @@ All notable changes to the frontend project will be documented in this file.
 
 #### 🐛 Bug Fixes
 - Fixed Tailwind CSS v4 compatibility issue (downgraded to v3.4.1)
-- Fixed port conflicts (frontend: 9000, backend: 8000)
+- Fixed port conflicts (frontend: 5173, backend: 8000)
 - Fixed API base URL configuration
 - Fixed browser cache issues
 - Fixed component import paths

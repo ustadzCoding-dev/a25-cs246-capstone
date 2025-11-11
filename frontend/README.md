@@ -27,7 +27,7 @@ cp .env.example .env
 ## 🚀 Development
 
 ```bash
-# Start dev server (http://localhost:9000)
+# Start dev server (http://localhost:5173)
 npm run dev
 
 # Build for production
@@ -194,7 +194,7 @@ npm run dev
 
 ## 📝 Notes
 
-- Frontend dev server runs on port **9000**
+- Frontend dev server runs on port **5173**
 - Backend API runs on port **8000**
 - All pages are fully responsive
 - Components follow Vue 3 Composition API
