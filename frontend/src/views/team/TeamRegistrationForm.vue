@@ -168,6 +168,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useTeamStore } from '../../stores/teamStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import BaseInput from '../../components/base/BaseInput.vue'
 import BaseSelect from '../../components/base/BaseSelect.vue'
@@ -177,6 +178,7 @@ import DynamicInputList from '../../components/display/DynamicInputList.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const teamStore = useTeamStore()
 
 const user = computed(() => authStore.user)
 const loading = ref(false)
@@ -291,25 +293,24 @@ const handleSubmit = async () => {
     // Prepare team data
     const teamData = {
       teamName: form.teamName,
-      useCase: form.useCase,
+      useCaseId: form.useCase, // Backend expects useCaseId
       members: validMembers.map((email, index) => ({
         email: email,
         learningPath: validPaths[index]
       }))
     }
     
-    // TODO: Call API to create team
-    console.log('Creating team:', teamData)
+    // Call API to create team
+    const response = await teamStore.createTeam(teamData)
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    success.value = 'Tim berhasil didaftarkan! Menunggu persetujuan admin.'
-    
-    // Redirect after 2 seconds
-    setTimeout(() => {
-      router.push('/team')
-    }, 2000)
+    if (response.success) {
+      success.value = 'Tim berhasil didaftarkan! Menunggu persetujuan admin.'
+      
+      // Redirect after 2 seconds
+      setTimeout(() => {
+        router.push('/team')
+      }, 2000)
+    }
     
   } catch (err) {
     error.value = err.message || 'Gagal mendaftarkan tim. Silakan coba lagi.'

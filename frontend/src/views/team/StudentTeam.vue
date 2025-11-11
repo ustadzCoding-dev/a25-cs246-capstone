@@ -165,6 +165,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useTeamStore } from '../../stores/teamStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import TeamStatusCard from '../../components/display/TeamStatusCard.vue'
 import TeamInfoCard from '../../components/display/TeamInfoCard.vue'
@@ -176,78 +177,18 @@ import BaseModal from '../../components/base/BaseModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const teamStore = useTeamStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
 const leavingTeam = ref(false)
 const showLeaveConfirm = ref(false)
+const invitations = ref([]) // TODO: Implement invitations API
 
-// Mock data - will be replaced with API calls
-const hasTeam = ref(true)
-const hasPendingTeam = ref(false)
-
-const activeTeam = ref({
-  _id: '1',
-  teamName: 'Team Alpha',
-  useCase: 'DC-09',
-  status: 'approved',
-  leader: {
-    name: 'John Doe',
-    id: 'F123456',
-    email: 'john@example.com',
-    learningPath: 'Front-End Web & Back-End with AI'
-  },
-  members: [
-    {
-      name: 'Jane Doe',
-      id: 'F234567',
-      email: 'jane@example.com',
-      learningPath: 'Front-End Web & Back-End with AI'
-    },
-    {
-      name: 'Bob Smith',
-      id: 'F345678',
-      email: 'bob@example.com',
-      learningPath: 'Machine Learning'
-    }
-  ],
-  learningPath: 'Front-End Web & Back-End with AI',
-  createdAt: '2025-11-10'
-})
-
-const pendingTeam = ref({
-  _id: '2',
-  teamName: 'Team Beta',
-  useCase: 'DC-10',
-  status: 'pending',
-  leader: {
-    name: user.value?.name,
-    id: 'F456789',
-    email: user.value?.email,
-    learningPath: user.value?.learningPath
-  },
-  members: [
-    {
-      name: 'Alice Johnson',
-      id: 'F567890',
-      email: 'alice@example.com',
-      learningPath: 'Android Development'
-    }
-  ],
-  learningPath: user.value?.learningPath
-})
-
-const invitations = ref([
-  // {
-  //   _id: '3',
-  //   teamName: 'Team Gamma',
-  //   leader: { name: 'Charlie Brown', id: 'F678901' },
-  //   useCase: 'DC-08',
-  //   members: [
-  //     { name: 'David Lee', id: 'F789012' }
-  //   ]
-  // }
-])
+// Get data from store
+const loading = computed(() => teamStore.loading)
+const activeTeam = computed(() => teamStore.currentTeam)
+const hasTeam = computed(() => teamStore.hasTeam && activeTeam.value?.status === 'approved')
+const hasPendingTeam = computed(() => teamStore.hasTeam && activeTeam.value?.status === 'pending')
 
 const studentMenuItems = [
   { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
@@ -258,7 +199,7 @@ const studentMenuItems = [
 ]
 
 const isLeader = computed(() => {
-  return activeTeam.value?.leader.email === user.value?.email
+  return activeTeam.value?.leader?.email === user.value?.email
 })
 
 const statusVariant = computed(() => {
@@ -270,18 +211,19 @@ const statusVariant = computed(() => {
   return variants[activeTeam.value?.status] || 'secondary'
 })
 
+const pendingTeam = computed(() => {
+  return hasPendingTeam.value ? activeTeam.value : null
+})
+
 const handleLeaveTeam = async () => {
   leavingTeam.value = true
   
   try {
-    // TODO: Call API to leave team
+    // TODO: Implement leave team API
     console.log('Leaving team:', activeTeam.value._id)
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    hasTeam.value = false
-    activeTeam.value = null
+    // For now, just clear the team
+    teamStore.currentTeam = null
     showLeaveConfirm.value = false
     
   } catch (err) {
@@ -293,11 +235,8 @@ const handleLeaveTeam = async () => {
 
 const handleAcceptInvitation = async (invitationId) => {
   try {
-    // TODO: Call API to accept invitation
+    // TODO: Implement accept invitation API
     console.log('Accepting invitation:', invitationId)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
     
     // Refresh team data
     await fetchTeamData()
@@ -309,11 +248,8 @@ const handleAcceptInvitation = async (invitationId) => {
 
 const handleRejectInvitation = async (invitationId) => {
   try {
-    // TODO: Call API to reject invitation
+    // TODO: Implement reject invitation API
     console.log('Rejecting invitation:', invitationId)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
     
     // Remove invitation from list
     invitations.value = invitations.value.filter(inv => inv._id !== invitationId)
@@ -324,19 +260,16 @@ const handleRejectInvitation = async (invitationId) => {
 }
 
 const fetchTeamData = async () => {
-  loading.value = true
-  
   try {
-    // TODO: Call API to fetch team data
-    console.log('Fetching team data...')
+    // Fetch user's team data
+    // For now, we'll use mock data until backend implements "my team" endpoint
+    // TODO: Replace with actual API call when available
+    // await teamStore.fetchTeamById(userId)
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
+    console.log('Fetching team data...')
     
   } catch (err) {
     console.error('Failed to fetch team data:', err)
-  } finally {
-    loading.value = false
   }
 }
 

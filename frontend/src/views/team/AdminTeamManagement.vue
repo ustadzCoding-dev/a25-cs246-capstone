@@ -259,25 +259,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useTeamStore } from '../../stores/teamStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
-import TeamInfoCard from '../../components/display/TeamInfoCard.vue'
 import BaseSearch from '../../components/base/BaseSearch.vue'
 import BaseSelect from '../../components/base/BaseSelect.vue'
-import BaseTable from '../../components/base/BaseTable.vue'
-import BaseBadge from '../../components/base/BaseBadge.vue'
-import BaseButton from '../../components/base/BaseButton.vue'
-import BaseModal from '../../components/base/BaseModal.vue'
+import BaseInput from '../../components/base/BaseInput.vue'
 import BaseTextarea from '../../components/base/BaseTextarea.vue'
+import BaseButton from '../../components/base/BaseButton.vue'
+import BaseSpinner from '../../components/base/BaseSpinner.vue'
+import BaseBadge from '../../components/base/BaseBadge.vue'
+import BaseModal from '../../components/base/BaseModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const teamStore = useTeamStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
 const processing = ref(false)
 
 const searchQuery = ref('')
@@ -290,47 +291,18 @@ const showDeleteModal = ref(false)
 const selectedTeam = ref(null)
 const rejectReason = ref('')
 
-// Mock data
-const stats = ref({
-  totalTeams: 24,
-  pendingTeams: 5,
-  approvedTeams: 18,
-  rejectedTeams: 1
-})
+// Get data from store
+const loading = computed(() => teamStore.teamsLoading)
+const teams = computed(() => teamStore.teams)
+const pagination = computed(() => teamStore.pagination)
 
-const teams = ref([
-  {
-    _id: '1',
-    teamName: 'Team Alpha',
-    useCase: 'DC-09',
-    status: 'pending',
-    leader: { name: 'John Doe', id: 'F123456', email: 'john@example.com', learningPath: 'Front-End' },
-    members: [
-      { name: 'Jane Doe', id: 'F234567', learningPath: 'Back-End' },
-      { name: 'Bob Smith', id: 'F345678', learningPath: 'ML' }
-    ],
-    learningPath: 'Front-End Web & Back-End with AI',
-    createdAt: '2025-11-10'
-  },
-  {
-    _id: '2',
-    teamName: 'Team Beta',
-    useCase: 'DC-10',
-    status: 'approved',
-    leader: { name: 'Alice Johnson', id: 'F456789', email: 'alice@example.com', learningPath: 'Android' },
-    members: [
-      { name: 'Charlie Brown', id: 'F567890', learningPath: 'Android' }
-    ],
-    learningPath: 'Android Development',
-    createdAt: '2025-11-09'
-  }
-])
-
-const pagination = ref({
-  page: 1,
-  limit: 10,
-  total: 24
-})
+// Calculate stats from teams
+const stats = computed(() => ({
+  totalTeams: teams.value.length,
+  pendingTeams: teamStore.pendingTeams.length,
+  approvedTeams: teamStore.approvedTeams.length,
+  rejectedTeams: teamStore.rejectedTeams.length
+}))
 
 const tableColumns = [
   { key: 'teamName', label: 'Nama Tim', sortable: true },
@@ -415,16 +387,11 @@ const approveTeam = async (team) => {
   processing.value = true
 
   try {
-    // TODO: Call API to approve team
-    console.log('Approving team:', team._id)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    team.status = 'approved'
+    await teamStore.approveTeam(team._id || team.id)
     showDetailsModal.value = false
-
-    stats.value.pendingTeams--
-    stats.value.approvedTeams++
+    
+    // Refresh teams list
+    await fetchTeams()
 
   } catch (err) {
     console.error('Failed to approve team:', err)
@@ -443,17 +410,12 @@ const confirmReject = async () => {
   processing.value = true
 
   try {
-    // TODO: Call API to reject team
-    console.log('Rejecting team:', selectedTeam.value._id, rejectReason.value)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    selectedTeam.value.status = 'rejected'
+    await teamStore.rejectTeam(selectedTeam.value._id || selectedTeam.value.id, rejectReason.value)
     showRejectModal.value = false
     rejectReason.value = ''
-
-    stats.value.pendingTeams--
-    stats.value.rejectedTeams++
+    
+    // Refresh teams list
+    await fetchTeams()
 
   } catch (err) {
     console.error('Failed to reject team:', err)
@@ -471,15 +433,11 @@ const confirmDelete = async () => {
   processing.value = true
 
   try {
-    // TODO: Call API to delete team
-    console.log('Deleting team:', selectedTeam.value._id)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    teams.value = teams.value.filter(t => t._id !== selectedTeam.value._id)
+    await teamStore.deleteTeam(selectedTeam.value._id || selectedTeam.value.id)
     showDeleteModal.value = false
-
-    stats.value.totalTeams--
+    
+    // Refresh teams list
+    await fetchTeams()
 
   } catch (err) {
     console.error('Failed to delete team:', err)
@@ -503,13 +461,27 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-onMounted(async () => {
-  loading.value = true
+const fetchTeams = async () => {
   try {
-    // TODO: Fetch teams data
-    await new Promise(resolve => setTimeout(resolve, 500))
-  } finally {
-    loading.value = false
+    const params = {
+      status: filterStatus.value,
+      search: searchQuery.value,
+      page: pagination.value.page,
+      limit: pagination.value.limit
+    }
+    
+    await teamStore.fetchTeams(params)
+  } catch (err) {
+    console.error('Failed to fetch teams:', err)
   }
+}
+
+// Watch filters and refetch
+watch([searchQuery, filterStatus, filterUseCase], () => {
+  fetchTeams()
+})
+
+onMounted(() => {
+  fetchTeams()
 })
 </script>
