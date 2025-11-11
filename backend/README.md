@@ -92,7 +92,7 @@ CORS_ORIGIN=http://localhost:5173
 ### Health Check
 
 ```http
-GET: /api/health
+GET /api/health
 ```
 
 **Response:**
