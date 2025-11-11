@@ -40,18 +40,38 @@ npm start
 ```
 src/
 ├── config/
-│   └── database.js      # MongoDB connection
-├── models/              # Mongoose models (to be added)
-├── controllers/         # Route controllers (to be added)
+│   └── database.js
+├── models/
+│   ├── CapstoneGroup.js
+│   ├── Counter.js
+│   ├── Document.js
+│   ├── index.js
+│   ├── LearningGroup.js
+│   ├── Timeline.js
+│   ├── UseCase.js
+│   └── User.js
+├── controllers/
+│   ├── authController.js
+│   ├── capstoneGroupController.js
+│   ├── documentController.js
+│   ├── learningGroupController.js
+│   ├── timelineController.js
+│   ├── usecaseController.js
+│   └── userController.js
 ├── routes/
-│   └── index.js         # API routes
+│   └── index.js
+├── scripts/
+│   ├── fixAdminRole.js
+│   └── seedData.js
 ├── middleware/
-│   ├── auth.js          # Authentication middleware
-│   └── errorHandler.js  # Error handling
-├── validators/          # Joi validators (to be added)
+│   ├── auth.js
+│   ├── errorHandler.js
+│   ├── security.js
+│   └── validate.js
+├── validators/
 ├── utils/
-│   └── logger.js        # Logging utility
-└── server.js            # Entry point
+│   └── logger.js
+└── server.js
 ```
 
 ## 🔧 Environment Variables
@@ -61,7 +81,7 @@ Create `.env` file:
 ```env
 PORT=8000
 NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/dicoding-capstone
+MONGODB_URI=mongodb://localhost:27017/capstone_test
 JWT_SECRET=your-secret-key-here
 JWT_EXPIRES_IN=7d
 CORS_ORIGIN=http://localhost:5173
