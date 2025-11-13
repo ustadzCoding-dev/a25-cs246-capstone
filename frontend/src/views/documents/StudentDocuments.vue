@@ -84,9 +84,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useDocumentStore } from '../../stores/documentStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import DocumentCard from '../../components/display/DocumentCard.vue'
 import BaseSearch from '../../components/base/BaseSearch.vue'
@@ -96,75 +97,15 @@ import BaseBadge from '../../components/base/BaseBadge.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const documentStore = useDocumentStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
-
 const searchQuery = ref('')
 const filterCategory = ref('')
 
-const documents = ref([
-  {
-    _id: '1',
-    title: 'Panduan Capstone Project',
-    description: 'Panduan lengkap untuk menyelesaikan capstone project dari awal hingga akhir',
-    category: 'Panduan',
-    uploadDate: '2025-11-10',
-    fileSize: '2.5 MB',
-    downloads: 45,
-    link: 'https://example.com/doc1.pdf'
-  },
-  {
-    _id: '2',
-    title: 'Template Laporan Akhir',
-    description: 'Template untuk laporan akhir capstone project sesuai format yang ditentukan',
-    category: 'Template',
-    uploadDate: '2025-11-09',
-    fileSize: '1.2 MB',
-    downloads: 38,
-    link: 'https://example.com/doc2.docx'
-  },
-  {
-    _id: '3',
-    title: 'Rubrik Penilaian',
-    description: 'Rubrik penilaian capstone project untuk referensi tim',
-    category: 'Referensi',
-    uploadDate: '2025-11-08',
-    fileSize: '850 KB',
-    downloads: 52,
-    link: 'https://example.com/doc3.pdf'
-  },
-  {
-    _id: '4',
-    title: 'Panduan Git & GitHub',
-    description: 'Best practices menggunakan Git dan GitHub untuk kolaborasi tim',
-    category: 'Panduan',
-    uploadDate: '2025-11-07',
-    fileSize: '1.8 MB',
-    downloads: 41,
-    link: 'https://example.com/doc4.pdf'
-  },
-  {
-    _id: '5',
-    title: 'Template Presentasi',
-    description: 'Template PowerPoint untuk presentasi akhir capstone project',
-    category: 'Template',
-    uploadDate: '2025-11-06',
-    fileSize: '3.2 MB',
-    downloads: 35,
-    link: 'https://example.com/doc5.pptx'
-  },
-  {
-    _id: '6',
-    title: 'Contoh Project Terbaik',
-    description: 'Kumpulan contoh capstone project terbaik dari batch sebelumnya',
-    category: 'Referensi',
-    uploadDate: '2025-11-05',
-    fileSize: '5.4 MB',
-    downloads: 67,
-    link: 'https://example.com/doc6.pdf'
-  }
-])
+// Get data from store
+const loading = computed(() => documentStore.documentsLoading)
+const documents = computed(() => documentStore.documents)
 
 const categoryOptions = [
   { value: '', label: 'Semua Kategori' },
@@ -213,11 +154,12 @@ const getCategoryVariant = (category) => {
   return variants[category] || 'secondary'
 }
 
-const downloadDocument = (doc) => {
-  console.log('Downloading:', doc.title)
-  doc.downloads++
-  // TODO: Call API to track download
-  window.open(doc.link, '_blank')
+const downloadDocument = async (doc) => {
+  try {
+    await documentStore.downloadDocument(doc._id || doc.id, doc.title)
+  } catch (err) {
+    console.error('Download failed:', err)
+  }
 }
 
 const handleLogout = () => {
@@ -225,13 +167,24 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-onMounted(async () => {
-  loading.value = true
+const fetchDocuments = async () => {
   try {
-    // TODO: Fetch documents from API
-    await new Promise(resolve => setTimeout(resolve, 500))
-  } finally {
-    loading.value = false
+    const params = {
+      category: filterCategory.value,
+      search: searchQuery.value
+    }
+    await documentStore.fetchDocuments(params)
+  } catch (err) {
+    console.error('Failed to fetch documents:', err)
   }
+}
+
+// Watch filters and refetch
+watch([searchQuery, filterCategory], () => {
+  fetchDocuments()
+})
+
+onMounted(() => {
+  fetchDocuments()
 })
 </script>

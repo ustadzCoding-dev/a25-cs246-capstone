@@ -248,9 +248,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useDocumentStore } from '../../stores/documentStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
 import BaseSearch from '../../components/base/BaseSearch.vue'
@@ -265,9 +266,9 @@ import BaseModal from '../../components/base/BaseModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const documentStore = useDocumentStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
 const submitting = ref(false)
 const deleting = ref(false)
 const error = ref('')
@@ -296,44 +297,20 @@ const errors = reactive({
   link: ''
 })
 
-const stats = ref({
-  total: 12,
-  thisMonth: 5,
-  totalDownloads: 248
-})
+// Get data from store
+const loading = computed(() => documentStore.documentsLoading)
+const documents = computed(() => documentStore.documents)
 
-const documents = ref([
-  {
-    _id: '1',
-    title: 'Panduan Capstone Project',
-    description: 'Panduan lengkap untuk menyelesaikan capstone project dari awal hingga akhir',
-    category: 'Panduan',
-    uploadDate: '2025-11-10',
-    fileSize: '2.5 MB',
-    downloads: 45,
-    link: 'https://example.com/doc1.pdf'
-  },
-  {
-    _id: '2',
-    title: 'Template Laporan Akhir',
-    description: 'Template untuk laporan akhir capstone project sesuai format yang ditentukan',
-    category: 'Template',
-    uploadDate: '2025-11-09',
-    fileSize: '1.2 MB',
-    downloads: 38,
-    link: 'https://example.com/doc2.docx'
-  },
-  {
-    _id: '3',
-    title: 'Rubrik Penilaian',
-    description: 'Rubrik penilaian capstone project untuk referensi tim',
-    category: 'Referensi',
-    uploadDate: '2025-11-08',
-    fileSize: '850 KB',
-    downloads: 52,
-    link: 'https://example.com/doc3.pdf'
-  }
-])
+// Calculate stats
+const stats = computed(() => ({
+  total: documents.value.length,
+  thisMonth: documents.value.filter(d => {
+    const uploadDate = new Date(d.uploadDate)
+    const now = new Date()
+    return uploadDate.getMonth() === now.getMonth() && uploadDate.getFullYear() === now.getFullYear()
+  }).length,
+  totalDownloads: documents.value.reduce((sum, d) => sum + (d.downloads || 0), 0)
+}))
 
 const categoryOptions = [
   { value: '', label: 'Semua Kategori' },
@@ -421,29 +398,25 @@ const handleSubmit = async () => {
   error.value = ''
 
   try {
-    console.log('Submitting document:', form)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    if (editingDocument.value) {
-      const index = documents.value.findIndex(d => d._id === editingDocument.value._id)
-      documents.value[index] = {
-        ...editingDocument.value,
-        ...form,
-        uploadDate: new Date().toISOString().split('T')[0]
-      }
-    } else {
-      documents.value.unshift({
-        _id: Date.now().toString(),
-        ...form,
-        uploadDate: new Date().toISOString().split('T')[0],
-        fileSize: '1.5 MB',
-        downloads: 0
-      })
-      stats.value.total++
-      stats.value.thisMonth++
+    // Create FormData for file upload
+    const formData = new FormData()
+    formData.append('title', form.title)
+    formData.append('description', form.description)
+    formData.append('category', form.category)
+    
+    if (form.file) {
+      formData.append('file', form.file)
+    }
+    
+    if (form.link) {
+      formData.append('link', form.link)
     }
 
+    // Upload document
+    await documentStore.uploadDocument(formData)
+    
     closeModal()
+    await fetchDocuments()
   } catch (err) {
     error.value = err.message || 'Gagal menyimpan dokumen'
   } finally {
@@ -451,11 +424,12 @@ const handleSubmit = async () => {
   }
 }
 
-const downloadDocument = (doc) => {
-  console.log('Downloading:', doc.title)
-  doc.downloads++
-  stats.value.totalDownloads++
-  window.open(doc.link, '_blank')
+const downloadDocument = async (doc) => {
+  try {
+    await documentStore.downloadDocument(doc._id || doc.id, doc.title)
+  } catch (err) {
+    console.error('Download failed:', err)
+  }
 }
 
 const editDocument = (doc) => {
@@ -475,10 +449,9 @@ const deleteDocument = (doc) => {
 const confirmDelete = async () => {
   deleting.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    documents.value = documents.value.filter(d => d._id !== selectedDocument.value._id)
-    stats.value.total--
+    await documentStore.deleteDocument(selectedDocument.value._id || selectedDocument.value.id)
     showDeleteModal.value = false
+    await fetchDocuments()
   } finally {
     deleting.value = false
   }
@@ -501,12 +474,24 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-onMounted(async () => {
-  loading.value = true
+const fetchDocuments = async () => {
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-  } finally {
-    loading.value = false
+    const params = {
+      category: filterCategory.value,
+      search: searchQuery.value
+    }
+    await documentStore.fetchDocuments(params)
+  } catch (err) {
+    console.error('Failed to fetch documents:', err)
   }
+}
+
+// Watch filters and refetch
+watch([searchQuery, filterCategory], () => {
+  fetchDocuments()
+})
+
+onMounted(() => {
+  fetchDocuments()
 })
 </script>
