@@ -182,6 +182,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useTeamStore } from '../../stores/teamStore'
+import { useDocumentStore } from '../../stores/documentStore'
+import { useTimelineStore } from '../../stores/timelineStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import TeamStatusCard from '../../components/display/TeamStatusCard.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
@@ -192,45 +195,40 @@ import BaseSpinner from '../../components/base/BaseSpinner.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const teamStore = useTeamStore()
+const documentStore = useDocumentStore()
+const timelineStore = useTimelineStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
 
-// Mock data - will be replaced with API calls
-const hasTeam = ref(true)
-const teamInfo = ref({
-  teamName: 'Team Alpha',
-  leaderName: 'John Doe',
-  useCase: 'DC-09',
-  status: 'Active',
-  members: [
-    { name: 'Jane Doe', id: 'F123456' },
-    { name: 'Bob Smith', id: 'F234567' }
-  ]
-})
+// Get data from stores
+const loading = computed(() => 
+  teamStore.loading || documentStore.documentsLoading || timelineStore.timelinesLoading
+)
 
-const stats = ref({
-  totalDocuments: 12,
-  activeTimelines: 5,
-  newAnnouncements: 3
-})
-
-const recentDocuments = ref([
-  {
-    id: 1,
-    title: 'Panduan Capstone Project',
-    description: 'Panduan lengkap untuk menyelesaikan capstone project',
-    date: '2025-11-10',
-    link: 'https://example.com/doc1'
-  },
-  {
-    id: 2,
-    title: 'Template Laporan Akhir',
-    description: 'Template untuk laporan akhir capstone project',
-    date: '2025-11-09',
-    link: 'https://example.com/doc2'
+const hasTeam = computed(() => teamStore.hasTeam)
+const teamInfo = computed(() => {
+  const team = teamStore.currentTeam
+  if (!team) return null
+  
+  return {
+    teamName: team.teamName,
+    leaderName: team.leader?.name || team.leader?.email,
+    useCase: team.useCase?.code || team.useCase,
+    status: team.status,
+    members: team.members || []
   }
-])
+})
+
+const stats = computed(() => ({
+  totalDocuments: documentStore.documents.length,
+  activeTimelines: timelineStore.ongoingTimelines.length,
+  newAnnouncements: 0 // TODO: Add announcement store
+}))
+
+const recentDocuments = computed(() => 
+  documentStore.documents.slice(0, 2)
+)
 
 const recentAnnouncements = ref([
   {
@@ -257,13 +255,15 @@ const handleLogout = () => {
 }
 
 onMounted(async () => {
-  // TODO: Fetch dashboard data from API
-  loading.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-  } finally {
-    loading.value = false
+    // Fetch all dashboard data in parallel
+    await Promise.all([
+      teamStore.fetchCurrentTeam(),
+      documentStore.fetchDocuments({ limit: 5 }),
+      timelineStore.fetchTimelines()
+    ])
+  } catch (err) {
+    console.error('Failed to fetch dashboard data:', err)
   }
 })
 </script>

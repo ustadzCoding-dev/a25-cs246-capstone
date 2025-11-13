@@ -194,6 +194,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useTeamStore } from '../../stores/teamStore'
+import { useDocumentStore } from '../../stores/documentStore'
+import { useTimelineStore } from '../../stores/timelineStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
 import BaseButton from '../../components/base/BaseButton.vue'
@@ -202,37 +205,30 @@ import BaseModal from '../../components/base/BaseModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const teamStore = useTeamStore()
+const documentStore = useDocumentStore()
+const timelineStore = useTimelineStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
 const showAddDocumentModal = ref(false)
 const showAddAnnouncementModal = ref(false)
 
-// Mock data - will be replaced with API calls
-const stats = ref({
-  totalTeams: 24,
-  teamChange: 12,
-  pendingTeams: 5,
-  totalDocuments: 48,
-  totalStudents: 96
-})
+// Get data from stores
+const loading = computed(() => 
+  teamStore.teamsLoading || documentStore.documentsLoading || timelineStore.timelinesLoading
+)
 
-const pendingTeams = ref([
-  {
-    _id: '1',
-    teamName: 'Team Alpha',
-    leader: { name: 'John Doe', dicodingId: 'F123456' },
-    useCase: 'DC-09',
-    members: [{ name: 'Jane Doe' }, { name: 'Bob Smith' }]
-  },
-  {
-    _id: '2',
-    teamName: 'Team Beta',
-    leader: { name: 'Alice Johnson', dicodingId: 'F234567' },
-    useCase: 'DC-10',
-    members: [{ name: 'Charlie Brown' }]
-  }
-])
+const stats = computed(() => ({
+  totalTeams: teamStore.teams.length,
+  teamChange: 12, // TODO: Calculate from actual data
+  pendingTeams: teamStore.pendingTeams.length,
+  totalDocuments: documentStore.documents.length,
+  totalStudents: teamStore.teams.reduce((sum, team) => sum + (team.members?.length || 0) + 1, 0)
+}))
+
+const pendingTeams = computed(() => 
+  teamStore.pendingTeams.slice(0, 5)
+)
 
 const recentActivities = ref([
   { id: 1, message: 'Team Alpha mengajukan pendaftaran', time: '5 menit yang lalu' },
@@ -250,13 +246,23 @@ const adminMenuItems = [
 ]
 
 const approveTeam = async (teamId) => {
-  // TODO: Implement approve team API call
-  console.log('Approve team:', teamId)
+  try {
+    await teamStore.approveTeam(teamId)
+    // Refresh teams data
+    await teamStore.fetchTeams()
+  } catch (err) {
+    console.error('Failed to approve team:', err)
+  }
 }
 
 const rejectTeam = async (teamId) => {
-  // TODO: Implement reject team API call
-  console.log('Reject team:', teamId)
+  try {
+    await teamStore.rejectTeam(teamId, 'Rejected by admin')
+    // Refresh teams data
+    await teamStore.fetchTeams()
+  } catch (err) {
+    console.error('Failed to reject team:', err)
+  }
 }
 
 const handleLogout = () => {
@@ -265,13 +271,15 @@ const handleLogout = () => {
 }
 
 onMounted(async () => {
-  // TODO: Fetch dashboard data from API
-  loading.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-  } finally {
-    loading.value = false
+    // Fetch all dashboard data in parallel
+    await Promise.all([
+      teamStore.fetchTeams(),
+      documentStore.fetchDocuments({ limit: 10 }),
+      timelineStore.fetchTimelines()
+    ])
+  } catch (err) {
+    console.error('Failed to fetch dashboard data:', err)
   }
 })
 </script>
