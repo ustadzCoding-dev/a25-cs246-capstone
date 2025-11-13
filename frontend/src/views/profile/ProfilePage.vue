@@ -291,6 +291,7 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/authStore";
+import * as userService from "../../services/userService";
 import DashboardLayout from "../../components/layout/DashboardLayout.vue";
 import BaseInput from "../../components/base/BaseInput.vue";
 import BasePasswordInput from "../../components/base/BasePasswordInput.vue";
@@ -478,12 +479,19 @@ const handleUpdateProfile = async () => {
   success.value = "";
 
   try {
-    // TODO: Call API to update profile
-    console.log("Updating profile:", profileForm);
+    const profileData = {
+      name: profileForm.name,
+      learningPath: profileForm.learningPath,
+      university: profileForm.university
+    };
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const response = await userService.updateUserProfile(profileData);
 
-    success.value = "Profil berhasil diperbarui!";
+    if (response.success) {
+      // Update user in auth store
+      await authStore.fetchUser();
+      success.value = "Profil berhasil diperbarui!";
+    }
 
     // Scroll to top to show success message
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -502,20 +510,24 @@ const handleChangePassword = async () => {
   success.value = "";
 
   try {
-    // TODO: Call API to change password
-    console.log("Changing password");
+    const passwordData = {
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword
+    };
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const response = await userService.changePassword(passwordData);
 
-    success.value = "Password berhasil diubah!";
+    if (response.success) {
+      success.value = "Password berhasil diubah!";
 
-    // Reset form
-    passwordForm.currentPassword = "";
-    passwordForm.newPassword = "";
-    passwordForm.confirmPassword = "";
+      // Reset form
+      passwordForm.currentPassword = "";
+      passwordForm.newPassword = "";
+      passwordForm.confirmPassword = "";
 
-    // Scroll to top to show success message
-    window.scrollTo({ top: 0, behavior: "smooth" });
+      // Scroll to top to show success message
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   } catch (err) {
     passwordError.value = err.message || "Gagal mengubah password";
   } finally {
