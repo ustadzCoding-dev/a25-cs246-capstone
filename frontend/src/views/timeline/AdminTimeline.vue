@@ -252,6 +252,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useTimelineStore } from '../../stores/timelineStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
 import BaseInput from '../../components/base/BaseInput.vue'
@@ -265,9 +266,9 @@ import BaseModal from '../../components/base/BaseModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const timelineStore = useTimelineStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
 const submitting = ref(false)
 const deleting = ref(false)
 const error = ref('')
@@ -293,47 +294,17 @@ const errors = reactive({
   status: ''
 })
 
-const stats = ref({
-  total: 8,
-  active: 2,
-  upcoming: 3,
-  completed: 3
-})
+// Get data from store
+const loading = computed(() => timelineStore.timelinesLoading)
+const timelineItems = computed(() => timelineStore.sortedTimelines)
 
-const timelineItems = ref([
-  {
-    _id: '1',
-    title: 'Minggu 1 - Planning & Setup',
-    description: 'Setup project, database design, dan wireframing',
-    startDate: '2025-10-31',
-    endDate: '2025-11-06',
-    status: 'completed'
-  },
-  {
-    _id: '2',
-    title: 'Minggu 2 - Team Registration',
-    description: 'Implementasi fitur registrasi tim dan approval admin',
-    startDate: '2025-11-07',
-    endDate: '2025-11-13',
-    status: 'active'
-  },
-  {
-    _id: '3',
-    title: 'Minggu 3 - Document Management',
-    description: 'Fitur upload dan download dokumen',
-    startDate: '2025-11-14',
-    endDate: '2025-11-20',
-    status: 'upcoming'
-  },
-  {
-    _id: '4',
-    title: 'Minggu 4 - Timeline Feature',
-    description: 'Implementasi timeline dan deadline tracking',
-    startDate: '2025-11-21',
-    endDate: '2025-11-27',
-    status: 'upcoming'
-  }
-])
+// Calculate stats
+const stats = computed(() => ({
+  total: timelineItems.value.length,
+  active: timelineStore.ongoingTimelines.length,
+  upcoming: timelineItems.value.filter(t => t.status === 'upcoming').length,
+  completed: timelineStore.completedTimelines.length
+}))
 
 const statusOptions = [
   { value: 'upcoming', label: 'Mendatang' },
@@ -431,30 +402,22 @@ const handleSubmit = async () => {
   error.value = ''
 
   try {
-    console.log('Submitting timeline:', form)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    if (editingTimeline.value) {
-      const index = timelineItems.value.findIndex(t => t._id === editingTimeline.value._id)
-      timelineItems.value[index] = {
-        ...editingTimeline.value,
-        ...form
-      }
-    } else {
-      timelineItems.value.push({
-        _id: Date.now().toString(),
-        ...form
-      })
-      stats.value.total++
-      if (form.status === 'active') stats.value.active++
-      else if (form.status === 'upcoming') stats.value.upcoming++
-      else if (form.status === 'completed') stats.value.completed++
+    const timelineData = {
+      title: form.title,
+      description: form.description,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      status: form.status
     }
 
-    // Sort by start date
-    timelineItems.value.sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    if (editingTimeline.value) {
+      await timelineStore.updateTimeline(editingTimeline.value._id || editingTimeline.value.id, timelineData)
+    } else {
+      await timelineStore.createTimeline(timelineData)
+    }
 
     closeModal()
+    await fetchTimelines()
   } catch (err) {
     error.value = err.message || 'Gagal menyimpan timeline'
   } finally {
@@ -480,10 +443,9 @@ const deleteTimeline = (item) => {
 const confirmDelete = async () => {
   deleting.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    timelineItems.value = timelineItems.value.filter(t => t._id !== selectedTimeline.value._id)
-    stats.value.total--
+    await timelineStore.deleteTimeline(selectedTimeline.value._id || selectedTimeline.value.id)
     showDeleteModal.value = false
+    await fetchTimelines()
   } finally {
     deleting.value = false
   }
@@ -506,12 +468,15 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-onMounted(async () => {
-  loading.value = true
+const fetchTimelines = async () => {
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-  } finally {
-    loading.value = false
+    await timelineStore.fetchTimelines()
+  } catch (err) {
+    console.error('Failed to fetch timelines:', err)
   }
+}
+
+onMounted(() => {
+  fetchTimelines()
 })
 </script>

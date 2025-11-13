@@ -182,58 +182,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useTimelineStore } from '../../stores/timelineStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import TimelineItem from '../../components/display/TimelineItem.vue'
 import BaseSpinner from '../../components/base/BaseSpinner.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const timelineStore = useTimelineStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
 
-const timelineItems = ref([
-  {
-    _id: '1',
-    title: 'Minggu 1 - Planning & Setup',
-    description: 'Setup project, database design, dan wireframing',
-    startDate: '2025-10-31',
-    endDate: '2025-11-06',
-    status: 'completed'
-  },
-  {
-    _id: '2',
-    title: 'Minggu 2 - Team Registration',
-    description: 'Implementasi fitur registrasi tim dan approval admin',
-    startDate: '2025-11-07',
-    endDate: '2025-11-13',
-    status: 'active'
-  },
-  {
-    _id: '3',
-    title: 'Minggu 3 - Document Management',
-    description: 'Fitur upload dan download dokumen',
-    startDate: '2025-11-14',
-    endDate: '2025-11-20',
-    status: 'upcoming'
-  },
-  {
-    _id: '4',
-    title: 'Minggu 4 - Timeline Feature',
-    description: 'Implementasi timeline dan deadline tracking',
-    startDate: '2025-11-21',
-    endDate: '2025-11-27',
-    status: 'upcoming'
-  },
-  {
-    _id: '5',
-    title: 'Minggu 5 - Testing & Deployment',
-    description: 'UAT, deployment, dan performance optimization',
-    startDate: '2025-11-28',
-    endDate: '2025-12-04',
-    status: 'upcoming'
-  }
-])
+// Get data from store
+const loading = computed(() => timelineStore.timelinesLoading)
+const timelineItems = computed(() => timelineStore.sortedTimelines)
 
 const studentMenuItems = [
   { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
@@ -294,12 +256,10 @@ const handleLogout = () => {
 }
 
 onMounted(async () => {
-  loading.value = true
   try {
-    // TODO: Fetch timeline from API
-    await new Promise(resolve => setTimeout(resolve, 500))
-  } finally {
-    loading.value = false
+    await timelineStore.fetchTimelines()
+  } catch (err) {
+    console.error('Failed to fetch timelines:', err)
   }
 })
 </script>
