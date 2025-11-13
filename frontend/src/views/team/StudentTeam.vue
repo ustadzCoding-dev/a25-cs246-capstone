@@ -219,12 +219,11 @@ const handleLeaveTeam = async () => {
   leavingTeam.value = true
   
   try {
-    // TODO: Implement leave team API
-    console.log('Leaving team:', activeTeam.value._id)
-    
-    // For now, just clear the team
-    teamStore.currentTeam = null
+    await teamStore.leaveTeam(activeTeam.value._id || activeTeam.value.id)
     showLeaveConfirm.value = false
+    
+    // Refresh team data
+    await fetchTeamData()
     
   } catch (err) {
     console.error('Failed to leave team:', err)
@@ -235,8 +234,10 @@ const handleLeaveTeam = async () => {
 
 const handleAcceptInvitation = async (invitationId) => {
   try {
-    // TODO: Implement accept invitation API
-    console.log('Accepting invitation:', invitationId)
+    await teamStore.acceptInvitation(invitationId)
+    
+    // Remove from invitations list
+    invitations.value = invitations.value.filter(inv => inv._id !== invitationId)
     
     // Refresh team data
     await fetchTeamData()
@@ -248,8 +249,7 @@ const handleAcceptInvitation = async (invitationId) => {
 
 const handleRejectInvitation = async (invitationId) => {
   try {
-    // TODO: Implement reject invitation API
-    console.log('Rejecting invitation:', invitationId)
+    await teamStore.rejectInvitation(invitationId)
     
     // Remove invitation from list
     invitations.value = invitations.value.filter(inv => inv._id !== invitationId)

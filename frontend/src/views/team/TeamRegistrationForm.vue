@@ -201,19 +201,9 @@ const errors = reactive({
   agreeToTerms: ''
 })
 
-// Use case options (from backend)
-const useCaseOptions = [
-  { value: 'DC-01', label: 'DC-01 - E-Commerce Platform' },
-  { value: 'DC-02', label: 'DC-02 - Learning Management System' },
-  { value: 'DC-03', label: 'DC-03 - Healthcare App' },
-  { value: 'DC-04', label: 'DC-04 - Financial Management' },
-  { value: 'DC-05', label: 'DC-05 - Social Media Platform' },
-  { value: 'DC-06', label: 'DC-06 - Travel Booking System' },
-  { value: 'DC-07', label: 'DC-07 - Food Delivery App' },
-  { value: 'DC-08', label: 'DC-08 - Real Estate Platform' },
-  { value: 'DC-09', label: 'DC-09 - Event Management System' },
-  { value: 'DC-10', label: 'DC-10 - Job Portal' }
-]
+// Use case options (fetch from backend)
+const useCaseOptions = ref([])
+const loadingUseCases = ref(false)
 
 const studentMenuItems = [
   { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
@@ -327,4 +317,30 @@ const handleLogout = () => {
   authStore.logout()
   router.push('/login')
 }
+
+const fetchUseCases = async () => {
+  loadingUseCases.value = true
+  try {
+    const response = await teamStore.fetchUseCases()
+    useCaseOptions.value = response.data.map(uc => ({
+      value: uc._id || uc.id,
+      label: `${uc.code} - ${uc.title || uc.name}`
+    }))
+  } catch (err) {
+    console.error('Failed to fetch use cases:', err)
+    // Fallback to default options if API fails
+    useCaseOptions.value = [
+      { value: 'DC-01', label: 'DC-01 - E-Commerce Platform' },
+      { value: 'DC-02', label: 'DC-02 - Learning Management System' },
+      { value: 'DC-09', label: 'DC-09 - Event Management System' },
+      { value: 'DC-10', label: 'DC-10 - Job Portal' }
+    ]
+  } finally {
+    loadingUseCases.value = false
+  }
+}
+
+onMounted(() => {
+  fetchUseCases()
+})
 </script>
