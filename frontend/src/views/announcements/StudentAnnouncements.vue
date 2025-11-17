@@ -14,7 +14,7 @@
             v-model="searchQuery"
             placeholder="Cari pengumuman..."
           />
-          
+
           <BaseSelect
             v-model="filterPriority"
             :options="priorityOptions"
@@ -106,6 +106,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useAnnouncementStore } from '../../stores/announcementStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import AnnouncementCard from '../../components/display/AnnouncementCard.vue'
 import BaseSearch from '../../components/base/BaseSearch.vue'
@@ -114,52 +115,22 @@ import BaseSpinner from '../../components/base/BaseSpinner.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const announcementStore = useAnnouncementStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
+const loading = computed(() => announcementStore.announcementsLoading)
 
 const searchQuery = ref('')
 const filterPriority = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 10
 
-const announcements = ref([
-  {
-    _id: '1',
-    title: 'Deadline Submission Minggu 3',
-    content: 'Harap submit laporan kemajuan minggu 3 sebelum tanggal 15 November 2025. Pastikan semua dokumen lengkap dan sesuai dengan template yang telah disediakan.',
-    date: '2025-11-10',
-    priority: 'important'
-  },
-  {
-    _id: '2',
-    title: 'Sesi Mentoring Pekan Ini',
-    content: 'Sesi mentoring akan diadakan pada hari Rabu, 13 November 2025 pukul 19:00 WIB. Link Zoom akan dikirimkan via email 30 menit sebelum sesi dimulai. Harap hadir tepat waktu.',
-    date: '2025-11-09',
-    priority: 'normal'
-  },
-  {
-    _id: '3',
-    title: 'Update Template Laporan',
-    content: 'Template laporan akhir telah diperbarui dengan format baru. Silakan download versi terbaru dari halaman Dokumen. Template lama tidak akan diterima.',
-    date: '2025-11-08',
-    priority: 'normal'
-  },
-  {
-    _id: '4',
-    title: 'Pengingat: Code Review Minggu Depan',
-    content: 'Code review untuk semua tim akan dilakukan minggu depan. Pastikan repository GitHub tim Anda sudah up-to-date dan dokumentasi lengkap.',
-    date: '2025-11-07',
-    priority: 'important'
-  },
-  {
-    _id: '5',
-    title: 'Tips: Best Practices Development',
-    content: 'Jangan lupa untuk selalu melakukan commit secara berkala, gunakan branch strategy yang benar, dan tulis commit message yang deskriptif. Happy coding!',
-    date: '2025-11-06',
-    priority: 'normal'
-  }
-])
+const announcements = computed(() => {
+  return (announcementStore.announcements || []).map(a => ({
+    ...a,
+    date: a.date || a.createdAt
+  }))
+})
 
 const priorityOptions = [
   { value: '', label: 'Semua Prioritas' },
@@ -210,12 +181,10 @@ const handleLogout = () => {
 }
 
 onMounted(async () => {
-  loading.value = true
   try {
-    // TODO: Fetch announcements from API
-    await new Promise(resolve => setTimeout(resolve, 500))
-  } finally {
-    loading.value = false
+    await announcementStore.fetchAnnouncements()
+  } catch (err) {
+    console.error('Failed to fetch announcements:', err)
   }
 })
 </script>

@@ -7,7 +7,7 @@
           <h1 class="text-3xl font-bold text-gray-900">Kelola Pengumuman</h1>
           <p class="mt-2 text-gray-600">Buat dan kelola pengumuman untuk siswa</p>
         </div>
-        
+
         <BaseButton
           variant="primary"
           @click="showCreateModal = true"
@@ -48,7 +48,7 @@
             v-model="searchQuery"
             placeholder="Cari pengumuman..."
           />
-          
+
           <BaseSelect
             v-model="filterPriority"
             :options="priorityOptions"
@@ -183,6 +183,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useAnnouncementStore } from '../../stores/announcementStore'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
 import AnnouncementCard from '../../components/display/AnnouncementCard.vue'
@@ -196,9 +197,10 @@ import BaseModal from '../../components/base/BaseModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const announcementStore = useAnnouncementStore()
 
 const user = computed(() => authStore.user)
-const loading = ref(false)
+const loading = computed(() => announcementStore.announcementsLoading)
 const submitting = ref(false)
 const deleting = ref(false)
 const error = ref('')
@@ -223,35 +225,30 @@ const errors = reactive({
   priority: ''
 })
 
-const stats = ref({
-  total: 12,
-  important: 3,
-  thisMonth: 8
+const stats = computed(() => {
+  const list = announcements.value
+  const total = list.length
+  const important = list.filter(a => a.priority === 'important').length
+
+  const now = new Date()
+  const thisMonth = list.filter(a => {
+    const d = new Date(a.createdAt || a.date)
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+  }).length
+
+  return {
+    total,
+    important,
+    thisMonth
+  }
 })
 
-const announcements = ref([
-  {
-    _id: '1',
-    title: 'Deadline Submission Minggu 3',
-    content: 'Harap submit laporan kemajuan minggu 3 sebelum tanggal 15 November 2025. Pastikan semua dokumen lengkap.',
-    date: '2025-11-10',
-    priority: 'important'
-  },
-  {
-    _id: '2',
-    title: 'Sesi Mentoring Pekan Ini',
-    content: 'Sesi mentoring akan diadakan pada hari Rabu, 13 November 2025 pukul 19:00 WIB. Link Zoom akan dikirimkan via email.',
-    date: '2025-11-09',
-    priority: 'normal'
-  },
-  {
-    _id: '3',
-    title: 'Update Template Laporan',
-    content: 'Template laporan akhir telah diperbarui. Silakan download versi terbaru dari halaman Dokumen.',
-    date: '2025-11-08',
-    priority: 'normal'
-  }
-])
+const announcements = computed(() => {
+  return (announcementStore.announcements || []).map(a => ({
+    ...a,
+    date: a.date || a.createdAt
+  }))
+})
 
 const priorityOptions = [
   { value: '', label: 'Semua Prioritas' },
@@ -317,30 +314,16 @@ const handleSubmit = async () => {
   error.value = ''
 
   try {
-    // TODO: Call API
-    console.log('Submitting announcement:', form)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
     if (editingAnnouncement.value) {
-      // Update existing
-      const index = announcements.value.findIndex(a => a._id === editingAnnouncement.value._id)
-      announcements.value[index] = {
-        ...editingAnnouncement.value,
-        ...form,
-        date: new Date().toISOString().split('T')[0]
-      }
+      await announcementStore.updateAnnouncement(
+        editingAnnouncement.value._id || editingAnnouncement.value.id,
+        { ...form }
+      )
     } else {
-      // Create new
-      announcements.value.unshift({
-        _id: Date.now().toString(),
-        ...form,
-        date: new Date().toISOString().split('T')[0]
-      })
-      stats.value.total++
-      if (form.priority === 'important') stats.value.important++
+      await announcementStore.createAnnouncement({ ...form })
     }
 
+    await announcementStore.fetchAnnouncements()
     closeModal()
 
   } catch (err) {
@@ -359,14 +342,9 @@ const confirmDelete = async () => {
   deleting.value = true
 
   try {
-    // TODO: Call API
-    console.log('Deleting announcement:', selectedAnnouncement.value._id)
-
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    announcements.value = announcements.value.filter(a => a._id !== selectedAnnouncement.value._id)
-    stats.value.total--
-    if (selectedAnnouncement.value.priority === 'important') stats.value.important--
+    await announcementStore.deleteAnnouncement(
+      selectedAnnouncement.value._id || selectedAnnouncement.value.id
+    )
 
     showDeleteModal.value = false
 
@@ -393,12 +371,11 @@ const handleLogout = () => {
 }
 
 onMounted(async () => {
-  loading.value = true
   try {
     // TODO: Fetch announcements
-    await new Promise(resolve => setTimeout(resolve, 500))
-  } finally {
-    loading.value = false
+    await announcementStore.fetchAnnouncements()
+  } catch (err) {
+    console.error('Failed to fetch announcements:', err)
   }
 })
 </script>

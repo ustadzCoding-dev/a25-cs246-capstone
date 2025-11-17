@@ -6,6 +6,7 @@ import CapstoneGroup from './CapstoneGroup.js'
 import Document from './Document.js'
 import Timeline from './Timeline.js'
 import LearningGroup from './LearningGroup.js'
+import Announcement from './Announcement.js'
 
 export {
   User,
@@ -13,7 +14,8 @@ export {
   CapstoneGroup,
   Document,
   Timeline,
-  LearningGroup
+  LearningGroup,
+  Announcement
 }
 
 export default {
@@ -22,5 +24,6 @@ export default {
   CapstoneGroup,
   Document,
   Timeline,
-  LearningGroup
+  LearningGroup,
+  Announcement
 }

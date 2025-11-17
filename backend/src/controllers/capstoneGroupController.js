@@ -44,6 +44,27 @@ export const registerTeam = async (req, res) => {
         .json({ message: `Members not found: ${notFound.join(", ")}` });
     }
 
+    const totalMembers = membersFromDB.length;
+    if (totalMembers < 2 || totalMembers > 4) {
+      return res.status(400).json({
+        message:
+          "Team composition invalid: team must have between 2 and 4 members",
+      });
+    }
+
+    const hasTechnicalMember = membersFromDB.some(
+      (member) =>
+        member.learningPath === "Front-End Web & Back-End with AI" ||
+        member.learningPath === "React & Back-End with AI"
+    );
+
+    if (!hasTechnicalMember) {
+      return res.status(400).json({
+        message:
+          "Team composition invalid: at least one member must be in Front-End Web & Back-End with AI or React & Back-End with AI learning path",
+      });
+    }
+
     // Pengecekan data anggota apakah telah memiliki tim
     const membersWithTeam = membersFromDB.find(
       (member) => member.capstoneGroupId !== null
@@ -197,6 +218,27 @@ export const updateCapstoneGroup = async (req, res) => {
         return res
           .status(400)
           .json({ message: `Members not found: ${notFound.join(", ")}` });
+      }
+
+      const totalMembers = newMembersFromDB.length;
+      if (totalMembers < 2 || totalMembers > 4) {
+        return res.status(400).json({
+          message:
+            "Team composition invalid: team must have between 2 and 4 members",
+        });
+      }
+
+      const hasTechnicalMember = newMembersFromDB.some(
+        (member) =>
+          member.learningPath === "Front-End Web & Back-End with AI" ||
+          member.learningPath === "React & Back-End with AI"
+      );
+
+      if (!hasTechnicalMember) {
+        return res.status(400).json({
+          message:
+            "Team composition invalid: at least one member must be in Front-End Web & Back-End with AI or React & Back-End with AI learning path",
+        });
       }
 
       // Konversi ke object ID

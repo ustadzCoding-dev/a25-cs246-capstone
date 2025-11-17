@@ -27,6 +27,7 @@
         :max="max"
         :step="step"
         :maxlength="maxLength"
+        autocomplete="off"
         :class="[
           'w-full px-4 py-2 border rounded-lg transition-colors duration-200',
           'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',

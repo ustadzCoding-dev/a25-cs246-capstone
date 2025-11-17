@@ -90,31 +90,35 @@ export const addDocument = async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
+    // Check if file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
     // Ambil data dari body req
-    const { title, description, fileName, fileUrl, category, visibility } = req.body;
+    const { title, description, category, visibility } = req.body;
 
     // Validasi data yang diterima
-    if (!title || !description || !fileName || !fileUrl || !category || !visibility) {
+    if (!title || !description || !category || !visibility) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     // Pengecekan apakah dokumen dengan title yang sama sudah ada
     const existingDocument = await Document.findOne({ title });
     if (existingDocument) {
+      // Delete uploaded file if title exists
+      fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: "Document with the same title already exists" });
     }
 
-    // Pengecekan apakah dokumen dengan nama file yang sama sudah ada
-    const existingFile = await Document.findOne({ fileName });
-    if (existingFile) {
-      return res.status(400).json({ message: "Document with the same file name already exists" });
-    }
+    // Generate file URL
+    const fileUrl = `/uploads/documents/${req.file.filename}`;
 
     // Membuat dokumen baru
     const newDocument = new Document({
       title,
       description,
-      fileName,
+      fileName: req.file.filename,
       fileUrl,
       category,
       visibility,
@@ -127,10 +131,15 @@ export const addDocument = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Document added successfully",
+      message: "Document uploaded successfully",
       data: newDocument
     });
   } catch (error) {
+    // Delete uploaded file if error occurs
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
     if (error.name === "ValidationError") {
       return res.status(400).json({ success: false, message: error.message });
     }

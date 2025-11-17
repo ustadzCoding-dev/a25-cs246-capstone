@@ -34,3 +34,7 @@ coverage/
 # Build
 dist/
 build/
+\
+# Uploads
+src/uploads/documents/*
+!src/uploads/documents/.gitkeep\

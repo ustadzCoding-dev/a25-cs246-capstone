@@ -7,13 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "echo \"No tests yet\" && exit 0",
-    "test:unit": "echo \"No unit tests yet\" && exit 0",
-    "test:e2e": "echo \"No e2e tests yet\" && exit 0",
-    "lint": "echo \"Lint check passed (ESLint not configured yet)\" && exit 0",
-    "coverage": "echo \"Coverage not configured yet\" && exit 0"
+    "test": "vitest",
+    "test:unit": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "format": "prettier --write src/"
   },
   "dependencies": {
+    "@vueuse/core": "^14.0.0",
     "axios": "^1.13.2",
     "pinia": "^3.0.4",
     "vue": "^3.5.22",
@@ -21,10 +23,20 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/coverage-v8": "^4.0.10",
+    "@vitest/ui": "^4.0.10",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.17",
+    "eslint": "^9.39.1",
+    "eslint-plugin-vue": "^10.5.1",
+    "happy-dom": "^20.0.10",
+    "jsdom": "^27.2.0",
     "postcss": "^8.4.35",
+    "prettier": "^3.6.2",
     "tailwindcss": "^3.4.1",
-    "vite": "npm:rolldown-vite@7.1.14"
+    "vite": "npm:rolldown-vite@7.1.14",
+    "vitest": "^4.0.10"
   },
   "overrides": {
     "vite": "npm:rolldown-vite@7.1.14"

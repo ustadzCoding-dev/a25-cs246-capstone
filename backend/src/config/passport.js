@@ -5,14 +5,16 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
  * Configure Passport Google OAuth Strategy
  */
 const configurePassport = () => {
-  passport.use(
-    new GoogleStrategy(
-      {
-        clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_CALLBACK_URL,
-        proxy: true, // Trust proxy for Railway/Render deployment
-      },
+  // Only configure Google OAuth if credentials are provided
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: process.env.GOOGLE_CALLBACK_URL,
+          proxy: true, // Trust proxy for Railway/Render deployment
+        },
       async (accessToken, refreshToken, profile, done) => {
         try {
           // Extract user data from Google profile
@@ -37,7 +39,12 @@ const configurePassport = () => {
         }
       }
     )
-  );
+    );
+    
+    console.log("✅ Google OAuth configured");
+  } else {
+    console.log("⚠️  Google OAuth disabled (no credentials provided)");
+  }
 
   // Serialize user (not needed for stateless JWT, but required by passport)
   passport.serializeUser((user, done) => {

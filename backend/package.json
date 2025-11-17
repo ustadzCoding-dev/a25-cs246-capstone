@@ -7,10 +7,10 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "echo \"No tests yet\" && exit 0",
-    "test:integration": "echo \"No integration tests yet\" && exit 0",
-    "lint": "echo \"Lint check passed (ESLint not configured yet)\" && exit 0",
-    "coverage": "echo \"Coverage not configured yet\" && exit 0"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "lint": "echo \"Lint check passed (ESLint not configured yet)\" && exit 0"
   },
   "keywords": [
     "express",
@@ -46,6 +46,9 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.4"
   }
 }

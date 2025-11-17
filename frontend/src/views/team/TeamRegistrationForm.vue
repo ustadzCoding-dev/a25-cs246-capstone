@@ -78,12 +78,12 @@
               Anggota Tim <span class="text-danger-500">*</span>
             </label>
             <p class="text-sm text-gray-500 mb-3">
-              Masukkan email anggota tim (minimal 1, maksimal 3 anggota)
+              Masukkan Dicoding ID anggota tim (minimal 1, maksimal 3 anggota)
             </p>
-            
+
             <DynamicInputList
               v-model="form.members"
-              placeholder="email@example.com"
+              placeholder="Contoh: A25-CS246-XXXX"
               add-button-text="+ Tambah Anggota"
               :max-items="3"
               :error="errors.members"
@@ -98,7 +98,7 @@
             <p class="text-sm text-gray-500 mb-3">
               Masukkan learning path untuk setiap anggota (urutan sesuai dengan email di atas)
             </p>
-            
+
             <DynamicInputList
               v-model="form.learningPaths"
               placeholder="Contoh: Front-End Web & Back-End with AI"
@@ -147,7 +147,7 @@
             >
               {{ loading ? 'Memproses...' : 'Daftar Tim' }}
             </BaseButton>
-            
+
             <BaseButton
               type="button"
               variant="outline"
@@ -165,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTeamStore } from '../../stores/teamStore'
@@ -216,9 +216,9 @@ const studentMenuItems = [
 const validateForm = () => {
   // Reset errors
   Object.keys(errors).forEach(key => errors[key] = '')
-  
+
   let isValid = true
-  
+
   // Team name validation
   if (!form.teamName.trim()) {
     errors.teamName = 'Nama tim wajib diisi'
@@ -227,13 +227,13 @@ const validateForm = () => {
     errors.teamName = 'Nama tim minimal 3 karakter'
     isValid = false
   }
-  
+
   // Use case validation
   if (!form.useCase) {
     errors.useCase = 'Use case wajib dipilih'
     isValid = false
   }
-  
+
   // Members validation
   const validMembers = form.members.filter(m => m.trim() !== '')
   if (validMembers.length === 0) {
@@ -242,66 +242,67 @@ const validateForm = () => {
   } else if (validMembers.length > 3) {
     errors.members = 'Maksimal 3 anggota tim'
     isValid = false
-  } else {
-    // Validate email format
-    const emailRegex = /\S+@\S+\.\S+/
-    const invalidEmails = validMembers.filter(email => !emailRegex.test(email))
-    if (invalidEmails.length > 0) {
-      errors.members = 'Format email tidak valid'
-      isValid = false
-    }
   }
-  
+
   // Learning paths validation
   const validPaths = form.learningPaths.filter(p => p.trim() !== '')
   if (validPaths.length !== validMembers.length) {
     errors.learningPaths = 'Jumlah learning path harus sama dengan jumlah anggota'
     isValid = false
   }
-  
+
+  if (!errors.learningPaths && validPaths.length > 0) {
+    const hasTechnicalPath = validPaths.some(path =>
+      path.includes('Front-End Web & Back-End with AI') ||
+      path.includes('React & Back-End with AI')
+    )
+
+    if (!hasTechnicalPath) {
+      errors.learningPaths = 'Minimal 1 anggota dari learning path Front-End Web & Back-End with AI atau React & Back-End with AI'
+      isValid = false
+    }
+  }
+
   // Terms validation
   if (!form.agreeToTerms) {
     errors.agreeToTerms = 'Anda harus menyetujui pernyataan di atas'
     isValid = false
   }
-  
+
   return isValid
 }
 
 const handleSubmit = async () => {
   if (!validateForm()) return
-  
+
   loading.value = true
   error.value = ''
   success.value = ''
-  
+
   try {
     // Filter out empty members and paths
     const validMembers = form.members.filter(m => m.trim() !== '')
     const validPaths = form.learningPaths.filter(p => p.trim() !== '')
-    
+
     // Prepare team data
     const teamData = {
       teamName: form.teamName,
       useCaseId: form.useCase, // Backend expects useCaseId
-      members: validMembers.map((email, index) => ({
-        email: email,
-        learningPath: validPaths[index]
-      }))
+      membersUserId: validMembers
     }
-    
+
     // Call API to create team
     const response = await teamStore.createTeam(teamData)
-    
+
     if (response.success) {
       success.value = 'Tim berhasil didaftarkan! Menunggu persetujuan admin.'
-      
+
       // Redirect after 2 seconds
       setTimeout(() => {
         router.push('/team')
       }, 2000)
     }
-    
+
   } catch (err) {
     error.value = err.message || 'Gagal mendaftarkan tim. Silakan coba lagi.'
   } finally {

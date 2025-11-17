@@ -18,7 +18,7 @@ async function getNextSequence(counterName) {
 export const registerUser = async (req, res) => {
   try {
     // Mengambil data dari request
-    const { name, email, password, learningPath, university } = req.body;
+    const { name, email, password, learningPath, university, role } = req.body;
 
     // Pengecekan apakah user sudah terdaftar
     const existingUser = await User.findOne({ email });
@@ -64,7 +64,7 @@ export const registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       learningPath,
-      role: "student", // Default role
+      role: role || "student", // Default role student, bisa override
       university,
       provider: "local",
       lastLogin: new Date(),
@@ -105,20 +105,27 @@ export const loginUser = async (req, res) => {
     // Mengambil data dari request
     const { email, password } = req.body;
 
+    console.log('[LOGIN] Attempting login for:', email);
+
     // Pengecekan user (hanya local users)
     const user = await User.findOne({ email, provider: "local" }).select(
       "+password"
     );
 
     if (!user) {
+      console.log('[LOGIN] User not found:', email);
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
       });
     }
 
+    console.log('[LOGIN] User found, comparing password...');
+
     // Komparasi password
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    console.log('[LOGIN] Password valid:', isPasswordValid);
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -246,10 +253,14 @@ export const localLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('[LOCAL_LOGIN] Attempting login for:', email);
+
     // Find user (include password field, only local users)
     const user = await User.findOne({ email, provider: "local" }).select(
       "+password"
     );
+
+    console.log('[LOCAL_LOGIN] User found:', !!user);
 
     if (!user) {
       return res.status(401).json({

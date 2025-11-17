@@ -1,5 +1,6 @@
 import express from "express";
 import authRoutes from "./auth.js"; // ⭐ TAMBAHKAN INI
+import upload from "../middleware/upload.js"; // ⭐ IMPORT UPLOAD MIDDLEWARE
 import {
   getAllUsers,
   getUserById,
@@ -43,6 +44,14 @@ import {
   updateLearningGroup,
   deleteLearningGroup,
 } from "../controllers/learningGroupController.js";
+import {
+  getAnnouncements,
+  getAnnouncementById,
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+  markAnnouncementAsRead,
+} from "../controllers/announcementController.js";
 
 const router = express.Router();
 
@@ -106,7 +115,8 @@ router.post("/usecase/add", protect, addUseCase);
 // ========== DOCUMENTS ==========
 router.get("/documents", protect, getAllDocuments);
 router.get("/document/:id", protect, getDocumentById);
-router.post("/document/add", protect, addDocument);
+router.post("/document/upload", protect, upload.single('file'), addDocument); // ⭐ NEW: Upload route
+router.post("/document/add", protect, addDocument); // Keep old route for compatibility
 router.delete("/document/:id/delete", protect, deleteDocument);
 router.get("/document/:id/download", protect, downloadDocument);
 
@@ -124,5 +134,13 @@ router.get("/learning-group/:id", protect, getLearningGroupById);
 router.post("/learning-group/add", protect, addLearningGroup);
 router.put("/learning-group/update/:id", protect, updateLearningGroup);
 router.delete("/learning-group/:id/delete", protect, deleteLearningGroup);
+
+// ========== ANNOUNCEMENTS ==========
+router.get("/announcements", protect, getAnnouncements);
+router.get("/announcements/:id", protect, getAnnouncementById);
+router.post("/announcements", protect, createAnnouncement);
+router.put("/announcements/:id", protect, updateAnnouncement);
+router.delete("/announcements/:id/delete", protect, deleteAnnouncement);
+router.post("/announcements/:id/read", protect, markAnnouncementAsRead);
 
 export default router;

@@ -28,7 +28,7 @@ Token is stored in `localStorage` with key `token`.
 
 ## 📋 Required API Endpoints
 
-### 🔑 Authentication Endpoints
+### 🔑 Authentication Endpoints 
 
 #### 1. POST `/auth/login`
 Login user with email and password.
@@ -554,7 +554,7 @@ Frontend currently uses mock data. Replace with real API calls once backend is r
 
 ## 📞 Contact
 
-**Frontend Developer:** Afrizal  
+**Frontend Developer:** Afrizal
 **Backend Developer:** Ganza
 
 Kalau ada pertanyaan atau perlu diskusi API, langsung chat ya! 💬
