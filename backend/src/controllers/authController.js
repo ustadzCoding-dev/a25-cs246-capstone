@@ -33,28 +33,44 @@ export const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Generate ID berdasarkan learningpath
+    // Generate ID berdasarkan role dan learningpath
     const newSeqNumber = await getNextSequence("dicodingId");
     let generateDicodingId;
-    switch (learningPath) {
-      case "Front-End Web & Back-End with AI":
-        generateDicodingId = `FEBE${newSeqNumber
-          .toString()
-          .padStart(5, "0")}AI`;
-        break;
-      case "React & Back-End with AI":
-        generateDicodingId = `REBE${newSeqNumber
-          .toString()
-          .padStart(5, "0")}AI`;
-        break;
-      case "Machine Learning":
-        generateDicodingId = `ML${newSeqNumber.toString().padStart(5, "0")}`;
-        break;
-      default:
+    const userRole = role || "student";
+
+    // Handle admin/mentor registration (no learning path required)
+    if (userRole === "admin" || userRole === "mentor") {
+      const rolePrefix = userRole === "admin" ? "ADMIN" : "MENTOR";
+      generateDicodingId = `${rolePrefix}-${newSeqNumber.toString().padStart(3, "0")}`;
+    } else {
+      // Student registration (learning path required)
+      if (!learningPath) {
         return res.status(400).json({
           success: false,
-          message: "Learning Path tidak valid.",
+          message: "Learning Path is required for students",
         });
+      }
+
+      switch (learningPath) {
+        case "Front-End Web & Back-End with AI":
+          generateDicodingId = `FEBE${newSeqNumber
+            .toString()
+            .padStart(5, "0")}AI`;
+          break;
+        case "React & Back-End with AI":
+          generateDicodingId = `REBE${newSeqNumber
+            .toString()
+            .padStart(5, "0")}AI`;
+          break;
+        case "Machine Learning":
+          generateDicodingId = `ML${newSeqNumber.toString().padStart(5, "0")}`;
+          break;
+        default:
+          return res.status(400).json({
+            success: false,
+            message: "Learning Path tidak valid.",
+          });
+      }
     }
 
     // Membuat user baru
@@ -63,9 +79,9 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      learningPath,
-      role: role || "student", // Default role student, bisa override
-      university,
+      learningPath: userRole === "student" ? learningPath : null, // Admin/Mentor tidak perlu learning path
+      role: userRole,
+      university: userRole === "student" ? university : null,
       provider: "local",
       lastLogin: new Date(),
     });
