@@ -1,214 +1,70 @@
-import Document from '../models/Document.js'
-import path from 'path';
-import fs from 'fs';
+import { asyncHandler } from '../utils/errorHandler.js';
+import DocumentService from '../services/DocumentService.js';
 
-export const getAllDocuments = async (req, res) => {
-    try {
-      // Pastikan user sudah login
-      if (!req.user) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+/**
+ * Get all documents with filters and pagination
+ * GET /api/documents
+ */
+export const getAllDocuments = asyncHandler(async (req, res) => {
+  const { category, visibility, search, page, limit } = req.query;
 
-      // Mengambil data dari parameter query
-      const { category, visibility, page = 1, limit = 10 } = req.query;
+  const result = await DocumentService.getAllDocuments({
+    category,
+    visibility,
+    search,
+    page,
+    limit
+  });
 
-      // Membangun filter berdasarkan query
-      const filter = {};
-      if (category) {
-        filter.category = category;
-      }
-      if (visibility) {
-        filter.visibility = visibility;
-      }
+  res.success(result.data, 'Documents retrieved successfully', 200, result.pagination);
+});
 
-      // Menghitung total dokumen yang sesuai
-      const totalDocuments = await Document.countDocuments(filter);
+/**
+ * Get document by ID
+ * GET /api/document/:id
+ */
+export const getDocumentById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-      // Ambil dokumen dengan pagination
-      const documents = await Document.find(filter)
-        .skip((page - 1) * limit)
-        .limit(parseInt(limit))
-        .sort({ createdAt: -1 });
+  const document = await DocumentService.getDocumentById(id);
 
-      // Mengirimkan data dokumen beserta info pagination
-      res.status(200).json({
-        success: true,
-        data: {
-          documents,
-          pagination: {
-            currentPage: parseInt(page),
-            totalItems: totalDocuments,
-            limit: parseInt(limit),
-          }
-        }
-      });
-    } catch (error) {
-        if (error.name === "ValidationError") {
-            return res.status(400).json({ success: false, message: error.message});
-        }
-        console.log('Error in getAllDocuments', error);
-        res.status(500).json({ success: false, message: "Internal Server Error"});
-    }
-}
+  res.success(document, 'Document retrieved successfully', 200);
+});
 
-export const getDocumentById = async (req, res) => {
-  try {
-    // Pastikan user sudah login
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+/**
+ * Upload a new document
+ * POST /api/document/add
+ */
+export const addDocument = asyncHandler(async (req, res) => {
+  const documentData = req.validatedBody;
+  const file = req.file;
+  const adminId = req.user._id;
 
-    // Mengambil ID dokumen dari parameter URL
-    const { id } = req.params;
+  const document = await DocumentService.uploadDocument(documentData, file, adminId);
 
-    // Mencari dokumen berdasarkan ID
-    const document = await Document.findById(id);
+  res.success(document, 'Document uploaded successfully', 201);
+});
 
-    // Jika dokumen tidak ditemukan
-    if (!document) {
-      return res.status(404).json({ message: "Document not found" });
-    }
+/**
+ * Delete a document
+ * DELETE /api/document/:id/delete
+ */
+export const deleteDocument = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-    // Mengirimkan data dokumen
-    res.status(200).json({
-      success: true,
-      data: document
-    });
-  } catch (error) {
-      if (error.name === "ValidationError") {
-          return res.status(400).json({ success: false, message: error.message});
-      }
-      console.log('Error in getDocumentById', error);
-      res.status(500).json({ success: false, message: "Internal Server Error"});
-  }
-}
+  await DocumentService.deleteDocument(id);
 
-export const addDocument = async (req, res) => {
-  try {
-    // Hanya admin yang bisa menambahkan dokumen
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: "Forbidden" });
-    }
+  res.success(null, 'Document deleted successfully', 200);
+});
 
-    // Check if file was uploaded
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
+/**
+ * Download a document
+ * GET /api/document/:id/download
+ */
+export const downloadDocument = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-    // Ambil data dari body req
-    const { title, description, category, visibility } = req.body;
+  const document = await DocumentService.downloadDocument(id);
 
-    // Validasi data yang diterima
-    if (!title || !description || !category || !visibility) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    // Pengecekan apakah dokumen dengan title yang sama sudah ada
-    const existingDocument = await Document.findOne({ title });
-    if (existingDocument) {
-      // Delete uploaded file if title exists
-      fs.unlinkSync(req.file.path);
-      return res.status(400).json({ message: "Document with the same title already exists" });
-    }
-
-    // Generate file URL
-    const fileUrl = `/uploads/documents/${req.file.filename}`;
-
-    // Membuat dokumen baru
-    const newDocument = new Document({
-      title,
-      description,
-      fileName: req.file.filename,
-      fileUrl,
-      category,
-      visibility,
-      uploadedBy: req.user._id,
-      isActive: true
-    });
-
-    // Menyimpan dokumen ke database
-    await newDocument.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Document uploaded successfully",
-      data: newDocument
-    });
-  } catch (error) {
-    // Delete uploaded file if error occurs
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    console.log('Error in addDocument', error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-}
-
-export const deleteDocument = async (req, res) => {
-  try {
-    // Hanya admin yang bisa menghapus dokumen
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    // Mengambil ID dokumen dari parameter URL
-    const { id } = req.params;
-
-    // Mencari dan menghapus dokumen berdasarkan ID
-    const document = await Document.findByIdAndDelete(id);
-    if (!document) {
-      return res.status(404).json({ message: "Document not found" });
-    }
-
-    // Mengirimkan response sukses
-    res.status(200).json({
-      success: true,
-      message: "Document deleted successfully"
-    });
-  } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    console.log('Error in deleteDocument', error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-}
-
-export const downloadDocument = async (req, res) => {
-  try {
-    // Pastikan user sudah login
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    // Mengambil ID dokumen dari parameter URL
-    const { id } = req.params;
-
-    // Mencari dokumen berdasarkan ID
-    const document = await Document.findById(id);
-    if (!document) {
-      return res.status(404).json({ message: "Document not found" });
-    }
-
-    // Mendapatkan path file dari URL
-    const filePath = path.join(process.cwd(), "src", "uploads", document.fileName);
-    console.log('Looking for file at:', filePath);
-    // Mengecek apakah file ada
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "File not found on server" });
-    }
-
-    // Mengirimkan file untuk diunduh
-    res.download(filePath, document.fileName);
-  } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    console.log('Error in downloadDocument', error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-}
+  res.success(document, 'Document download recorded', 200);
+});

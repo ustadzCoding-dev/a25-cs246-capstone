@@ -16,10 +16,10 @@ export const helmetMiddleware = helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allow inline scripts for Swagger UI
       imgSrc: ["'self'", 'data:', 'https:', 'validator.swagger.io'],
-      connectSrc: ["'self'"],
-    },
+      connectSrc: ["'self'"]
+    }
   },
-  crossOriginEmbedderPolicy: false,
+  crossOriginEmbedderPolicy: false
 });
 
 // Rate limiting
@@ -28,7 +28,7 @@ export const limiter = rateLimit({
   max: 100, // Limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
-  legacyHeaders: false,
+  legacyHeaders: false
 });
 
 // Stricter rate limit for authentication endpoints
@@ -36,7 +36,7 @@ export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // Limit each IP to 5 login requests per windowMs
   message: 'Too many login attempts, please try again after 15 minutes.',
-  skipSuccessfulRequests: true, // Don't count successful requests
+  skipSuccessfulRequests: true // Don't count successful requests
 });
 
 // Data sanitization against NoSQL query injection
@@ -46,7 +46,7 @@ export const sanitizeData = mongoSanitize({
     console.warn(`Sanitized request data: ${key}`);
   },
   // Don't sanitize req.query as it's read-only
-  allowDots: true,
+  allowDots: true
 });
 
 // Data sanitization against XSS
@@ -60,8 +60,8 @@ export const preventHPP = hpp({
     'role',
     'page',
     'limit',
-    'sort',
-  ],
+    'sort'
+  ]
 });
 
 // Custom security headers
@@ -85,5 +85,5 @@ export default {
   sanitizeData,
   preventXSS,
   preventHPP,
-  customHeaders,
+  customHeaders
 };

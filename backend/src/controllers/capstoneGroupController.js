@@ -1,428 +1,88 @@
-import User from "../models/User.js";
-import UseCase from "../models/UseCase.js";
-import Counter from "../models/Counter.js";
-import CapstoneGroup from "../models/CapstoneGroup.js";
+import { asyncHandler } from '../utils/errorHandler.js';
+import TeamService from '../services/TeamService.js';
 
-async function getNextSequence(counterName) {
-  const counter = await Counter.findByIdAndUpdate(
-    counterName,
-    { $inc: { seq: 1 } },
-    { new: true, upsert: true }
+/**
+ * Register a new capstone team
+ * POST /api/capstone-group/register
+ */
+export const registerTeam = asyncHandler(async (req, res) => {
+  const { teamName, membersUserId, useCaseId } = req.validatedBody;
+  const userId = req.user._id;
+
+  const team = await TeamService.createTeam(
+    { teamName, membersUserId, useCaseId },
+    userId
   );
-  return counter.seq;
-}
 
-export const registerTeam = async (req, res) => {
-  try {
-    // Mengambil data dari request
-    const { useCaseId, teamName, membersUserId } = req.body;
+  res.success(team, 'Team registered successfully', 201);
+});
 
-    // Validasi nama team
-    const existingTeam = await CapstoneGroup.findOne({ teamName });
-    if (existingTeam) {
-      return res.status(400).json({ message: "Team name already registered" });
-    }
+/**
+ * Get all capstone teams with filters and pagination
+ * GET /api/capstone-groups
+ */
+export const getAllCapstoneGroups = asyncHandler(async (req, res) => {
+  const { page, limit, status, search, sortBy, sortOrder } = req.query;
 
-    // Validasi data anggota tidak boleh kososng
-    if (
-      !membersUserId ||
-      !Array.isArray(membersUserId) ||
-      membersUserId.length === 0
-    ) {
-      return res.status(400).json({ message: "Members are required" });
-    }
+  const result = await TeamService.getAllTeams({
+    page,
+    limit,
+    status,
+    search,
+    sortBy,
+    sortOrder
+  });
 
-    // Validasi data anggota
-    const membersFromDB = await User.find({
-      dicodingId: { $in: membersUserId },
-    });
-    if (membersFromDB.length !== membersUserId.length) {
-      const foundIds = membersFromDB.map((u) => u.dicodingId);
-      const notFound = membersUserId.filter((id) => !foundIds.includes(id));
-      return res
-        .status(400)
-        .json({ message: `Members not found: ${notFound.join(", ")}` });
-    }
+  res.success(result.data, 'Teams retrieved successfully', 200, result.pagination);
+});
 
-    const totalMembers = membersFromDB.length;
-    if (totalMembers < 2 || totalMembers > 4) {
-      return res.status(400).json({
-        message:
-          "Team composition invalid: team must have between 2 and 4 members",
-      });
-    }
+/**
+ * Approve a pending capstone team
+ * PUT /api/capstone-group/:id/approve
+ */
+export const approveCapstoneGroup = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const adminId = req.user._id;
 
-    const hasTechnicalMember = membersFromDB.some(
-      (member) =>
-        member.learningPath === "Front-End Web & Back-End with AI" ||
-        member.learningPath === "React & Back-End with AI"
-    );
+  const team = await TeamService.approveTeam(id, adminId);
 
-    if (!hasTechnicalMember) {
-      return res.status(400).json({
-        message:
-          "Team composition invalid: at least one member must be in Front-End Web & Back-End with AI or React & Back-End with AI learning path",
-      });
-    }
+  res.success(team, 'Team approved successfully', 200);
+});
 
-    // Pengecekan data anggota apakah telah memiliki tim
-    const membersWithTeam = membersFromDB.find(
-      (member) => member.capstoneGroupId !== null
-    );
-    if (membersWithTeam) {
-      return res
-        .status(400)
-        .json({
-          message: `Members ${membersWithTeam.name} already has a team`,
-        });
-    }
+/**
+ * Reject a pending capstone team
+ * PUT /api/capstone-group/:id/reject
+ */
+export const rejectCapstoneGroup = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.validatedBody;
+  const adminId = req.user._id;
 
-    // Konversi membersId ke object ID
-    const members = membersFromDB.map((member) => member._id);
+  const team = await TeamService.rejectTeam(id, adminId, reason);
 
-    // Pengecekan usecase apakah valid
-    const usecaseFromDB = await UseCase.find({ usecaseId: { $in: useCaseId } });
-    if (!usecaseFromDB || usecaseFromDB.length === 0) {
-      return res.status(400).json({ message: "Invalid usecase" });
-    }
+  res.success(team, 'Team rejected successfully', 200);
+});
 
-    // Mengambil ID usecase
-    const selectedUsecase = await UseCase.findById(usecaseFromDB[0]._id);
+/**
+ * Delete a capstone team
+ * DELETE /api/capstone-group/:id
+ */
+export const deleteCapstoneGroup = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-    // Pengecekan usecase apakah telah closed
-    if (selectedUsecase.status === "closed") {
-      return res.status(400).json({ message: "Usecase is closed" });
-    }
+  await TeamService.deleteTeam(id);
 
-    // Generate capstoneGroup
-    const newSeqNumber = await getNextSequence("teamSequence");
-    const generateCapstoneGroupId = `TI-${newSeqNumber
-      .toString()
-      .padStart(3, "0")}`;
+  res.success(null, 'Team deleted successfully', 200);
+});
 
-    // Menyimpan data ke database
-    const teamData = new CapstoneGroup({
-      capstoneGroupId: generateCapstoneGroupId,
-      useCaseId: selectedUsecase,
-      teamName,
-      membersUserId: members,
-    });
-    const savedTeam = await teamData.save();
+/**
+ * Get capstone team by ID
+ * GET /api/capstone-group/:id
+ */
+export const getCapstoneGroupById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-    // Update slot usecase
-    selectedUsecase.capstoneGroup.push(savedTeam._id);
-    selectedUsecase.availableSlots = selectedUsecase.totalSlots - selectedUsecase.capstoneGroup.length;
+  const team = await TeamService.findTeamById(id);
 
-    // Pengecekan jika slot penuh, maka update status menjadi closed
-    if (selectedUsecase.availableSlots <= 0) {
-      selectedUsecase.status = "closed";
-    }
-    await selectedUsecase.save();
-
-    // Update capstone group pada members
-    await User.updateMany(
-      { _id: { $in: members } },
-      { $set: { capstoneGroupId: savedTeam._id } }
-    );
-
-    res.status(201).json({ success: true, data: savedTeam });
-  } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    console.log("Error in registerTeam", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-};
-
-export const getAllCapstoneGroups = async (req, res) => {
-  try {
-    // Ambil query pagination
-    const { page = 1, limit = 10 } = req.query;
-
-    // Konversi ke integer
-    const currentPage = parseInt(page);
-
-    // Hitung total data
-    const totalData = await CapstoneGroup.countDocuments();
-
-    // Mengambil data dari database
-    const capstoneGroups = await CapstoneGroup.find({})
-    .skip((currentPage - 1) * limit)
-    .limit(parseInt(limit));
-
-    // Pengecekan apakah capstone group ada
-    if (!capstoneGroups || capstoneGroups.length === 0) {
-      return res.status(404).json({ message: "No capstone groups found" });
-    }
-
-    // Mengirimkan data capstone group
-    res.status(200).json({
-      success: true,
-      data: {
-        capstoneGroups,
-        pagination: {
-          currentPage,
-          totalItems: totalData,
-          limit: parseInt(limit),
-        }
-      }
-     });
-  } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-};
-
-export const updateCapstoneGroup = async (req, res) => {
-  try {
-    // Mengambil id dari parameter
-    const { id } = req.params;
-    const { teamName, updateUserId } = req.body;
-
-    // Mencari capstone group berdasarkan id
-    const capstoneGroup = await CapstoneGroup.findById(id);
-    if (!capstoneGroup) {
-      return res.status(404).json({ message: "Capstone group not found" });
-    }
-
-    // Pengecekan status
-    if (capstoneGroup.status !== "pending") {
-      return res
-        .status(400)
-        .json({ message: "Capstone group are accepted, cannot be updated" });
-    }
-
-    // Update field
-    if (teamName) capstoneGroup.teamName = teamName;
-    if (updateUserId) {
-      // Kosongkan array membersUserId
-      const prevousMembers = capstoneGroup.membersUserId;
-
-      // Update capstone group di user menjadi null
-      await User.updateMany(
-        { _id: { $in: prevousMembers } },
-        { $set: { capstoneGroupId: null } }
-      );
-
-      // Update isi membersUserId dengan array baru
-      // Validasi anggota
-      const newMembersFromDB = await User.find({
-        dicodingId: { $in: updateUserId },
-      });
-      if (newMembersFromDB.length !== updateUserId.length) {
-        const foundIds = newMembersFromDB.map((u) => u.dicodingId);
-        const notFound = updateUserId.filter((id) => !foundIds.includes(id));
-        return res
-          .status(400)
-          .json({ message: `Members not found: ${notFound.join(", ")}` });
-      }
-
-      const totalMembers = newMembersFromDB.length;
-      if (totalMembers < 2 || totalMembers > 4) {
-        return res.status(400).json({
-          message:
-            "Team composition invalid: team must have between 2 and 4 members",
-        });
-      }
-
-      const hasTechnicalMember = newMembersFromDB.some(
-        (member) =>
-          member.learningPath === "Front-End Web & Back-End with AI" ||
-          member.learningPath === "React & Back-End with AI"
-      );
-
-      if (!hasTechnicalMember) {
-        return res.status(400).json({
-          message:
-            "Team composition invalid: at least one member must be in Front-End Web & Back-End with AI or React & Back-End with AI learning path",
-        });
-      }
-
-      // Konversi ke object ID
-      const newMembers = newMembersFromDB.map((member) => member._id);
-      capstoneGroup.membersUserId = newMembers;
-
-      // Simpan perubahan sementara untuk mendapatkan ID capstoneGroup
-      await capstoneGroup.save();
-
-      // Update capstone group pada members yang baru
-      await User.updateMany(
-        { _id: { $in: newMembers } },
-        { $set: { capstoneGroupId: capstoneGroup._id } }
-      );
-    }
-
-    // Simpan perubahan
-    const updatedCapstoneGroup = await capstoneGroup.save();
-
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Capstone group updated successfully",
-        data: updatedCapstoneGroup,
-      });
-  } catch (error) {
-    console.log("Error in updateCapstoneGroupStatus", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-};
-
-export const approveCapstoneGroup = async (req, res) => {
-  try {
-    // Hanya admin yang bisa mengapprove
-    if (!req.user || req.user.role !== "admin") {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    // Mengambil ID dari parameter
-    const {id} = req.params;
-
-    // Cari group berdasarkan ID
-    const capstoneGroup = await CapstoneGroup.findById(id);
-    if (!capstoneGroup) {
-      return res.status(404).json({ message: "Capstone group not found" });
-    }
-
-    // cek status
-    if (capstoneGroup.status !== "pending") {
-      return res
-        .status(400)
-        .json({ message: "Capstone group already processed" });
-    }
-
-    // Update status menjadi approved
-    capstoneGroup.status = "approved";
-    capstoneGroup.validatedBy = req.user._id;
-    capstoneGroup.validatedAt = new Date();
-
-    // Simpan perubahan
-    await capstoneGroup.save();
-
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Capstone group approved successfully",
-        data: {
-          status: capstoneGroup.status,
-          validatedBy: capstoneGroup.validatedBy,
-          validatedAt: capstoneGroup.validatedAt,
-        },
-      });
-  } catch (error) {
-    console.log("Error in approveCapstoneGroup", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-};
-
-export const rejectCapstoneGroup = async (req, res) => {
-  try {
-    // Hanya admin yang bisa menolak
-    if (!req.user || req.user.role !== "admin") {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    // Mengambil ID dari parameter
-    const {id} = req.params;
-    const {reason} = req.body;
-
-    // Cari group berdasarkan ID
-    const capstoneGroup = await CapstoneGroup.findById(id);
-    if (!capstoneGroup) {
-      return res.status(404).json({ message: "Capstone group not found" });
-    }
-
-    // cek status
-    if (capstoneGroup.status !== "pending") {
-      return res
-        .status(400)
-        .json({ message: "Capstone group already processed" });
-    }
-
-    // Update status menjadi rejected
-    capstoneGroup.status = "rejected";
-    capstoneGroup.rejectionReason = reason
-    capstoneGroup.validatedBy = req.user._id;
-    capstoneGroup.validatedAt = new Date();
-
-    // Simpan perubahan
-    await capstoneGroup.save();
-
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Capstone group rejected successfully",
-        data: {
-          status: capstoneGroup.status,
-          validatedBy: capstoneGroup.validatedBy,
-          validatedAt: capstoneGroup.validatedAt,
-          rejectionReason: capstoneGroup.rejectionReason,
-        },
-      });
-  } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    console.log("Error in rejectCapstoneGroup", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-}
-
-export const deleteCapstoneGroup = async (req, res) => {
-  try {
-    // Hanya admin yang bisa menghapus
-    if (!req.user || req.user.role !== "admin") {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    // Mengambil ID dari parameter
-    const {id} = req.params;
-
-    // Cari dan hapus capstone group
-    const deletedGroup = await CapstoneGroup.findByIdAndDelete(id);
-    if (!deletedGroup) {
-      return res.status(404).json({ message: "Capstone group not found" });
-    }
-
-    res
-      .status(200)
-      .json({ success: true, message: "Capstone group deleted successfully" });
-  } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    console.log("Error in deleteCapstoneGroup", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-}
-
-export const getCapstoneGroupById = async (req, res) => {
-  try {
-    // Pastikan user login
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    // Mengambil ID user dari parameter
-    const {id} = req.params;
-
-    // Cari capstone group berdasarkan ID user
-    const capstoneGroup = await CapstoneGroup.findById(id);
-    if (!capstoneGroup) {
-      return res.status(404).json({ message: "Capstone group not found for this user" });
-    }
-
-    res.status(200).json({ success: true, data: capstoneGroup });
-  } catch (error) {
-    if (error.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    console.log("Error in getCapstoneGroupsById", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-}
+  res.success(team, 'Team retrieved successfully', 200);
+});

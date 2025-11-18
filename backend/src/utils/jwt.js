@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 
 /**
  * Generate Access Token (short-lived)
@@ -7,10 +7,10 @@ export const generateAccessToken = (userId, role) => {
   return jwt.sign(
     {
       id: userId,
-      role: role,
+      role: role
     },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || "15m" }
+    { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
   );
 };
 
@@ -19,7 +19,7 @@ export const generateAccessToken = (userId, role) => {
  */
 export const generateRefreshToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
   });
 };
 
@@ -30,7 +30,7 @@ export const verifyAccessToken = (token) => {
   try {
     return jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
-    throw new Error("Invalid or expired access token");
+    throw new Error('Invalid or expired access token');
   }
 };
 
@@ -41,7 +41,7 @@ export const verifyRefreshToken = (token) => {
   try {
     return jwt.verify(token, process.env.JWT_REFRESH_SECRET);
   } catch (error) {
-    throw new Error("Invalid or expired refresh token");
+    throw new Error('Invalid or expired refresh token');
   }
 };
 
@@ -54,6 +54,6 @@ export const generateTokens = (userId, role) => {
 
   return {
     accessToken,
-    refreshToken,
+    refreshToken
   };
 };

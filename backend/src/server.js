@@ -1,23 +1,26 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import swaggerUi from "swagger-ui-express";
-import passport from "passport";
-import cookieParser from "cookie-parser";
-import connectDB from "./config/database.js";
-import routes from "./routes/index.js";
-import errorHandler from "./middleware/errorHandler.js";
-import logger from "./utils/logger.js";
-import swaggerSpec from "./config/swagger.js";
-import configurePassport from "./config/passport.js";
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
+import passport from 'passport';
+import cookieParser from 'cookie-parser';
+import connectDB from './config/database.js';
+import routes from './routes/index.js';
+import errorHandler from './middleware/errorHandler.js';
+import logger from './utils/logger.js';
+import swaggerSpec from './config/swagger.js';
+import configurePassport from './config/passport.js';
+import { responseFormatter } from './middleware/responseFormatter.js';
+import { auditLogger } from './middleware/auditLogger.js';
+import { handleError } from './utils/errorHandler.js';
 import {
   helmetMiddleware,
   limiter,
   sanitizeData,
   preventXSS,
   preventHPP,
-  customHeaders,
-} from "./middleware/security.js";
+  customHeaders
+} from './middleware/security.js';
 
 // Load environment variables
 dotenv.config();
@@ -42,17 +45,20 @@ app.use(preventHPP);
 // ========== CORS (UPDATED for credentials) ==========
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     credentials: true, // Required for cookies (refresh token)
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 
 // ========== BODY PARSERS & COOKIE PARSER ==========
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser()); // Required for refresh token cookies
+
+// ========== STATIC FILES (UPLOADS) ==========
+app.use('/uploads', express.static('uploads'));
 
 // ========== PASSPORT INITIALIZATION (NEW) ==========
 app.use(passport.initialize());
@@ -60,71 +66,81 @@ app.use(passport.initialize());
 // Note: mongo-sanitize and xss-clean removed due to compatibility issues
 // Input validation is handled by Joi schemas in routes
 
-// ========== REQUEST LOGGING ==========
+// ========== REQUEST LOGGING & FORMATTING ==========
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`);
   next();
 });
 
+// Response formatter middleware
+app.use(responseFormatter);
+
+// Audit logger middleware (untuk admin actions)
+app.use(auditLogger);
+
 // ========== API DOCUMENTATION ==========
 app.use(
-  "/api-docs",
+  '/api-docs',
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec, {
-    customCss: ".swagger-ui .topbar { display: none }",
-    customSiteTitle: "Dicoding Capstone API Docs",
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Dicoding Capstone API Docs'
   })
 );
 
 // Swagger JSON endpoint
-app.get("/api-docs.json", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
 });
 
 // ========== HEALTH CHECK ==========
-app.get("/health", (req, res) => {
+app.get('/health', (req, res) => {
   res.json({
-    status: "OK",
-    message: "Server is running",
+    status: 'OK',
+    message: 'Server is running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || "development",
+    environment: process.env.NODE_ENV || 'development',
     services: {
-      database: "connected",
+      database: 'connected',
       googleOAuth: process.env.GOOGLE_CLIENT_ID
-        ? "configured"
-        : "not configured",
-    },
+        ? 'configured'
+        : 'not configured'
+    }
   });
 });
 
 // ========== ROUTES ==========
-app.use("/api", routes);
+app.use('/api', routes);
 
 // ========== 404 HANDLER ==========
 app.use((req, res) => {
   res.status(404).json({
-    status: false,
-    message: "Route not found",
+    success: false,
+    error: {
+      code: 'NOT_FOUND',
+      message: 'Route not found'
+    }
   });
 });
 
 // ========== ERROR HANDLER ==========
-app.use(errorHandler);
+app.use((err, req, res, next) => {
+  handleError(err, req, res);
+});
 
 // ========== START SERVER ==========
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`Health check: http://localhost:${PORT}/health`);
   logger.info(`API Docs: http://localhost:${PORT}/api-docs`);
   logger.info(
-    `Google OAuth: ${
-      process.env.GOOGLE_CLIENT_ID ? "Configured" : "Not Configured"
+    `Google OAuth: ${process.env.GOOGLE_CLIENT_ID ? 'Configured' : 'Not Configured'
     }`
   );
   logger.info(
-    `Frontend URL: ${process.env.FRONTEND_URL || "http://localhost:5173"}`
+    `Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`
   );
 });
 

@@ -11,46 +11,49 @@
 
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatsCard
-          label="Total Tim"
-          :value="stats.totalTeams"
-          icon="team"
-          color="primary"
-        />
-        <StatsCard
-          label="Tim Pending"
-          :value="stats.pendingTeams"
-          icon="clock"
-          color="warning"
-        />
-        <StatsCard
-          label="Tim Disetujui"
-          :value="stats.approvedTeams"
-          icon="team"
-          color="success"
-        />
-        <StatsCard
-          label="Tim Ditolak"
-          :value="stats.rejectedTeams"
-          icon="team"
-          color="danger"
-        />
+        <StatsCard label="Total Tim" :value="stats.totalTeams" icon="team" color="primary" />
+        <StatsCard label="Tim Pending" :value="stats.pendingTeams" icon="clock" color="warning" />
+        <StatsCard label="Tim Disetujui" :value="stats.approvedTeams" icon="team" color="success" />
+        <StatsCard label="Tim Ditolak" :value="stats.rejectedTeams" icon="team" color="danger" />
+      </div>
+
+      <!-- Error Alert -->
+      <div v-if="teamStore.error" class="bg-danger-50 border border-danger-200 rounded-lg p-4">
+        <div class="flex items-start">
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-danger-800">Error</h3>
+            <p class="mt-1 text-sm text-danger-700">{{ teamStore.error }}</p>
+            <p v-if="teamStore.errorDetails.length > 0" class="mt-2 text-xs text-danger-600">
+              <span v-for="(detail, idx) in teamStore.errorDetails" :key="idx" class="block">
+                • {{ detail.field }}: {{ detail.message }}
+              </span>
+            </p>
+          </div>
+          <button @click="teamStore.clearError()" class="text-danger-400 hover:text-danger-600">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Success Alert -->
+      <div v-if="teamStore.successMessage" class="bg-success-50 border border-success-200 rounded-lg p-4">
+        <div class="flex items-start">
+          <div class="flex-1">
+            <p class="text-sm text-success-700">{{ teamStore.successMessage }}</p>
+          </div>
+          <button @click="teamStore.clearSuccess()" class="text-success-400 hover:text-success-600">
+            ✕
+          </button>
+        </div>
       </div>
 
       <!-- Filters & Search -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <BaseSearch
-            v-model="searchQuery"
-            placeholder="Cari nama tim atau ketua..."
-          />
-          
-          <BaseSelect
-            v-model="filterStatus"
-            :options="statusOptions"
-            placeholder="Semua Status"
-          />
-          
+          <BaseSearch v-model="searchQuery" placeholder="Cari nama tim atau ketua..." />
+
+          <BaseSelect v-model="filterStatus" :options="statusOptions" placeholder="Semua Status" />
+
           <BaseSelect
             v-model="filterUseCase"
             :options="useCaseOptions"
@@ -78,21 +81,18 @@
           <template #cell-teamName="{ row }">
             <div>
               <p class="font-medium text-gray-900">{{ row.teamName }}</p>
-              <p class="text-sm text-gray-500">{{ row.useCase }}</p>
+              <p class="text-sm text-gray-500">Status: {{ getStatusLabel(row.status) }}</p>
             </div>
           </template>
 
-          <!-- Leader Column -->
-          <template #cell-leader="{ row }">
-            <div>
-              <p class="text-sm text-gray-900">{{ row.leader.name }}</p>
-              <p class="text-xs text-gray-500">{{ row.leader.id }}</p>
-            </div>
+          <!-- ID Tim Column -->
+          <template #cell-capstoneGroupId="{ row }">
+            <span class="text-sm text-gray-900 font-mono">{{ row.capstoneGroupId }}</span>
           </template>
 
-          <!-- Members Column -->
-          <template #cell-members="{ row }">
-            <span class="text-sm text-gray-900">{{ row.members.length }} anggota</span>
+          <!-- Jumlah Anggota Column -->
+          <template #cell-membersUserId="{ row }">
+            <span class="text-sm text-gray-900">{{ row.membersUserId?.length || 0 }} anggota</span>
           </template>
 
           <!-- Status Column -->
@@ -111,8 +111,18 @@
                 title="Lihat Detail"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
                 </svg>
               </button>
 
@@ -123,7 +133,12 @@
                 title="Setujui"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </button>
 
@@ -134,7 +149,12 @@
                 title="Tolak"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </button>
 
@@ -144,7 +164,12 @@
                 title="Hapus"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             </div>
@@ -154,27 +179,15 @@
     </div>
 
     <!-- Team Details Modal -->
-    <BaseModal
-      v-model="showDetailsModal"
-      title="Detail Tim"
-      size="lg"
-    >
+    <BaseModal v-model="showDetailsModal" title="Detail Tim" size="lg">
       <div v-if="selectedTeam" class="space-y-4">
         <TeamInfoCard :team="selectedTeam" />
 
         <div v-if="selectedTeam.status === 'pending'" class="flex space-x-3 pt-4">
-          <BaseButton
-            variant="success"
-            class="flex-1"
-            @click="approveTeam(selectedTeam)"
-          >
+          <BaseButton variant="success" class="flex-1" @click="approveTeam(selectedTeam)">
             Setujui Tim
           </BaseButton>
-          <BaseButton
-            variant="danger"
-            class="flex-1"
-            @click="rejectTeam(selectedTeam)"
-          >
+          <BaseButton variant="danger" class="flex-1" @click="rejectTeam(selectedTeam)">
             Tolak Tim
           </BaseButton>
         </div>
@@ -182,22 +195,17 @@
 
       <template #footer>
         <div class="flex justify-end">
-          <BaseButton variant="outline" @click="showDetailsModal = false">
-            Tutup
-          </BaseButton>
+          <BaseButton variant="outline" @click="showDetailsModal = false"> Tutup </BaseButton>
         </div>
       </template>
     </BaseModal>
 
     <!-- Reject Confirmation Modal -->
-    <BaseModal
-      v-model="showRejectModal"
-      title="Konfirmasi Penolakan"
-      size="md"
-    >
+    <BaseModal v-model="showRejectModal" title="Konfirmasi Penolakan" size="md">
       <div class="space-y-4">
         <p class="text-gray-700">
-          Apakah Anda yakin ingin menolak tim <strong>{{ selectedTeam?.teamName }}</strong>?
+          Apakah Anda yakin ingin menolak tim <strong>{{ selectedTeam?.teamName }}</strong
+          >?
         </p>
         <BaseTextarea
           v-model="rejectReason"
@@ -209,14 +217,8 @@
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="showRejectModal = false">
-            Batal
-          </BaseButton>
-          <BaseButton
-            variant="danger"
-            :loading="processing"
-            @click="confirmReject"
-          >
+          <BaseButton variant="outline" @click="showRejectModal = false"> Batal </BaseButton>
+          <BaseButton variant="danger" :loading="processing" @click="confirmReject">
             Ya, Tolak Tim
           </BaseButton>
         </div>
@@ -224,14 +226,11 @@
     </BaseModal>
 
     <!-- Delete Confirmation Modal -->
-    <BaseModal
-      v-model="showDeleteModal"
-      title="Konfirmasi Hapus"
-      size="md"
-    >
+    <BaseModal v-model="showDeleteModal" title="Konfirmasi Hapus" size="md">
       <div class="space-y-4">
         <p class="text-gray-700">
-          Apakah Anda yakin ingin menghapus tim <strong>{{ selectedTeam?.teamName }}</strong>?
+          Apakah Anda yakin ingin menghapus tim <strong>{{ selectedTeam?.teamName }}</strong
+          >?
         </p>
         <div class="bg-danger-50 border border-danger-200 rounded-lg p-4">
           <p class="text-sm text-danger-700">
@@ -242,14 +241,8 @@
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="showDeleteModal = false">
-            Batal
-          </BaseButton>
-          <BaseButton
-            variant="danger"
-            :loading="processing"
-            @click="confirmDelete"
-          >
+          <BaseButton variant="outline" @click="showDeleteModal = false"> Batal </BaseButton>
+          <BaseButton variant="danger" :loading="processing" @click="confirmDelete">
             Ya, Hapus Tim
           </BaseButton>
         </div>
@@ -301,22 +294,22 @@ const stats = computed(() => ({
   totalTeams: teams.value.length,
   pendingTeams: teamStore.pendingTeams.length,
   approvedTeams: teamStore.approvedTeams.length,
-  rejectedTeams: teamStore.rejectedTeams.length
+  rejectedTeams: teamStore.rejectedTeams.length,
 }))
 
 const tableColumns = [
   { key: 'teamName', label: 'Nama Tim', sortable: true },
-  { key: 'leader', label: 'Ketua', sortable: true },
-  { key: 'members', label: 'Anggota', sortable: false },
+  { key: 'capstoneGroupId', label: 'ID Tim', sortable: false },
+  { key: 'membersUserId', label: 'Jumlah Anggota', sortable: false },
   { key: 'status', label: 'Status', sortable: true },
-  { key: 'createdAt', label: 'Tanggal Daftar', sortable: true }
+  { key: 'submittedAt', label: 'Tanggal Daftar', sortable: true },
 ]
 
 const statusOptions = [
   { value: '', label: 'Semua Status' },
   { value: 'pending', label: 'Pending' },
   { value: 'approved', label: 'Disetujui' },
-  { value: 'rejected', label: 'Ditolak' }
+  { value: 'rejected', label: 'Ditolak' },
 ]
 
 const useCaseOptions = [
@@ -324,7 +317,7 @@ const useCaseOptions = [
   { value: 'DC-01', label: 'DC-01' },
   { value: 'DC-02', label: 'DC-02' },
   { value: 'DC-09', label: 'DC-09' },
-  { value: 'DC-10', label: 'DC-10' }
+  { value: 'DC-10', label: 'DC-10' },
 ]
 
 const adminMenuItems = [
@@ -332,7 +325,7 @@ const adminMenuItems = [
   { name: 'Kelola Tim', icon: 'team', path: '/admin/teams', roles: ['admin'] },
   { name: 'Dokumen', icon: 'document', path: '/admin/documents', roles: ['admin'] },
   { name: 'Timeline', icon: 'timeline', path: '/admin/timeline', roles: ['admin'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] }
+  { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] },
 ]
 
 const filteredTeams = computed(() => {
@@ -341,9 +334,10 @@ const filteredTeams = computed(() => {
   // Filter by search query
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(team =>
-      team.teamName.toLowerCase().includes(query) ||
-      team.leader.name.toLowerCase().includes(query)
+    result = result.filter(
+      team =>
+        team.teamName.toLowerCase().includes(query) ||
+        team.capstoneGroupId.toLowerCase().includes(query)
     )
   }
 
@@ -352,94 +346,103 @@ const filteredTeams = computed(() => {
     result = result.filter(team => team.status === filterStatus.value)
   }
 
-  // Filter by use case
-  if (filterUseCase.value) {
-    result = result.filter(team => team.useCase === filterUseCase.value)
-  }
-
   return result
 })
 
-const getStatusVariant = (status) => {
+const getStatusVariant = status => {
   const variants = {
-    'pending': 'warning',
-    'approved': 'success',
-    'rejected': 'danger'
+    pending: 'warning',
+    approved: 'success',
+    rejected: 'danger',
   }
   return variants[status] || 'secondary'
 }
 
-const getStatusLabel = (status) => {
+const getStatusLabel = status => {
   const labels = {
-    'pending': 'Pending',
-    'approved': 'Disetujui',
-    'rejected': 'Ditolak'
+    pending: 'Pending',
+    approved: 'Disetujui',
+    rejected: 'Ditolak',
   }
   return labels[status] || status
 }
 
-const viewTeamDetails = (team) => {
+const viewTeamDetails = team => {
   selectedTeam.value = team
   showDetailsModal.value = true
 }
 
-const approveTeam = async (team) => {
+const approveTeam = async team => {
   processing.value = true
+  teamStore.clearError()
 
   try {
     await teamStore.approveTeam(team._id || team.id)
+    teamStore.setSuccess('Tim berhasil disetujui')
     showDetailsModal.value = false
-    
+
     // Refresh teams list
     await fetchTeams()
-
   } catch (err) {
+    teamStore.setError(err, 'approveTeam')
     console.error('Failed to approve team:', err)
   } finally {
     processing.value = false
   }
 }
 
-const rejectTeam = (team) => {
+const rejectTeam = team => {
   selectedTeam.value = team
   showRejectModal.value = true
   showDetailsModal.value = false
 }
 
 const confirmReject = async () => {
+  if (!rejectReason.value.trim()) {
+    teamStore.setError(
+      { message: 'Alasan penolakan tidak boleh kosong' },
+      'confirmReject'
+    )
+    return
+  }
+
   processing.value = true
+  teamStore.clearError()
 
   try {
     await teamStore.rejectTeam(selectedTeam.value._id || selectedTeam.value.id, rejectReason.value)
+    teamStore.setSuccess('Tim berhasil ditolak')
     showRejectModal.value = false
     rejectReason.value = ''
-    
+
     // Refresh teams list
     await fetchTeams()
-
   } catch (err) {
+    teamStore.setError(err, 'confirmReject')
     console.error('Failed to reject team:', err)
   } finally {
     processing.value = false
   }
 }
 
-const deleteTeam = (team) => {
+const deleteTeam = team => {
   selectedTeam.value = team
   showDeleteModal.value = true
 }
 
 const confirmDelete = async () => {
   processing.value = true
+  teamStore.clearError()
 
   try {
     await teamStore.deleteTeam(selectedTeam.value._id || selectedTeam.value.id)
+    teamStore.setSuccess('Tim berhasil dihapus')
     showDeleteModal.value = false
-    
+
     // Refresh teams list
     await fetchTeams()
-
   } catch (err) {
+    teamStore.setError(err, 'confirmDelete')
     console.error('Failed to delete team:', err)
   } finally {
     processing.value = false
@@ -451,7 +454,7 @@ const handleSort = ({ key, order }) => {
   // TODO: Implement sorting
 }
 
-const handlePageChange = (page) => {
+const handlePageChange = page => {
   pagination.value.page = page
   // TODO: Fetch data for new page
 }
@@ -467,9 +470,9 @@ const fetchTeams = async () => {
       status: filterStatus.value,
       search: searchQuery.value,
       page: pagination.value.page,
-      limit: pagination.value.limit
+      limit: pagination.value.limit,
     }
-    
+
     await teamStore.fetchTeams(params)
   } catch (err) {
     console.error('Failed to fetch teams:', err)

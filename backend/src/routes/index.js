@@ -1,92 +1,52 @@
-import express from "express";
-import authRoutes from "./auth.js"; // ⭐ TAMBAHKAN INI
-import upload from "../middleware/upload.js"; // ⭐ IMPORT UPLOAD MIDDLEWARE
-import {
-  getAllUsers,
-  getUserById,
-  updateUserProfile,
-} from "../controllers/userController.js";
-import { protect } from "../middleware/auth.js";
-import {
-  getAllCapstoneGroups,
-  registerTeam,
-  updateCapstoneGroup,
-  approveCapstoneGroup,
-  rejectCapstoneGroup,
-  deleteCapstoneGroup,
-  getCapstoneGroupById,
-} from "../controllers/capstoneGroupController.js";
-import {
-  getAllUseCases,
-  addUseCase,
-  getUseCaseById,
-} from "../controllers/usecaseController.js";
-import { loginUser, registerUser } from "../controllers/authController.js";
-import {
-  getAllDocuments,
-  getDocumentById,
-  addDocument,
-  deleteDocument,
-  downloadDocument,
-} from "../controllers/documentController.js";
-import {
-  getAllTimelines,
-  getUpcomingTimeline,
-  getOverdueTimeline,
-  addTimeline,
-  updateTimeline,
-  deleteTimeline,
-} from "../controllers/timelineController.js";
-import {
-  getAllLearningGroups,
-  getLearningGroupById,
-  addLearningGroup,
-  updateLearningGroup,
-  deleteLearningGroup,
-} from "../controllers/learningGroupController.js";
-import {
-  getAnnouncements,
-  getAnnouncementById,
-  createAnnouncement,
-  updateAnnouncement,
-  deleteAnnouncement,
-  markAnnouncementAsRead,
-} from "../controllers/announcementController.js";
+import express from 'express';
+import authRoutes from './auth.js';
+import upload from '../middleware/multer.js';
+import { protect } from '../middleware/auth.js';
+import { adminOnly, studentOnly } from '../middleware/authorize.js';
+import { validate, teamSchema, documentSchema, timelineSchema, announcementSchema } from '../utils/validators.js';
+
+// Controllers
+import { getAllUsers, getUserById, updateUserProfile } from '../controllers/userController.js';
+import { getAllCapstoneGroups, registerTeam, approveCapstoneGroup, rejectCapstoneGroup, deleteCapstoneGroup, getCapstoneGroupById } from '../controllers/capstoneGroupController.js';
+import { getAllDocuments, getDocumentById, addDocument, deleteDocument, downloadDocument } from '../controllers/documentController.js';
+import { getAllTimelines, addTimeline, updateTimeline, deleteTimeline, getTimelineById, getTimelineStats } from '../controllers/timelineController.js';
+import { getAnnouncements, getAnnouncementById, createAnnouncement, updateAnnouncement, deleteAnnouncement, markAnnouncementAsRead } from '../controllers/announcementController.js';
+import { getDashboardStats, getStudentDashboardStats } from '../controllers/dashboardController.js';
 
 const router = express.Router();
 
 // ========== API INFO ==========
-router.get("/", (req, res) => {
+router.get('/', (req, res) => {
   res.json({
     success: true,
-    message: "Dicoding Capstone API",
-    version: "2.0.0",
+    message: 'Dicoding Capstone API',
+    version: '2.0.0',
     endpoints: {
-      health: "/api/health",
-      docs: "/api-docs",
+      health: '/api/health',
+      docs: '/api-docs',
       auth: {
-        local: "/api/auth/login (OLD), /api/auth/register (OLD)",
-        google: "/api/auth/google (NEW)",
-        refresh: "/api/auth/refresh (NEW)",
-        me: "/api/auth/me (NEW)",
-      },
-    },
+        local: '/api/auth/login (OLD), /api/auth/register (OLD)',
+        google: '/api/auth/google (NEW)',
+        refresh: '/api/auth/refresh (NEW)',
+        me: '/api/auth/me (NEW)'
+      }
+    }
   });
 });
 
 // ========== HEALTH CHECK ==========
-router.get("/health", (req, res) => {
+router.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: "API is running",
+    message: 'API is running',
     timestamp: new Date().toISOString(),
-    googleOAuth: process.env.GOOGLE_CLIENT_ID ? "configured" : "not configured",
+    googleOAuth: process.env.GOOGLE_CLIENT_ID ? 'configured' : 'not configured'
   });
 });
 
 // ========== AUTH ROUTES ==========
 // ⭐ REGISTER AUTH ROUTES (Google OAuth + New Local Auth)
-router.use("/auth", authRoutes);
+router.use('/auth', authRoutes);
 
 // ⭐ OLD AUTH ROUTES (Backward Compatibility)
 // Keep these for existing clients, but recommend migrating to /api/auth/*
@@ -94,53 +54,60 @@ router.use("/auth", authRoutes);
 // router.post("/auth/register", registerUser); // OLD: Keep for compatibility
 
 // ========== USERS ==========
-router.get("/users", protect, getAllUsers);
-router.get("/user/profile", protect, getUserById);
-router.put("/user/profile/update", protect, updateUserProfile);
+router.get('/users', protect, getAllUsers);
+router.get('/user/profile', protect, getUserById);
+router.put('/user/profile/update', protect, updateUserProfile);
 
 // ========== CAPSTONE GROUPS ==========
-router.post("/capstone-group/add", protect, registerTeam);
-router.get("/capstone-groups", protect, getAllCapstoneGroups);
-router.get("/capstone-group/:id", protect, getCapstoneGroupById);
-router.put("/capstone-group/update/:id", protect, updateCapstoneGroup);
-router.put("/capstone-group/:id/approve", protect, approveCapstoneGroup);
-router.put("/capstone-group/:id/reject", protect, rejectCapstoneGroup);
-router.delete("/capstone-group/:id/delete", protect, deleteCapstoneGroup);
+// Student: Register team
+router.post('/capstone-group/register', protect, studentOnly, validate(teamSchema.create), registerTeam);
 
-// ========== USECASES ==========
-router.get("/usecases", protect, getAllUseCases);
-router.get("/usecase/:id", protect, getUseCaseById);
-router.post("/usecase/add", protect, addUseCase);
+// All: View teams
+router.get('/capstone-groups', protect, getAllCapstoneGroups);
+router.get('/capstone-group/:id', protect, getCapstoneGroupById);
+
+// Admin: Approve/Reject/Delete teams
+router.put('/capstone-group/:id/approve', protect, adminOnly, approveCapstoneGroup);
+router.put('/capstone-group/:id/reject', protect, adminOnly, validate(teamSchema.reject), rejectCapstoneGroup);
+router.delete('/capstone-group/:id', protect, adminOnly, deleteCapstoneGroup);
 
 // ========== DOCUMENTS ==========
-router.get("/documents", protect, getAllDocuments);
-router.get("/document/:id", protect, getDocumentById);
-router.post("/document/upload", protect, upload.single('file'), addDocument); // ⭐ NEW: Upload route
-router.post("/document/add", protect, addDocument); // Keep old route for compatibility
-router.delete("/document/:id/delete", protect, deleteDocument);
-router.get("/document/:id/download", protect, downloadDocument);
+// All: View documents
+router.get('/documents', protect, getAllDocuments);
+router.get('/document/:id', protect, getDocumentById);
+router.get('/document/:id/download', protect, downloadDocument);
+
+// Admin: Upload/Delete documents
+router.post('/document/add', protect, adminOnly, upload.single('file'), validate(documentSchema.create), addDocument);
+router.delete('/document/:id', protect, adminOnly, deleteDocument);
 
 // ========== TIMELINES ==========
-router.get("/timelines", protect, getAllTimelines);
-router.get("/timelines/upcoming", protect, getUpcomingTimeline);
-router.get("/timelines/overdue", protect, getOverdueTimeline);
-router.post("/timeline/add", protect, addTimeline);
-router.put("/timeline/update/:id", protect, updateTimeline);
-router.delete("/timeline/:id/delete", protect, deleteTimeline);
+// All: View timelines
+router.get('/timelines', protect, getAllTimelines);
+router.get('/timeline/:id', protect, getTimelineById);
+router.get('/timeline/stats', protect, adminOnly, getTimelineStats);
 
-// ========== LEARNING GROUPS ==========
-router.get("/learning-groups", protect, getAllLearningGroups);
-router.get("/learning-group/:id", protect, getLearningGroupById);
-router.post("/learning-group/add", protect, addLearningGroup);
-router.put("/learning-group/update/:id", protect, updateLearningGroup);
-router.delete("/learning-group/:id/delete", protect, deleteLearningGroup);
+// Admin: Create/Update/Delete timelines
+router.post('/timeline/add', protect, adminOnly, validate(timelineSchema.create), addTimeline);
+router.put('/timeline/:id', protect, adminOnly, validate(timelineSchema.update), updateTimeline);
+router.delete('/timeline/:id', protect, adminOnly, deleteTimeline);
 
 // ========== ANNOUNCEMENTS ==========
-router.get("/announcements", protect, getAnnouncements);
-router.get("/announcements/:id", protect, getAnnouncementById);
-router.post("/announcements", protect, createAnnouncement);
-router.put("/announcements/:id", protect, updateAnnouncement);
-router.delete("/announcements/:id/delete", protect, deleteAnnouncement);
-router.post("/announcements/:id/read", protect, markAnnouncementAsRead);
+// All: View announcements
+router.get('/announcements', protect, getAnnouncements);
+router.get('/announcements/:id', protect, getAnnouncementById);
+router.post('/announcements/:id/read', protect, markAnnouncementAsRead);
+
+// Admin: Create/Update/Delete announcements
+router.post('/announcements', protect, adminOnly, validate(announcementSchema.create), createAnnouncement);
+router.put('/announcements/:id', protect, adminOnly, validate(announcementSchema.update), updateAnnouncement);
+router.delete('/announcements/:id', protect, adminOnly, deleteAnnouncement);
+
+// ========== DASHBOARD ==========
+// Admin: Dashboard stats
+router.get('/dashboard/stats', protect, adminOnly, getDashboardStats);
+
+// Student: Student dashboard stats
+router.get('/dashboard/student-stats', protect, studentOnly, getStudentDashboardStats);
 
 export default router;

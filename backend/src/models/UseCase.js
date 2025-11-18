@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 // MENYIMPAN DATA USE CASE
 const useCaseSchema = new mongoose.Schema({
@@ -6,25 +6,25 @@ const useCaseSchema = new mongoose.Schema({
   // Contoh: "DC-09"
   usecaseId: {
     type: String,
-    required: true,
+    required: true
   },
   // Judul
   // Contoh: "Enhancing Academic Dashboard"
   title: {
     type: String,
-    required: true,
+    required: true
   },
   // Deskripsi
   // Contoh: "Panduan lengkap pengerjaan dan submission capstone project."
   description: {
     type: String,
-    required: true,
+    required: true
   },
   // Partner
   // Contoh: "Dicoding" atau "Accenture"
   partner: {
     type: String,
-    required: true,
+    required: true
   },
   // Total Slot
   // Contoh: 5
@@ -51,19 +51,19 @@ const useCaseSchema = new mongoose.Schema({
   // Contoh: "beginner", "intermediate", "advanced"
   difficulty: {
     type: String,
-    enum: ["beginner", "intermediate", "advanced"],
-    required: true,
+    enum: ['beginner', 'intermediate', 'advanced'],
+    required: true
   },
   // Status
   // Contoh: "open" atau "closed"
   status: {
     type: String,
-    enum: ["open", "closed"],
-    default: "open",
+    enum: ['open', 'closed'],
+    default: 'open'
   }
 },{
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 useCaseSchema.set('toJSON', {
@@ -71,9 +71,9 @@ useCaseSchema.set('toJSON', {
   transform: (doc, ret) => {
     ret.id = ret._id.toString(),
     delete ret._id,
-    delete ret.__v
+    delete ret.__v;
   }
 });
 
-const UseCase = mongoose.model("UseCase", useCaseSchema);
+const UseCase = mongoose.model('UseCase', useCaseSchema);
 export default UseCase;

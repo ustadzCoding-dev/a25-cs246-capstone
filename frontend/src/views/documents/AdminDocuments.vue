@@ -7,13 +7,15 @@
           <h1 class="text-3xl font-bold text-gray-900">Kelola Dokumen</h1>
           <p class="mt-2 text-gray-600">Upload dan kelola dokumen panduan capstone</p>
         </div>
-        
-        <BaseButton
-          variant="primary"
-          @click="showUploadModal = true"
-        >
+
+        <BaseButton variant="primary" @click="showUploadModal = true">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+            />
           </svg>
           Upload Dokumen
         </BaseButton>
@@ -21,12 +23,7 @@
 
       <!-- Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard
-          label="Total Dokumen"
-          :value="stats.total"
-          icon="document"
-          color="primary"
-        />
+        <StatsCard label="Total Dokumen" :value="stats.total" icon="document" color="primary" />
         <StatsCard
           label="Diupload Bulan Ini"
           :value="stats.thisMonth"
@@ -44,11 +41,8 @@
       <!-- Filters -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseSearch
-            v-model="searchQuery"
-            placeholder="Cari dokumen..."
-          />
-          
+          <BaseSearch v-model="searchQuery" placeholder="Cari dokumen..." />
+
           <BaseSelect
             v-model="filterCategory"
             :options="categoryOptions"
@@ -68,8 +62,18 @@
         </div>
 
         <div v-else-if="filteredDocuments.length === 0" class="p-12 text-center">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg
+            class="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
           <p class="mt-2 text-sm text-gray-500">Belum ada dokumen</p>
         </div>
@@ -83,8 +87,18 @@
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center space-x-3">
-                  <svg class="w-8 h-8 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg
+                    class="w-8 h-8 text-primary-600 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                   <div>
                     <h3 class="text-base font-semibold text-gray-900">{{ doc.title }}</h3>
@@ -103,7 +117,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="flex items-center space-x-2 ml-4">
                 <button
                   @click="downloadDocument(doc)"
@@ -111,27 +125,42 @@
                   title="Download"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
                   </svg>
                 </button>
-                
+
                 <button
                   @click="editDocument(doc)"
                   class="text-gray-600 hover:text-gray-700 p-2"
                   title="Edit"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
                   </svg>
                 </button>
-                
+
                 <button
                   @click="deleteDocument(doc)"
                   class="text-danger-600 hover:text-danger-700 p-2"
                   title="Hapus"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
               </div>
@@ -198,14 +227,8 @@
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="closeModal">
-            Batal
-          </BaseButton>
-          <BaseButton
-            variant="primary"
-            :loading="submitting"
-            @click="handleSubmit"
-          >
+          <BaseButton variant="outline" @click="closeModal"> Batal </BaseButton>
+          <BaseButton variant="primary" :loading="submitting" @click="handleSubmit">
             {{ editingDocument ? 'Simpan Perubahan' : 'Upload Dokumen' }}
           </BaseButton>
         </div>
@@ -213,32 +236,21 @@
     </BaseModal>
 
     <!-- Delete Confirmation Modal -->
-    <BaseModal
-      v-model="showDeleteModal"
-      title="Konfirmasi Hapus"
-      size="md"
-    >
+    <BaseModal v-model="showDeleteModal" title="Konfirmasi Hapus" size="md">
       <div class="space-y-4">
         <p class="text-gray-700">
-          Apakah Anda yakin ingin menghapus dokumen <strong>{{ selectedDocument?.title }}</strong>?
+          Apakah Anda yakin ingin menghapus dokumen <strong>{{ selectedDocument?.title }}</strong
+          >?
         </p>
         <div class="bg-danger-50 border border-danger-200 rounded-lg p-4">
-          <p class="text-sm text-danger-700">
-            Dokumen yang dihapus tidak dapat dikembalikan.
-          </p>
+          <p class="text-sm text-danger-700">Dokumen yang dihapus tidak dapat dikembalikan.</p>
         </div>
       </div>
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="showDeleteModal = false">
-            Batal
-          </BaseButton>
-          <BaseButton
-            variant="danger"
-            :loading="deleting"
-            @click="confirmDelete"
-          >
+          <BaseButton variant="outline" @click="showDeleteModal = false"> Batal </BaseButton>
+          <BaseButton variant="danger" :loading="deleting" @click="confirmDelete">
             Ya, Hapus
           </BaseButton>
         </div>
@@ -252,6 +264,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useDocumentStore } from '../../stores/documentStore'
+import { getAdminDashboardStats } from '../../services/dashboardService'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
 import BaseSearch from '../../components/base/BaseSearch.vue'
@@ -286,7 +299,7 @@ const form = reactive({
   description: '',
   category: '',
   file: null,
-  link: ''
+  link: '',
 })
 
 const errors = reactive({
@@ -294,30 +307,32 @@ const errors = reactive({
   description: '',
   category: '',
   file: '',
-  link: ''
+  link: '',
 })
 
 // Get data from store
 const loading = computed(() => documentStore.documentsLoading)
 const documents = computed(() => documentStore.documents)
+const dashboardStats = ref(null)
 
-// Calculate stats
-const stats = computed(() => ({
-  total: documents.value.length,
-  thisMonth: documents.value.filter(d => {
-    const uploadDate = new Date(d.uploadDate)
-    const now = new Date()
-    return uploadDate.getMonth() === now.getMonth() && uploadDate.getFullYear() === now.getFullYear()
-  }).length,
-  totalDownloads: documents.value.reduce((sum, d) => sum + (d.downloads || 0), 0)
-}))
+// Calculate stats from API
+const stats = computed(() => {
+  if (!dashboardStats.value) {
+    return { total: 0, thisMonth: 0, totalDownloads: 0 }
+  }
+  return {
+    total: dashboardStats.value.documents?.total || 0,
+    thisMonth: dashboardStats.value.documents?.total || 0,
+    totalDownloads: 0,
+  }
+})
 
 const categoryOptions = [
   { value: '', label: 'Semua Kategori' },
   { value: 'Panduan', label: 'Panduan' },
   { value: 'Template', label: 'Template' },
   { value: 'Referensi', label: 'Referensi' },
-  { value: 'Lainnya', label: 'Lainnya' }
+  { value: 'Lainnya', label: 'Lainnya' },
 ]
 
 const adminMenuItems = [
@@ -325,7 +340,7 @@ const adminMenuItems = [
   { name: 'Kelola Tim', icon: 'team', path: '/admin/teams', roles: ['admin'] },
   { name: 'Dokumen', icon: 'document', path: '/admin/documents', roles: ['admin'] },
   { name: 'Timeline', icon: 'timeline', path: '/admin/timeline', roles: ['admin'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] }
+  { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] },
 ]
 
 const filteredDocuments = computed(() => {
@@ -333,9 +348,8 @@ const filteredDocuments = computed(() => {
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(d =>
-      d.title.toLowerCase().includes(query) ||
-      d.description.toLowerCase().includes(query)
+    result = result.filter(
+      d => d.title.toLowerCase().includes(query) || d.description.toLowerCase().includes(query)
     )
   }
 
@@ -346,26 +360,26 @@ const filteredDocuments = computed(() => {
   return result
 })
 
-const getCategoryVariant = (category) => {
+const getCategoryVariant = category => {
   const variants = {
-    'Panduan': 'primary',
-    'Template': 'success',
-    'Referensi': 'warning',
-    'Lainnya': 'secondary'
+    Panduan: 'primary',
+    Template: 'success',
+    Referensi: 'warning',
+    Lainnya: 'secondary',
   }
   return variants[category] || 'secondary'
 }
 
-const formatDate = (date) => {
+const formatDate = date => {
   return new Date(date).toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
   })
 }
 
 const validateForm = () => {
-  Object.keys(errors).forEach(key => errors[key] = '')
+  Object.keys(errors).forEach(key => (errors[key] = ''))
   let isValid = true
 
   if (!form.title.trim()) {
@@ -403,18 +417,18 @@ const handleSubmit = async () => {
     formData.append('title', form.title)
     formData.append('description', form.description)
     formData.append('category', form.category)
-    
+
     if (form.file) {
       formData.append('file', form.file)
     }
-    
+
     if (form.link) {
       formData.append('link', form.link)
     }
 
     // Upload document
     await documentStore.uploadDocument(formData)
-    
+
     closeModal()
     await fetchDocuments()
   } catch (err) {
@@ -424,7 +438,7 @@ const handleSubmit = async () => {
   }
 }
 
-const downloadDocument = async (doc) => {
+const downloadDocument = async doc => {
   try {
     await documentStore.downloadDocument(doc._id || doc.id, doc.title)
   } catch (err) {
@@ -432,7 +446,7 @@ const downloadDocument = async (doc) => {
   }
 }
 
-const editDocument = (doc) => {
+const editDocument = doc => {
   editingDocument.value = doc
   form.title = doc.title
   form.description = doc.description
@@ -441,7 +455,7 @@ const editDocument = (doc) => {
   showUploadModal.value = true
 }
 
-const deleteDocument = (doc) => {
+const deleteDocument = doc => {
   selectedDocument.value = doc
   showDeleteModal.value = true
 }
@@ -466,7 +480,7 @@ const closeModal = () => {
   form.file = null
   form.link = ''
   error.value = ''
-  Object.keys(errors).forEach(key => errors[key] = '')
+  Object.keys(errors).forEach(key => (errors[key] = ''))
 }
 
 const handleLogout = () => {
@@ -478,7 +492,7 @@ const fetchDocuments = async () => {
   try {
     const params = {
       category: filterCategory.value,
-      search: searchQuery.value
+      search: searchQuery.value,
     }
     await documentStore.fetchDocuments(params)
   } catch (err) {
@@ -491,7 +505,17 @@ watch([searchQuery, filterCategory], () => {
   fetchDocuments()
 })
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    // Fetch dashboard stats from API
+    const statsResponse = await getAdminDashboardStats()
+    if (statsResponse.success) {
+      dashboardStats.value = statsResponse.data
+    }
+  } catch (err) {
+    console.error('Failed to fetch dashboard stats:', err)
+  }
+
   fetchDocuments()
 })
 </script>

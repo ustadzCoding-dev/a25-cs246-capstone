@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
-import { verifyAccessToken } from "../utils/jwt.js";
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import { verifyAccessToken } from '../utils/jwt.js';
 
 // ========== EXISTING MIDDLEWARE (TETAP) ==========
 
@@ -12,27 +12,27 @@ export const protect = async (req, res, next) => {
   try {
     // Ambil token dari header Authorization
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Unauthorized" });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.split(' ')[1];
 
     // Verifikasi token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.id;
 
     // Ambil data user dari database
-    const user = await User.findById(userId).select("-password");
+    const user = await User.findById(userId).select('-password');
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // Tambahkan data user ke request object
     req.user = user;
     next();
   } catch (error) {
-    console.error("Auth error:", error);
-    res.status(401).json({ message: "Unauthorized" });
+    console.error('Auth error:', error);
+    res.status(401).json({ message: 'Unauthorized' });
   }
 };
 
@@ -45,7 +45,7 @@ export const authorize = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: "Access denied",
+        message: 'Access denied'
       });
     }
     next();
@@ -64,14 +64,14 @@ export const authenticate = (req, res, next) => {
     // Get token from header
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        message: "No token provided",
+        message: 'No token provided'
       });
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.split(' ')[1];
 
     // Verify token using new JWT utility
     const decoded = verifyAccessToken(token);
@@ -79,14 +79,14 @@ export const authenticate = (req, res, next) => {
     // Attach user data to request
     req.user = {
       id: decoded.id,
-      role: decoded.role,
+      role: decoded.role
     };
 
     next();
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Invalid or expired token",
+      message: 'Invalid or expired token'
     });
   }
 };
@@ -100,28 +100,28 @@ export const authenticateWithUser = async (req, res, next) => {
     // Get token from header
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        message: "No token provided",
+        message: 'No token provided'
       });
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.split(' ')[1];
 
     // Verify token
     const decoded = verifyAccessToken(token);
 
     // Fetch full user data from database
     const user = await User.findById(decoded.id)
-      .select("-password -refreshToken")
-      .populate("capstoneGroupId")
-      .populate("learningGroupId");
+      .select('-password -refreshToken')
+      .populate('capstoneGroupId')
+      .populate('learningGroupId');
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: 'User not found'
       });
     }
 
@@ -132,7 +132,7 @@ export const authenticateWithUser = async (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Invalid or expired token",
+      message: 'Invalid or expired token'
     });
   }
 };
@@ -141,10 +141,10 @@ export const authenticateWithUser = async (req, res, next) => {
  * NEW SYSTEM: Check if user is admin
  */
 export const isAdmin = (req, res, next) => {
-  if (req.user.role !== "admin") {
+  if (req.user.role !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: "Access denied. Admin only.",
+      message: 'Access denied. Admin only.'
     });
   }
   next();
@@ -154,10 +154,10 @@ export const isAdmin = (req, res, next) => {
  * NEW SYSTEM: Check if user is mentor or admin
  */
 export const isMentor = (req, res, next) => {
-  if (req.user.role !== "mentor" && req.user.role !== "admin") {
+  if (req.user.role !== 'mentor' && req.user.role !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: "Access denied. Mentor or Admin only.",
+      message: 'Access denied. Mentor or Admin only.'
     });
   }
   next();
@@ -171,13 +171,13 @@ export const optionalAuth = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
       const decoded = verifyAccessToken(token);
 
       req.user = {
         id: decoded.id,
-        role: decoded.role,
+        role: decoded.role
       };
     }
 
@@ -196,33 +196,33 @@ export const universalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        message: "No token provided",
+        message: 'No token provided'
       });
     }
 
-    const token = authHeader.split(" ")[1];
+    const token = authHeader.split(' ')[1];
 
     try {
       // Try new token system first (short-lived access token)
       const decoded = verifyAccessToken(token);
       req.user = {
         id: decoded.id,
-        role: decoded.role,
+        role: decoded.role
       };
       return next();
     } catch (newTokenError) {
       // If new token fails, try old token system (3 days token)
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.id).select("-password");
+        const user = await User.findById(decoded.id).select('-password');
 
         if (!user) {
           return res.status(404).json({
             success: false,
-            message: "User not found",
+            message: 'User not found'
           });
         }
 
@@ -231,14 +231,14 @@ export const universalAuth = async (req, res, next) => {
       } catch (oldTokenError) {
         return res.status(401).json({
           success: false,
-          message: "Invalid or expired token",
+          message: 'Invalid or expired token'
         });
       }
     }
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Authentication failed",
+      message: 'Authentication failed'
     });
   }
 };

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 const announcementSchema = new mongoose.Schema(
   {
@@ -27,16 +27,16 @@ const announcementSchema = new mongoose.Schema(
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
   }
-)
+);
 
 announcementSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, ret) => {
-    ret.id = ret._id.toString()
-    delete ret._id
-    delete ret.__v
+    ret.id = ret._id.toString();
+    delete ret._id;
+    delete ret.__v;
   }
-})
+});
 
-const Announcement = mongoose.model('Announcement', announcementSchema)
-export default Announcement
+const Announcement = mongoose.model('Announcement', announcementSchema);
+export default Announcement;

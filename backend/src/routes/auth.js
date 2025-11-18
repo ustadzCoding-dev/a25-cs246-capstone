@@ -1,7 +1,7 @@
-import express from "express";
-import passport from "passport";
-import * as authController from "../controllers/authController.js";
-import { authenticate } from "../middleware/auth.js";
+import express from 'express';
+import passport from 'passport';
+import * as authController from '../controllers/authController.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -13,10 +13,10 @@ const router = express.Router();
  * @access  Public
  */
 router.get(
-  "/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-    session: false,
+  '/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false
   })
 );
 
@@ -26,10 +26,10 @@ router.get(
  * @access  Public
  */
 router.get(
-  "/google/callback",
-  passport.authenticate("google", {
+  '/google/callback',
+  passport.authenticate('google', {
     session: false,
-    failureRedirect: `${process.env.FRONTEND_URL}/login?error=auth_failed`,
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=auth_failed`
   }),
   authController.googleCallback
 );
@@ -39,21 +39,21 @@ router.get(
  * @desc    Register new local user
  * @access  Public
  */
-router.post("/register", authController.registerUser);
+router.post('/register', authController.registerUser);
 
 /**
  * @route   POST /api/auth/login
  * @desc    Local login with email/password
  * @access  Public
  */
-router.post("/login", authController.localLogin);
+router.post('/login', authController.localLogin);
 
 /**
  * @route   POST /api/auth/refresh
  * @desc    Refresh access token
  * @access  Public
  */
-router.post("/refresh", authController.refreshToken);
+router.post('/refresh', authController.refreshAccessToken);
 
 // ========== PROTECTED ROUTES ==========
 
@@ -62,20 +62,20 @@ router.post("/refresh", authController.refreshToken);
  * @desc    Complete profile for Google OAuth users
  * @access  Private (Authenticated users only)
  */
-router.post("/complete-profile", authenticate, authController.completeProfile);
+router.post('/complete-profile', authenticate, authController.completeProfile);
 
 /**
  * @route   POST /api/auth/logout
  * @desc    Logout user
  * @access  Private
  */
-router.post("/logout", authenticate, authController.logout);
+router.post('/logout', authenticate, authController.logout);
 
 /**
  * @route   GET /api/auth/me
  * @desc    Get current user
  * @access  Private
  */
-router.get("/me", authenticate, authController.getCurrentUser);
+router.get('/me', authenticate, authController.getCurrentUser);
 
 export default router;

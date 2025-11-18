@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 // MENYIMPAN DATA DOKUMEN
 const documentSchema = new mongoose.Schema({
@@ -68,17 +68,17 @@ const documentSchema = new mongoose.Schema({
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
-})
+});
 
 documentSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, ret) => {
     ret.id = ret._id.toString(),
     delete ret._id,
-    delete ret.__v
+    delete ret.__v;
   }
-})
+});
 
 
-const Document = mongoose.model('Document', documentSchema)
-export default Document
+const Document = mongoose.model('Document', documentSchema);
+export default Document;

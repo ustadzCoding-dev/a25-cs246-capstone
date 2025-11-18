@@ -8,24 +8,24 @@ const validate = (schema, property = 'body') => {
     const { error, value } = schema.validate(req[property], {
       abortEarly: false, // Return all errors, not just the first one
       stripUnknown: true // Remove unknown fields
-    })
+    });
 
     if (error) {
-      const errors = error.details.map(detail => detail.message)
+      const errors = error.details.map(detail => detail.message);
       
       return res.status(400).json({
         success: false,
         message: 'Validation Error',
         errors
-      })
+      });
     }
 
     // Replace request property with validated value (except for query which is read-only)
     if (property !== 'query') {
-      req[property] = value
+      req[property] = value;
     }
-    next()
-  }
-}
+    next();
+  };
+};
 
-export default validate
+export default validate;

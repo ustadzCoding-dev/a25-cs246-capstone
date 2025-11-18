@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 // MENYIMPAN DATA TIMELINE
 const timelineSchema = new mongoose.Schema({
@@ -71,16 +71,16 @@ const timelineSchema = new mongoose.Schema({
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
-})
+});
 
 timelineSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, ret) => {
     ret.id = ret._id.toString(),
     delete ret._id,
-    delete ret.__v
+    delete ret.__v;
   }
-})
+});
 
-const Timeline = mongoose.model('Timeline', timelineSchema)
-export default Timeline
+const Timeline = mongoose.model('Timeline', timelineSchema);
+export default Timeline;

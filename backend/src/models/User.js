@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import bcrypt from "bcrypt";
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 // MENYIMPAN DATA USER
 const userSchema = new mongoose.Schema(
@@ -11,41 +11,41 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true, // Allow null for non-Google users
-      trim: true,
+      trim: true
     },
 
     // Profile Picture (from Google or uploaded)
     // Contoh: "https://lh3.googleusercontent.com/a/..."
     profilePicture: {
       type: String,
-      default: null,
+      default: null
     },
 
     // OAuth Provider
     // Contoh: "local" atau "google"
     provider: {
       type: String,
-      enum: ["local", "google"],
-      default: "local",
+      enum: ['local', 'google'],
+      default: 'local'
     },
 
     // Email Verification Status
     isEmailVerified: {
       type: Boolean,
-      default: false,
+      default: false
     },
 
     // Refresh Token for JWT
     refreshToken: {
       type: String,
       default: null,
-      select: false,
+      select: false
     },
 
     // Last Login Timestamp
     lastLogin: {
       type: Date,
-      default: null,
+      default: null
     },
 
     // ========== EXISTING FIELDS (TETAP) ==========
@@ -55,30 +55,30 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: function () {
         // DicodingId wajib untuk local users, optional untuk Google OAuth (bisa diisi nanti)
-        return this.provider === "local";
+        return this.provider === 'local';
       },
       unique: true,
       sparse: true, // Allow null/undefined
-      trim: true,
+      trim: true
     },
 
     // Name
     // Contoh: "John Doe"
     name: {
       type: String,
-      required: [true, "Name is required"],
-      trim: true,
+      required: [true, 'Name is required'],
+      trim: true
     },
 
     // Email
     // Contoh: "nVf3o@example.com"
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"],
+      match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
     },
 
     // Password Hash
@@ -87,9 +87,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: function () {
         // Password wajib hanya untuk local users
-        return this.provider === "local";
+        return this.provider === 'local';
       },
-      select: false,
+      select: false
     },
 
     // Learning Path
@@ -97,20 +97,20 @@ const userSchema = new mongoose.Schema(
     learningPath: {
       type: String,
       enum: [
-        "Front-End Web & Back-End with AI",
-        "React & Back-End with AI",
-        "Machine Learning",
-        null, // Allow null for users yang belum set learning path
+        'Front-End Web & Back-End with AI',
+        'React & Back-End with AI',
+        'Machine Learning',
+        null // Allow null for users yang belum set learning path
       ],
-      default: null,
+      default: null
     },
 
     // Role
     // Contoh: "student"
     role: {
       type: String,
-      enum: ["student", "admin", "mentor"],
-      default: "student",
+      enum: ['student', 'admin', 'mentor'],
+      default: 'student'
     },
 
     // University
@@ -118,36 +118,36 @@ const userSchema = new mongoose.Schema(
     university: {
       type: String,
       trim: true,
-      default: null,
+      default: null
     },
 
     // Capstone Group
     // Contoh: "ObjectId of CapstoneGroup"
     capstoneGroupId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "CapstoneGroup",
-      default: null,
+      ref: 'CapstoneGroup',
+      default: null
     },
 
     // Learning Group
     // Contoh: "ObjectId of LearningGroup"
     learningGroupId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "LearningGroup",
-      default: null,
-    },
+      ref: 'LearningGroup',
+      default: null
+    }
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
     toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+    toObject: { virtuals: true }
   }
 );
 
 // ========== MIDDLEWARE: HASH PASSWORD BEFORE SAVE ==========
-userSchema.pre("save", async function (next) {
+userSchema.pre('save', async function (next) {
   // Skip hashing if password is not modified or doesn't exist
-  if (!this.isModified("password") || !this.password) {
+  if (!this.isModified('password') || !this.password) {
     return next();
   }
 
@@ -173,22 +173,22 @@ userSchema.pre("save", async function (next) {
 
 // Compare password for login
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  if (!this.password) return false;
+  if (!this.password) {return false;}
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Check if user is admin
 userSchema.methods.isAdmin = function () {
-  return this.role === "admin";
+  return this.role === 'admin';
 };
 
 // Check if user is mentor
 userSchema.methods.isMentor = function () {
-  return this.role === "mentor";
+  return this.role === 'mentor';
 };
 
 // ========== JSON TRANSFORMATION ==========
-userSchema.set("toJSON", {
+userSchema.set('toJSON', {
   virtuals: true,
   transform: (doc, ret) => {
     ret.id = ret._id.toString();
@@ -196,8 +196,8 @@ userSchema.set("toJSON", {
     delete ret.__v;
     delete ret.password; // Never expose password
     delete ret.refreshToken; // Never expose refresh token
-  },
+  }
 });
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 export default User;

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 // MENYIMPAN DATA TIM
 const capstoneGroupSchema = new mongoose.Schema({
@@ -7,58 +7,58 @@ const capstoneGroupSchema = new mongoose.Schema({
   capstoneGroupId: {
     type: String,
     required: true,
-    unique: true,
+    unique: true
   },
   // ID Unik Usecase
   // Contoh: "DC-09"
   useCaseId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Usecase",
-    required: true,
+    ref: 'Usecase',
+    required: true
   },
   // Nama Tim
   // Contoh: "Tim Hebat A25"
   teamName: {
     type: String,
-    required: true,
+    required: true
   },
   // Data Anggota Tim
   membersUserId: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+      ref: 'User'
+    }
   ],
   // Status (Sesuai permintaan Anda)
   // Contoh: "pending"
   status: {
     type: String,
-    enum: ["pending", "approved", "rejected"],
-    default: "pending",
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
   },
   // Tanggal Submit (Sesuai permintaan Anda)
   // Contoh: "2025-10-31T23:59:59.000Z"
   submittedAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now
   },
   // Validasi oleh
   validatedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    default: null,
+    ref: 'User',
+    default: null
   },
   // Tanggal Validasi (Sesuai permintaan Anda)
   // Contoh: "2025-10-31T23:59:59.000Z"
   validatedAt: {
     type: Date,
-    default: null,
+    default: null
   },
   // Alasan penolakan
   rejectionReason: {
     type: String,
-    default: null,
-  },
+    default: null
+  }
 });
 
 capstoneGroupSchema.set('toJSON', {
@@ -66,14 +66,14 @@ capstoneGroupSchema.set('toJSON', {
   transform: (doc, ret) => {
     ret.id = ret._id.toString(),
     delete ret._id,
-    delete ret.__v
+    delete ret.__v;
   }
-})
+});
 
-capstoneGroupSchema.post("findOneAndDelete", async function (doc, next) {
+capstoneGroupSchema.post('findOneAndDelete', async function (doc, next) {
   if (doc) {
     try {
-      const User = mongoose.model("User");
+      const User = mongoose.model('User');
       await User.updateMany(
         { _id: { $in: doc.membersUserId } },
         { $set: { capstoneGroupId: null } }
@@ -84,5 +84,5 @@ capstoneGroupSchema.post("findOneAndDelete", async function (doc, next) {
   }
 });
 
-const CapstoneGroup = mongoose.model("CapstoneGroup", capstoneGroupSchema);
+const CapstoneGroup = mongoose.model('CapstoneGroup', capstoneGroupSchema);
 export default CapstoneGroup;

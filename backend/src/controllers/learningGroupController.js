@@ -1,5 +1,5 @@
-import LearningGroup from "../models/LearningGroup.js";
-import Counter from "../models/Counter.js";
+import LearningGroup from '../models/LearningGroup.js';
+import Counter from '../models/Counter.js';
 
 async function getNextSequence(counterName) {
   const counter = await Counter.findByIdAndUpdate(
@@ -15,7 +15,7 @@ export const getAllLearningGroups = async (req, res) => {
   try {
     // User harus login
     if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: 'Unauthorized' });
     }
 
     // Menmbangun filder berdasarkan query parameters
@@ -33,34 +33,34 @@ export const getAllLearningGroups = async (req, res) => {
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
 
-      // Mengirimkan response
-      res.status(200).json({
-        success: true,
-        data: {
-          learningGroups,
-          pagination: {
-            currentPage: parseInt(page),
-            totalItems: totalLearningGroups,
-            limit: parseInt(limit),
-          },
-        },
-      });
+    // Mengirimkan response
+    res.status(200).json({
+      success: true,
+      data: {
+        learningGroups,
+        pagination: {
+          currentPage: parseInt(page),
+          totalItems: totalLearningGroups,
+          limit: parseInt(limit)
+        }
+      }
+    });
 
   } catch (error) {
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return res.status(400).json({success: false, message: error.message });
     }
-    console.log("Error in getAllLearningGroups", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    console.log('Error in getAllLearningGroups', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-}
+};
 
 // GET learning grup berdasarkan ID
 export const getLearningGroupById = async (req, res) => {
   try {
     // User harus login
     if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: 'Unauthorized' });
     }
 
     // Mengambil ID learning group
@@ -69,29 +69,29 @@ export const getLearningGroupById = async (req, res) => {
     // Mencari learning group berdasarkan ID
     const learningGroup = await LearningGroup.findById(id);
     if (!learningGroup) {
-      return res.status(404).json({ message: "Learning group not found" });
+      return res.status(404).json({ message: 'Learning group not found' });
     }
 
     // Mengirimkan response
     res.status(200).json({
       success: true,
-      data: learningGroup,
+      data: learningGroup
     });
   } catch (error) {
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return res.status(400).json({ success: false, message: error.message });
     }
-    console.log("Error in getLearningGroupById", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    console.log('Error in getLearningGroupById', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-}
+};
 
 // CREATE learning group baru
 export const addLearningGroup = async (req, res) => {
   try {
     // Hanya admin yang boleh membuat learning group
-    if (!req.user || req.user.role !== "admin") {
-      return res.status(403).json({ message: "Forbidden" });
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     // Mengambil data dari body request
@@ -99,26 +99,26 @@ export const addLearningGroup = async (req, res) => {
 
     // Pengecekan tiap req body
     if (!cohort || !mentorName || !maxMembers) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: 'All fields are required' });
     }
 
     // Generate learningGroupId berdasarkan cohort
-    const newSeqNumber = await getNextSequence("learningGroupId")
+    const newSeqNumber = await getNextSequence('learningGroupId');
     let generateLearningGroupId;
     switch (cohort) {
-      case "Front-End Web & Back-End with AI":
-        generateLearningGroupId = `FB-${newSeqNumber.toString().padStart(2, '0')}`;
-        break;
-      case "React & Back-End with AI":
-        generateLearningGroupId = `RB-${newSeqNumber.toString().padStart(2, '0')}`;
-        break;
-      case "Machine Learning":
-        generateLearningGroupId = `ML-${newSeqNumber.toString().padStart(2, '0')}`;
-        break;
-      default:
-        return res.status(400).json({
-          message: "Cohort tidak valid.",
-        });
+    case 'Front-End Web & Back-End with AI':
+      generateLearningGroupId = `FB-${newSeqNumber.toString().padStart(2, '0')}`;
+      break;
+    case 'React & Back-End with AI':
+      generateLearningGroupId = `RB-${newSeqNumber.toString().padStart(2, '0')}`;
+      break;
+    case 'Machine Learning':
+      generateLearningGroupId = `ML-${newSeqNumber.toString().padStart(2, '0')}`;
+      break;
+    default:
+      return res.status(400).json({
+        message: 'Cohort tidak valid.'
+      });
     }
 
     // Membuat learning group baru
@@ -135,26 +135,26 @@ export const addLearningGroup = async (req, res) => {
     // Mengirimkan response
     res.status(201).json({
       success: true,
-      message: "Learning group created successfully",
-      data: newLearningGroup,
+      message: 'Learning group created successfully',
+      data: newLearningGroup
     });
 
     // Membuat ID
   } catch (error) {
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return res.status(400).json({ success: false, message: error.message });
     }
-    console.log("Error in createLearningGroup", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    console.log('Error in createLearningGroup', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-}
+};
 
 // UPDATE learning group berdasarkan id
 export const updateLearningGroup = async (req, res) => {
   try {
     // Hanya admin yang bisa mengupdate learning group
     if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: "Forbidden" });
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     // Mengambil ID learning group dari parameter
@@ -166,13 +166,13 @@ export const updateLearningGroup = async (req, res) => {
     // Mencari learning group berdasarkan ID
     const learningGroup = await LearningGroup.findById(id);
     if (!learningGroup) {
-      return res.status(404).json({ message: "Learning group not found" });
+      return res.status(404).json({ message: 'Learning group not found' });
     }
 
     // Memperbarui data learning group
-    if (mentorName) learningGroup.mentorName = mentorName;
-    if (maxMembers) learningGroup.maxMembers = maxMembers;
-    if (isActive !== undefined) learningGroup.isActive = isActive;
+    if (mentorName) {learningGroup.mentorName = mentorName;}
+    if (maxMembers) {learningGroup.maxMembers = maxMembers;}
+    if (isActive !== undefined) {learningGroup.isActive = isActive;}
 
     // Menyimpan perubahan
     await learningGroup.save();
@@ -180,24 +180,24 @@ export const updateLearningGroup = async (req, res) => {
     // Mengirimkan response
     res.status(200).json({
       success: true,
-      message: "Learning group updated successfully",
+      message: 'Learning group updated successfully',
       data: learningGroup
     });
   } catch (error) {
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return res.status(400).json({ success: false, message: error.message });
     }
-    console.log("Error in updateLearningGroup", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    console.log('Error in updateLearningGroup', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-}
+};
 
 // DELETE learning group berdasarkan id
 export const deleteLearningGroup = async (req, res) => {
   try {
     // Hanya admin yang bisa menghapus learning group
     if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: "Forbidden" });
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     // Mengambil ID learning group dari parameter
@@ -206,7 +206,7 @@ export const deleteLearningGroup = async (req, res) => {
     // Mencari learning group berdasarkan ID
     const learningGroup = await LearningGroup.findById(id);
     if (!learningGroup) {
-      return res.status(404).json({ message: "Learning group not found" });
+      return res.status(404).json({ message: 'Learning group not found' });
     }
 
     // Menghapus learning group
@@ -215,13 +215,13 @@ export const deleteLearningGroup = async (req, res) => {
     // Mengirimkan response
     res.status(200).json({
       success: true,
-      message: "Learning group deleted successfully"
+      message: 'Learning group deleted successfully'
     });
   } catch (error) {
-    if (error.name === "ValidationError") {
+    if (error.name === 'ValidationError') {
       return res.status(400).json({ success: false, message: error.message });
     }
-    console.log("Error in deleteLearningGroup", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    console.log('Error in deleteLearningGroup', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-}
+};
