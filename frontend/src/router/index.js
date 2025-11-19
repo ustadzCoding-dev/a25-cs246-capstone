@@ -171,6 +171,13 @@ router.beforeEach((to, from, next) => {
     if (!to.meta.skipProfileCheck) {
       const user = authStore.user;
 
+      // If admin, skip profile completion entirely
+      if (user?.role === 'admin' || authStore.isAdmin) {
+        console.log('✅ Admin user, skipping profile completion');
+        next();
+        return;
+      }
+
       // Check if profile is incomplete (for Google OAuth users)
       const isProfileIncomplete =
         user?.provider === "google" &&
@@ -184,13 +191,16 @@ router.beforeEach((to, from, next) => {
     }
 
     // Check if route requires admin role
-    if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    const isAdminUser = authStore.isAdmin || authStore.user?.role === 'admin';
+
+    if (to.meta.requiresAdmin && !isAdminUser) {
       // Check if user email is admin email from env
       const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
       const isAdminByEmail = adminEmails.length > 0 && adminEmails.includes(authStore.userEmail);
 
       if (!isAdminByEmail) {
         // Redirect to student dashboard if not admin
+        console.log('❌ Not admin, redirecting to student dashboard');
         next({ name: "student-dashboard" });
         return;
       }

@@ -78,17 +78,17 @@
               Anggota Tim
             </label>
             <p class="text-sm text-gray-500 mb-3">
-              Masukkan Dicoding ID anggota tim (minimal {{ selectedUseCaseTotalTeamSize || 2 }}, maksimal {{ selectedUseCaseTotalTeamSize || 4 }} anggota)
+              Masukkan Email anggota tim (minimal {{ selectedUseCaseTotalTeamSize || 2 }}, maksimal {{ selectedUseCaseTotalTeamSize || 4 }} anggota)
             </p>
 
             <div class="space-y-4">
               <div v-for="(member, index) in form.members" :key="index" class="flex gap-3">
-                <!-- Member ID Input -->
+                <!-- Member Email Input -->
                 <div class="flex-1">
                   <input
                     v-model="form.members[index]"
-                    type="text"
-                    placeholder="Contoh: fui0001"
+                    type="email"
+                    placeholder="Contoh: anggota@gmail.com"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     @change="fetchStudentLearningPath(index, form.members[index])"
                   />

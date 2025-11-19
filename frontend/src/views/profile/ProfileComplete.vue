@@ -2,7 +2,8 @@
   <div
     class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
   >
-    <div class="max-w-md w-full">
+    <!-- Only show form if NOT admin -->
+    <div v-if="!(authStore.isAdmin || user?.role === 'admin')" class="max-w-md w-full">
       <!-- Header -->
       <div class="text-center mb-8">
         <div
@@ -166,9 +167,10 @@ const fetchLearningPaths = async () => {
     }
   } catch (err) {
     console.error('Failed to fetch learning paths:', err);
-    // Fallback to default options
+    // Fallback to default options - MUST match User model enum exactly!
     learningPathOptions.value = [
-      { value: "Front-End & Back-End with AI", label: "Front-End & Back-End with AI" },
+      { value: "Front-End Web & Back-End with AI", label: "Front-End Web & Back-End with AI" },
+      { value: "React & Back-End with AI", label: "React & Back-End with AI" },
       { value: "Machine Learning", label: "Machine Learning" },
     ];
   }
@@ -204,7 +206,7 @@ const handleSubmit = async () => {
 
   try {
     await authStore.completeProfile({
-      learningPath: form.learningPath,
+      learningPath: form.learningPath.trim(),
       university: form.university.trim(),
     });
 
@@ -227,10 +229,26 @@ const handleLogout = () => {
 
 // Check if user already has complete profile
 onMounted(async () => {
+  const currentUser = authStore.user;
+
+  console.log('🔍 Profile check:', {
+    user: currentUser?.email,
+    role: currentUser?.role,
+    isAdmin: authStore.isAdmin,
+    dicodingId: currentUser?.dicodingId,
+    learningPath: currentUser?.learningPath,
+    university: currentUser?.university
+  });
+
+  // If user is admin, skip profile completion and go to admin dashboard
+  if (authStore.isAdmin || currentUser?.role === 'admin') {
+    console.log('👤 Admin user detected, redirecting...');
+    router.push("/admin/dashboard");
+    return;
+  }
+
   // Fetch learning paths
   await fetchLearningPaths();
-
-  const currentUser = authStore.user;
 
   // If profile already complete, redirect to dashboard
   if (

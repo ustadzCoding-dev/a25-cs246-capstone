@@ -93,14 +93,21 @@ export const getCapstoneGroupById = asyncHandler(async (req, res) => {
  */
 export const getCurrentCapstoneGroup = asyncHandler(async (req, res) => {
   const userId = req.user._id;
+  console.log('[getCurrentCapstoneGroup] userId:', userId);
 
-  const team = await TeamService.getCurrentTeamByUserId(userId);
+  try {
+    const team = await TeamService.getCurrentTeamByUserId(userId);
+    console.log('[getCurrentCapstoneGroup] team found:', !!team);
 
-  if (!team) {
-    return res.success(null, 'No team found for current user', 200);
+    if (!team) {
+      return res.success(null, 'No team found for current user', 200);
+    }
+
+    res.success(team, 'Current team retrieved successfully', 200);
+  } catch (err) {
+    console.error('[getCurrentCapstoneGroup] Error:', err.message);
+    throw err;
   }
-
-  res.success(team, 'Current team retrieved successfully', 200);
 });
 
 /**

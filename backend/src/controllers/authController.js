@@ -510,10 +510,24 @@ export const completeProfile = async (req, res) => {
       'Machine Learning'
     ];
 
-    if (!validPaths.includes(learningPath)) {
+    // Normalize: trim whitespace and fix case issues
+    let normalizedPath = learningPath.trim();
+
+    // Fix common case issues
+    normalizedPath = normalizedPath
+      .replace(/back-end/gi, 'Back-End')
+      .replace(/front-end/gi, 'Front-End')
+      .replace(/react/gi, 'React')
+      .replace(/machine learning/gi, 'Machine Learning')
+      .replace(/web/gi, 'Web');
+
+    if (!validPaths.includes(normalizedPath)) {
+      console.error('❌ Invalid learning path:', normalizedPath, 'Valid paths:', validPaths);
       return res.status(400).json({
         success: false,
-        message: 'Invalid learning path'
+        message: 'Invalid learning path',
+        received: normalizedPath,
+        valid: validPaths
       });
     }
 
@@ -529,7 +543,7 @@ export const completeProfile = async (req, res) => {
     const newSeqNumber = await getNextSequence('dicodingId');
     let generateDicodingId;
 
-    switch (learningPath) {
+    switch (normalizedPath) {
     case 'Front-End Web & Back-End with AI':
       generateDicodingId = `FEBE${newSeqNumber
         .toString()
@@ -547,7 +561,7 @@ export const completeProfile = async (req, res) => {
 
     // Update user
     user.dicodingId = generateDicodingId;
-    user.learningPath = learningPath;
+    user.learningPath = normalizedPath;
     user.university = university.trim();
     await user.save();
 

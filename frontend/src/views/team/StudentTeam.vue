@@ -152,19 +152,8 @@
         </div>
       </div>
 
-      <!-- Team Invitations -->
-      <div v-if="invitations.length > 0" class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Undangan Tim</h2>
-        <div class="space-y-4">
-          <InvitationCard
-            v-for="invitation in invitations"
-            :key="invitation._id"
-            :invitation="invitation"
-            @accept="handleAcceptInvitation(invitation._id)"
-            @reject="handleRejectInvitation(invitation._id)"
-          />
-        </div>
-      </div>
+      <!-- Team Invitations (Deprecated - use Pending Invitations above) -->
+      <!-- Removed: This section is replaced by Pending Invitations section above -->
     </div>
 
     <!-- Leave Team Confirmation Modal -->
@@ -299,13 +288,25 @@ const handleRejectInvitation = async (invitationId) => {
 
 const fetchTeamData = async () => {
   try {
-    // Fetch user's team data
-    // For now, we'll use mock data until backend implements "my team" endpoint
-    // TODO: Replace with actual API call when available
-    // await teamStore.fetchTeamById(userId)
-
     console.log('Fetching team data...')
 
+    const response = await fetch('http://localhost:8000/api/capstone-group/current', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      console.log('Team data loaded:', data.data)
+      // Update teamStore if needed
+      if (data.data) {
+        // Store team data in teamStore
+        // teamStore.currentTeam = data.data
+      }
+    } else {
+      console.log('No team found (404 or error)')
+    }
   } catch (err) {
     console.error('Failed to fetch team data:', err)
   }

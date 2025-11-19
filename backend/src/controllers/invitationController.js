@@ -10,16 +10,23 @@ import EmailService from '../services/EmailService.js';
  */
 export const getPendingInvitations = asyncHandler(async (req, res) => {
   const userId = req.user._id;
+  console.log('[getPendingInvitations] userId:', userId);
 
-  const invitations = await Invitation.find({
-    memberId: userId,
-    status: 'pending'
-  })
-    .populate('leaderId', 'name email')
-    .populate('teamId', 'teamName useCase')
-    .sort({ createdAt: -1 });
+  try {
+    const invitations = await Invitation.find({
+      memberId: userId,
+      status: 'pending'
+    })
+      .populate('leaderId', 'name email')
+      .populate('teamId', 'teamName useCase')
+      .sort({ createdAt: -1 });
 
-  res.success(invitations, 'Pending invitations retrieved', 200);
+    console.log('[getPendingInvitations] found:', invitations.length);
+    res.success(invitations, 'Pending invitations retrieved', 200);
+  } catch (err) {
+    console.error('[getPendingInvitations] Error:', err.message);
+    throw err;
+  }
 });
 
 /**
