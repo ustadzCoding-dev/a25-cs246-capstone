@@ -427,8 +427,7 @@ export const logout = async (req, res) => {
 export const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
-      .populate('capstoneGroupId')
-      .populate('learningGroupId');
+      .populate('capstoneGroupId');
 
     if (!user) {
       return res.status(404).json({

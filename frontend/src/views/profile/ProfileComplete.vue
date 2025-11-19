@@ -121,6 +121,7 @@ const authStore = useAuthStore();
 const user = computed(() => authStore.user);
 const loading = ref(false);
 const errorMessage = ref("");
+const learningPathOptions = ref([]);
 
 const form = reactive({
   learningPath: "",
@@ -132,14 +133,46 @@ const errors = reactive({
   university: "",
 });
 
-const learningPathOptions = [
-  {
-    value: "Front-End Web & Back-End with AI",
-    label: "Front-End Web & Back-End with AI",
-  },
-  { value: "React & Back-End with AI", label: "React & Back-End with AI" },
-  { value: "Machine Learning", label: "Machine Learning" },
-];
+// Fetch learning paths from backend
+const fetchLearningPaths = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/usecases');
+    if (response.ok) {
+      const data = await response.json();
+      const useCases = Array.isArray(data) ? data : data.data || [];
+
+      // Extract unique learning paths from use cases
+      const pathsMap = new Map(); // Use Map to ensure uniqueness by value
+      useCases.forEach(useCase => {
+        if (useCase.teamComposition && Array.isArray(useCase.teamComposition)) {
+          useCase.teamComposition.forEach(comp => {
+            if (comp.learningPath) {
+              // Use the path as both key and value to ensure uniqueness
+              pathsMap.set(comp.learningPath.trim().toLowerCase(), comp.learningPath);
+            }
+          });
+        }
+      });
+
+      // Convert to options format and sort
+      learningPathOptions.value = Array.from(pathsMap.values())
+        .map(path => ({
+          value: path,
+          label: path
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+
+      console.log('Learning paths loaded:', learningPathOptions.value);
+    }
+  } catch (err) {
+    console.error('Failed to fetch learning paths:', err);
+    // Fallback to default options
+    learningPathOptions.value = [
+      { value: "Front-End & Back-End with AI", label: "Front-End & Back-End with AI" },
+      { value: "Machine Learning", label: "Machine Learning" },
+    ];
+  }
+};
 
 const validateForm = () => {
   errors.learningPath = "";
@@ -193,7 +226,10 @@ const handleLogout = () => {
 };
 
 // Check if user already has complete profile
-onMounted(() => {
+onMounted(async () => {
+  // Fetch learning paths
+  await fetchLearningPaths();
+
   const currentUser = authStore.user;
 
   // If profile already complete, redirect to dashboard
