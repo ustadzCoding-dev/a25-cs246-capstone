@@ -72,40 +72,64 @@
             </div>
           </div>
 
-          <!-- Team Members -->
+          <!-- Members & Learning Paths -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Anggota Tim <span class="text-danger-500">*</span>
+              Anggota Tim
             </label>
             <p class="text-sm text-gray-500 mb-3">
-              Masukkan Dicoding ID anggota tim (minimal 1, maksimal 3 anggota)
+              Masukkan Dicoding ID anggota tim (minimal {{ selectedUseCaseTotalTeamSize || 2 }}, maksimal {{ selectedUseCaseTotalTeamSize || 4 }} anggota)
             </p>
 
-            <DynamicInputList
-              v-model="form.members"
-              placeholder="Contoh: A25-CS246-XXXX"
-              add-button-text="+ Tambah Anggota"
-              :max-items="3"
-              :error="errors.members"
-            />
-          </div>
+            <div class="space-y-4">
+              <div v-for="(member, index) in form.members" :key="index" class="flex gap-3">
+                <!-- Member ID Input -->
+                <div class="flex-1">
+                  <input
+                    v-model="form.members[index]"
+                    type="text"
+                    placeholder="Contoh: fui0001"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    @change="fetchStudentLearningPath(index, form.members[index])"
+                  />
+                </div>
 
-          <!-- Learning Paths -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Learning Path Anggota
-            </label>
-            <p class="text-sm text-gray-500 mb-3">
-              Masukkan learning path untuk setiap anggota (urutan sesuai dengan email di atas)
-            </p>
+                <!-- Learning Path Display (auto-fetched) -->
+                <div class="flex-1">
+                  <input
+                    v-model="form.learningPaths[index]"
+                    type="text"
+                    placeholder="Auto-filled"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                    readonly
+                  />
+                </div>
 
-            <DynamicInputList
-              v-model="form.learningPaths"
-              placeholder="Contoh: Front-End Web & Back-End with AI"
-              add-button-text="+ Tambah Learning Path"
-              :max-items="3"
-              :error="errors.learningPaths"
-            />
+                <!-- Delete Button -->
+                <button
+                  v-if="form.members.length > 1"
+                  type="button"
+                  @click="form.members.splice(index, 1); form.learningPaths.splice(index, 1)"
+                  class="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Add Member Button -->
+              <button
+                v-if="form.members.length < (selectedUseCaseTotalTeamSize || 4)"
+                type="button"
+                @click="form.members.push(''); form.learningPaths.push('')"
+                class="text-primary-600 hover:text-primary-700 font-medium text-sm"
+              >
+                + Tambah Anggota
+              </button>
+            </div>
+
+            <p v-if="errors.members" class="mt-2 text-sm text-danger-600">{{ errors.members }}</p>
           </div>
 
           <!-- Team Composition Info -->
@@ -116,11 +140,22 @@
               </svg>
               <div class="text-sm text-blue-700">
                 <p class="font-semibold mb-1">Ketentuan Komposisi Tim:</p>
-                <ul class="list-disc list-inside space-y-1">
-                  <li>Tim terdiri dari 2-4 orang (1 ketua + 1-3 anggota)</li>
-                  <li>Minimal 1 orang dari learning path Front-End atau Back-End</li>
-                  <li>Semua anggota harus terdaftar di sistem</li>
-                </ul>
+                <template v-if="selectedUseCaseComposition && selectedUseCaseComposition.length > 0">
+                  <p class="mb-2">Use case ini memerlukan komposisi tim khusus:</p>
+                  <ul class="list-disc list-inside space-y-1">
+                    <li v-for="comp in selectedUseCaseComposition" :key="comp.learningPath">
+                      {{ comp.count }} orang dari {{ comp.learningPath }}
+                    </li>
+                  </ul>
+                  <p class="mt-2 font-semibold">Total: {{ selectedUseCaseTotalTeamSize }} anggota (termasuk ketua)</p>
+                </template>
+                <template v-else>
+                  <ul class="list-disc list-inside space-y-1">
+                    <li>Tim terdiri dari 2-4 orang (1 ketua + 1-3 anggota)</li>
+                    <li>Semua anggota harus dari learning path yang sama</li>
+                    <li>Semua anggota harus terdaftar di sistem</li>
+                  </ul>
+                </template>
               </div>
             </div>
           </div>
@@ -165,7 +200,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTeamStore } from '../../stores/teamStore'
@@ -204,6 +239,31 @@ const errors = reactive({
 // Use case options (fetch from backend)
 const useCaseOptions = ref([])
 const loadingUseCases = ref(false)
+const useCasesData = ref([]) // Store full use case data including composition
+
+// Computed properties for selected use case composition
+const selectedUseCaseComposition = computed(() => {
+  if (!form.useCase) return null
+  const useCase = useCasesData.value.find(uc => (uc._id || uc.id) === form.useCase)
+  return useCase?.teamComposition || null
+})
+
+const selectedUseCaseTotalTeamSize = computed(() => {
+  if (!form.useCase) return 0
+  const useCase = useCasesData.value.find(uc => (uc._id || uc.id) === form.useCase)
+  return useCase?.totalTeamSize || 0
+})
+
+// Auto-adjust member fields when use case changes
+watch(() => form.useCase, (newUseCase) => {
+  if (newUseCase) {
+    const totalSize = selectedUseCaseTotalTeamSize.value
+    // Reset members and learning paths to match total team size
+    form.members = Array(totalSize).fill('')
+    form.learningPaths = Array(totalSize).fill('')
+    console.log(`Adjusted form for ${totalSize} members`)
+  }
+})
 
 const studentMenuItems = [
   { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
@@ -236,30 +296,37 @@ const validateForm = () => {
 
   // Members validation
   const validMembers = form.members.filter(m => m.trim() !== '')
+  const expectedTeamSize = selectedUseCaseTotalTeamSize.value || 2
+
   if (validMembers.length === 0) {
     errors.members = 'Minimal 1 anggota tim harus diisi'
     isValid = false
-  } else if (validMembers.length > 3) {
-    errors.members = 'Maksimal 3 anggota tim'
+  } else if (validMembers.length !== expectedTeamSize) {
+    errors.members = `Tim harus memiliki tepat ${expectedTeamSize} anggota (termasuk ketua), Anda input ${validMembers.length}`
     isValid = false
   }
 
   // Learning paths validation
   const validPaths = form.learningPaths.filter(p => p.trim() !== '')
   if (validPaths.length !== validMembers.length) {
-    errors.learningPaths = 'Jumlah learning path harus sama dengan jumlah anggota'
+    errors.learningPaths = 'Semua anggota harus memiliki learning path'
     isValid = false
   }
 
-  if (!errors.learningPaths && validPaths.length > 0) {
-    const hasTechnicalPath = validPaths.some(path =>
-      path.includes('Front-End Web & Back-End with AI') ||
-      path.includes('React & Back-End with AI')
-    )
+  // Validate composition requirements
+  if (!errors.learningPaths && selectedUseCaseComposition.value && selectedUseCaseComposition.value.length > 0) {
+    const compositionCount = {}
+    validPaths.forEach(path => {
+      compositionCount[path] = (compositionCount[path] || 0) + 1
+    })
 
-    if (!hasTechnicalPath) {
-      errors.learningPaths = 'Minimal 1 anggota dari learning path Front-End Web & Back-End with AI atau React & Back-End with AI'
-      isValid = false
+    for (const requirement of selectedUseCaseComposition.value) {
+      const actualCount = compositionCount[requirement.learningPath] || 0
+      if (actualCount !== requirement.count) {
+        errors.learningPaths = `Komposisi tidak sesuai. Dibutuhkan ${requirement.count} dari "${requirement.learningPath}", Anda input ${actualCount}`
+        isValid = false
+        break
+      }
     }
   }
 
@@ -319,16 +386,52 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+// Fetch student learning path by student ID
+const fetchStudentLearningPath = async (index, studentId) => {
+  if (!studentId.trim()) {
+    form.learningPaths[index] = ''
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/students/lookup/${studentId}`)
+
+    if (!response.ok) {
+      console.warn(`Student ${studentId} not found`)
+      form.learningPaths[index] = ''
+      return
+    }
+
+    const data = await response.json()
+    if (data.success && data.data) {
+      form.learningPaths[index] = data.data.learningPath || ''
+      console.log(`Loaded learning path for ${studentId}: ${data.data.learningPath}`)
+    }
+  } catch (err) {
+    console.error(`Failed to fetch student ${studentId}:`, err)
+    form.learningPaths[index] = ''
+  }
+}
+
 const fetchUseCases = async () => {
   loadingUseCases.value = true
   try {
     const response = await teamStore.fetchUseCases()
-    useCaseOptions.value = response.data.map(uc => ({
+    console.log('Full response:', response)
+
+    // Response is already the array (teamStore returns response.data which is the array)
+    const useCases = Array.isArray(response) ? response : (response.data || [])
+    console.log('Use cases array:', useCases)
+    console.log('Use cases length:', useCases.length)
+
+    useCasesData.value = useCases
+    useCaseOptions.value = useCases.map(uc => ({
       value: uc._id || uc.id,
-      label: `${uc.code} - ${uc.title || uc.name}`
+      label: `${uc.usecaseId || uc.code} - ${uc.title || uc.name}`
     }))
   } catch (err) {
     console.error('Failed to fetch use cases:', err)
+    console.error('Error details:', err.message)
     // Fallback to default options if API fails
     useCaseOptions.value = [
       { value: 'DC-01', label: 'DC-01 - E-Commerce Platform' },
@@ -342,6 +445,7 @@ const fetchUseCases = async () => {
 }
 
 onMounted(() => {
+  console.log('TeamRegistrationForm mounted!')
   fetchUseCases()
 })
 </script>

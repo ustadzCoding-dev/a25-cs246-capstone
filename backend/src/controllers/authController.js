@@ -163,6 +163,13 @@ export const loginUser = async (req, res) => {
     const userResponse = user.toObject();
     delete userResponse.password;
 
+    console.log('[LOGIN] User response:', {
+      email: userResponse.email,
+      name: userResponse.name,
+      role: userResponse.role,
+      provider: userResponse.provider
+    });
+
     // Mengirimkan response
     res.status(200).json({
       success: true,

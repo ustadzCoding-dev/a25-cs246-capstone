@@ -42,6 +42,10 @@ api.interceptors.request.use(
 // Response interceptor dengan token refresh
 api.interceptors.response.use(
   (response) => {
+    // For blob responses (file downloads), return blob directly
+    if (response.data instanceof Blob) {
+      return response.data
+    }
     return response.data
   },
   (error) => {

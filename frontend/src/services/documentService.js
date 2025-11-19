@@ -16,9 +16,9 @@ import api from './api'
 export const getAllDocuments = async (params = {}) => {
   try {
     const response = await api.get('/documents', { params })
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 
@@ -30,9 +30,9 @@ export const getAllDocuments = async (params = {}) => {
 export const getDocumentById = async (id) => {
   try {
     const response = await api.get(`/document/${id}`)
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 
@@ -48,9 +48,24 @@ export const uploadDocument = async (formData) => {
         'Content-Type': 'multipart/form-data'
       }
     })
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
+  }
+}
+
+/**
+ * Update document (Admin only)
+ * @param {string} id - Document ID
+ * @param {Object} updateData - Data to update
+ * @returns {Promise} Updated document data
+ */
+export const updateDocumentAPI = async (id, updateData) => {
+  try {
+    const response = await api.put(`/document/${id}`, updateData)
+    return response
+  } catch (error) {
+    throw error
   }
 }
 
@@ -61,10 +76,24 @@ export const uploadDocument = async (formData) => {
  */
 export const deleteDocument = async (id) => {
   try {
-    const response = await api.delete(`/document/${id}/delete`)
-    return response.data
+    const response = await api.delete(`/document/${id}`)
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
+  }
+}
+
+/**
+ * Restore a deleted document
+ * @param {string} id - Document ID
+ * @returns {Promise} Restored document data
+ */
+export const restoreDocument = async (id) => {
+  try {
+    const response = await api.put(`/document/${id}/restore`)
+    return response
+  } catch (error) {
+    throw error
   }
 }
 
@@ -78,9 +107,9 @@ export const downloadDocument = async (id) => {
     const response = await api.get(`/document/${id}/download`, {
       responseType: 'blob'
     })
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 
@@ -92,17 +121,17 @@ export const downloadDocument = async (id) => {
 export const triggerDownload = async (id, filename) => {
   try {
     const blob = await downloadDocument(id)
-    
+
     // Create blob URL
     const url = window.URL.createObjectURL(blob)
-    
+
     // Create temporary link and trigger download
     const link = document.createElement('a')
     link.href = url
     link.download = filename
     document.body.appendChild(link)
     link.click()
-    
+
     // Cleanup
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
@@ -115,7 +144,9 @@ export default {
   getAllDocuments,
   getDocumentById,
   uploadDocument,
+  updateDocumentAPI,
   deleteDocument,
+  restoreDocument,
   downloadDocument,
   triggerDownload
 }

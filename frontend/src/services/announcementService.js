@@ -17,7 +17,7 @@ export const getAnnouncements = async (params = {}) => {
     const response = await api.get('/announcements', { params })
     return {
       success: true,
-      data: response.data.data || []
+      data: response.data || []  // response.data is already the announcements array from interceptor
     }
   } catch (error) {
     console.error('Get announcements error:', error)
@@ -35,7 +35,7 @@ export const getAnnouncementById = async (id) => {
     const response = await api.get(`/announcements/${id}`)
     return {
       success: true,
-      data: response.data.data
+      data: response.data
     }
   } catch (error) {
     console.error('Get announcement by ID error:', error)
@@ -55,7 +55,7 @@ export const createAnnouncement = async (announcementData) => {
     const response = await api.post('/announcements', announcementData)
     return {
       success: true,
-      data: response.data.data,
+      data: response.data,
       message: 'Pengumuman berhasil dibuat'
     }
   } catch (error) {
@@ -77,7 +77,7 @@ export const updateAnnouncement = async (id, announcementData) => {
     const response = await api.put(`/announcements/${id}`, announcementData)
     return {
       success: true,
-      data: response.data.data,
+      data: response.data,
       message: 'Pengumuman berhasil diperbarui'
     }
   } catch (error) {
@@ -118,7 +118,7 @@ export const markAnnouncementAsRead = async (id) => {
     const response = await api.post(`/announcements/${id}/read`)
     return {
       success: true,
-      data: response.data.data
+      data: response.data
     }
   } catch (error) {
     console.error('Mark announcement as read error:', error)

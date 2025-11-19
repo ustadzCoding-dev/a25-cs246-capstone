@@ -16,6 +16,13 @@ const authService = {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
 
+        console.log('[AUTH] Login successful:', {
+          email: response.data.user.email,
+          name: response.data.user.name,
+          role: response.data.user.role,
+          provider: response.data.user.provider
+        });
+
         return {
           user: response.data.user,
           token: token,

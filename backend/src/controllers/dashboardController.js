@@ -27,9 +27,16 @@ export const getDashboardStats = async (req, res) => {
     const approvedTeams = await CapstoneGroup.countDocuments({ status: 'approved' });
     const rejectedTeams = await CapstoneGroup.countDocuments({ status: 'rejected' });
 
-    // Hitung total documents
-    const totalDocuments = await Document.countDocuments();
-    const publicDocuments = await Document.countDocuments({ visibility: 'public' });
+    // Hitung total documents (only active documents)
+    const totalDocuments = await Document.countDocuments({ isActive: true });
+    const publicDocuments = await Document.countDocuments({ visibility: 'public', isActive: true });
+
+    // Hitung total downloads dari semua dokumen
+    const downloadStats = await Document.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: null, totalDownloads: { $sum: '$downloadCount' } } }
+    ]);
+    const totalDownloads = downloadStats[0]?.totalDownloads || 0;
 
     // Hitung total timelines
     const totalTimelines = await Timeline.countDocuments();
@@ -74,7 +81,8 @@ export const getDashboardStats = async (req, res) => {
         },
         documents: {
           total: totalDocuments,
-          public: publicDocuments
+          public: publicDocuments,
+          totalDownloads: totalDownloads
         },
         timelines: {
           total: totalTimelines,

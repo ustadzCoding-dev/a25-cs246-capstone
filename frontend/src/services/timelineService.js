@@ -12,9 +12,9 @@ import api from './api'
 export const getAllTimelines = async () => {
   try {
     const response = await api.get('/timelines')
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 
@@ -25,9 +25,9 @@ export const getAllTimelines = async () => {
 export const getUpcomingTimelines = async () => {
   try {
     const response = await api.get('/timelines/upcoming')
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 
@@ -38,9 +38,9 @@ export const getUpcomingTimelines = async () => {
 export const getOverdueTimelines = async () => {
   try {
     const response = await api.get('/timelines/overdue')
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 
@@ -56,9 +56,9 @@ export const getOverdueTimelines = async () => {
 export const createTimeline = async (timelineData) => {
   try {
     const response = await api.post('/timeline/add', timelineData)
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 
@@ -70,10 +70,10 @@ export const createTimeline = async (timelineData) => {
  */
 export const updateTimeline = async (id, timelineData) => {
   try {
-    const response = await api.put(`/timeline/update/${id}`, timelineData)
-    return response.data
+    const response = await api.put(`/timeline/${id}`, timelineData)
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 
@@ -84,10 +84,10 @@ export const updateTimeline = async (id, timelineData) => {
  */
 export const deleteTimeline = async (id) => {
   try {
-    const response = await api.delete(`/timeline/${id}/delete`)
-    return response.data
+    const response = await api.delete(`/timeline/${id}`)
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 

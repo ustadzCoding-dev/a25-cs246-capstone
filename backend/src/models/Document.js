@@ -27,17 +27,17 @@ const documentSchema = new mongoose.Schema({
     trim: true
   },
   // Category
-  // Contoh: "guideline"
+  // Contoh: "Panduan", "Template", "Referensi", "Lainnya"
   category: {
     type: String,
-    enum: ['guideline', 'template', 'reference', 'submission', 'announcement', 'other'],
+    enum: ['Panduan', 'Template', 'Referensi', 'Lainnya'],
     required: [true, 'Category is required']
   },
   // Visibility
-  // Contoh: "public"
+  // Contoh: "public", "private"
   visibility: {
     type: String,
-    enum: ['public', 'team-only', 'admin-only'],
+    enum: ['public', 'private'],
     default: 'public'
   },
   // Uploader Info

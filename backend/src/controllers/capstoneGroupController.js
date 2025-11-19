@@ -86,3 +86,36 @@ export const getCapstoneGroupById = asyncHandler(async (req, res) => {
 
   res.success(team, 'Team retrieved successfully', 200);
 });
+
+/**
+ * Get current user's team (Student)
+ * GET /api/capstone-group/current
+ */
+export const getCurrentCapstoneGroup = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const team = await TeamService.getCurrentTeamByUserId(userId);
+
+  if (!team) {
+    return res.success(null, 'No team found for current user', 200);
+  }
+
+  res.success(team, 'Current team retrieved successfully', 200);
+});
+
+/**
+ * Set team composition requirements for a use case (Admin)
+ * PUT /api/usecase/:usecaseId/team-composition
+ */
+export const setTeamComposition = asyncHandler(async (req, res) => {
+  const { usecaseId } = req.params;
+  const { teamComposition } = req.body;
+
+  if (!teamComposition) {
+    return res.error('Team composition is required', 400);
+  }
+
+  const useCase = await TeamService.setTeamComposition(usecaseId, teamComposition);
+
+  res.success(useCase, 'Team composition updated successfully', 200);
+});

@@ -1,7 +1,7 @@
 # Dokumen Project Plan
 **Asah led by Dicoding in association with Accenture**
 
-**ID Tim Capstone Project:** [A25-CS246]  
+**ID Tim Capstone Project:** [A25-CS246]
 **ID Use Case:** [DC-09]
 
 ## List Anggota:
@@ -22,7 +22,7 @@ Dicoding Indonesia telah menjalankan program pelatihan intensif yang diikuti ole
 - **What:** Tidak adanya sistem terpusat untuk manajemen capstone project.
 - **When:** Terjadi setiap periode capstone (bulanan/per cohort).
 - **Where:** Platform Academic Dashboard Dicoding.
-- **Who:** Tim program Dicoding, admin, dan peserta capstone.
+- **Who:** Admin, dan peserta capstone.
 - **Why:** Proses manual menyebabkan inefisiensi dalam monitoring progress, validasi tim, dan distribusi informasi.
 - **How:** Diperlukan integrasi fitur capstone ke dalam Academic Dashboard yang sudah ada.
 
@@ -713,8 +713,8 @@ Dokumen Project Plan ini telah disusun untuk memastikan proyek **DC-09 Enhancing
 
 ---
 
-**Disusun oleh:**  
-Tim Capstone Project A25-CS246  
+**Disusun oleh:**
+Tim Capstone Project A25-CS246
 Program Asah - Dicoding Indonesia x Accenture
 
 **Tanggal Submission:** 31 Oktober 2025

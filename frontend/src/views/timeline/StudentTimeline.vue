@@ -120,7 +120,7 @@
         <div class="px-6 py-4 border-b border-gray-200">
           <h2 class="text-xl font-semibold text-gray-900">Deadline Terdekat</h2>
         </div>
-        
+
         <div class="divide-y divide-gray-200">
           <div
             v-for="deadline in upcomingDeadlines"
@@ -143,7 +143,7 @@
                   </span>
                 </div>
               </div>
-              
+
               <div
                 :class="[
                   'flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold',
@@ -183,6 +183,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTimelineStore } from '../../stores/timelineStore'
+import { useStudentMenu } from '../../composables/useStudentMenu'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import TimelineItem from '../../components/display/TimelineItem.vue'
 import BaseSpinner from '../../components/base/BaseSpinner.vue'
@@ -197,13 +198,7 @@ const user = computed(() => authStore.user)
 const loading = computed(() => timelineStore.timelinesLoading)
 const timelineItems = computed(() => timelineStore.sortedTimelines)
 
-const studentMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
-  { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
-  { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
-  { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] }
-]
+const { studentMenuItems } = useStudentMenu()
 
 const currentTimeline = computed(() => {
   return timelineItems.value.find(item => item.status === 'active')

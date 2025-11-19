@@ -58,14 +58,17 @@ export const useDocumentStore = defineStore('document', {
 
       try {
         const response = await documentService.getAllDocuments(params)
+        console.log('=== fetchDocuments response ===', response)
 
         if (response.success) {
           this.documents = response.data
+          console.log('Documents updated:', this.documents)
         }
 
         return response
       } catch (error) {
         this.error = error.message || 'Failed to fetch documents'
+        console.error('fetchDocuments error:', error)
         throw error
       } finally {
         this.documentsLoading = false
@@ -101,6 +104,7 @@ export const useDocumentStore = defineStore('document', {
     async uploadDocument(formData) {
       this.uploadLoading = true
       this.error = null
+      this.errorDetails = []
 
       try {
         const response = await documentService.uploadDocument(formData)
@@ -111,10 +115,48 @@ export const useDocumentStore = defineStore('document', {
 
         return response
       } catch (error) {
-        this.error = error.message || 'Failed to upload document'
+        // Handle validation errors from backend
+        if (error.error?.details) {
+          this.errorDetails = error.error.details
+          this.error = error.error.message || 'Validation failed'
+        } else {
+          this.error = error.message || 'Failed to upload document'
+        }
         throw error
       } finally {
         this.uploadLoading = false
+      }
+    },
+
+    /**
+     * Update document (Admin)
+     */
+    async updateDocument(id, updateData) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await documentService.updateDocumentAPI(id, updateData)
+
+        if (response.success) {
+          // Update in documents list
+          const index = this.documents.findIndex(doc => doc.id === id || doc._id === id)
+          if (index !== -1) {
+            this.documents[index] = response.data
+          }
+
+          // Update current document if it's the same
+          if (this.currentDocument?.id === id || this.currentDocument?._id === id) {
+            this.currentDocument = response.data
+          }
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to update document'
+        throw error
+      } finally {
+        this.loading = false
       }
     },
 
@@ -141,6 +183,30 @@ export const useDocumentStore = defineStore('document', {
         return response
       } catch (error) {
         this.error = error.message || 'Failed to delete document'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Restore a deleted document (Admin)
+     */
+    async restoreDocument(id) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await documentService.restoreDocument(id)
+
+        if (response.success) {
+          // Add restored document back to list
+          this.documents.unshift(response.data)
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to restore document'
         throw error
       } finally {
         this.loading = false

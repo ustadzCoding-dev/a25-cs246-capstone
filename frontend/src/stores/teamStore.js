@@ -97,6 +97,30 @@ export const useTeamStore = defineStore('team', {
     },
 
     /**
+     * Fetch current user's team (Student)
+     */
+    async fetchCurrentTeam() {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.getCurrentTeam()
+
+        if (response.success) {
+          this.currentTeam = response.data
+        }
+
+        return response
+      } catch (error) {
+        // It's okay if student doesn't have a team yet
+        this.currentTeam = null
+        return { success: true, data: null }
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
      * Create new team
      */
     async createTeam(teamData) {

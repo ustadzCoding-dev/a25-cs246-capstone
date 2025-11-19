@@ -48,11 +48,12 @@ const useCaseSchema = new mongoose.Schema({
     default: 1
   },
   // Difficulty
-  // Contoh: "beginner", "intermediate", "advanced"
+  // Contoh: "easy", "medium", "hard"
   difficulty: {
     type: String,
-    enum: ['beginner', 'intermediate', 'advanced'],
-    required: true
+    enum: ['easy', 'medium', 'hard'],
+    required: true,
+    default: 'medium'
   },
   // Status
   // Contoh: "open" atau "closed"
@@ -60,6 +61,25 @@ const useCaseSchema = new mongoose.Schema({
     type: String,
     enum: ['open', 'closed'],
     default: 'open'
+  },
+  // Team Composition Requirements
+  // Contoh: [{ learningPath: "Front-End & Back-End with AI", count: 3 }, { learningPath: "Machine Learning", count: 2 }]
+  teamComposition: [{
+    learningPath: {
+      type: String,
+      required: true
+    },
+    count: {
+      type: Number,
+      required: true,
+      min: 1
+    }
+  }],
+  // Total Team Size (calculated from composition)
+  // Contoh: 5
+  totalTeamSize: {
+    type: Number,
+    default: 0
   }
 },{
   toJSON: { virtuals: true },

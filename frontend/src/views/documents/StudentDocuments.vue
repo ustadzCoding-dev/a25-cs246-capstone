@@ -10,11 +10,8 @@
       <!-- Filters -->
       <div class="bg-white rounded-lg shadow p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseSearch
-            v-model="searchQuery"
-            placeholder="Cari dokumen..."
-          />
-          
+          <BaseSearch v-model="searchQuery" placeholder="Cari dokumen..." />
+
           <BaseSelect
             v-model="filterCategory"
             :options="categoryOptions"
@@ -28,12 +25,29 @@
         <BaseSpinner centered size="lg" label="Memuat dokumen..." />
       </div>
 
-      <div v-else-if="filteredDocuments.length === 0" class="bg-white rounded-lg shadow p-12 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      <div
+        v-else-if="filteredDocuments.length === 0"
+        class="bg-white rounded-lg shadow p-12 text-center"
+      >
+        <svg
+          class="mx-auto h-12 w-12 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
         </svg>
         <p class="mt-2 text-sm text-gray-500">
-          {{ searchQuery || filterCategory ? 'Tidak ada dokumen yang sesuai' : 'Belum ada dokumen tersedia' }}
+          {{
+            searchQuery || filterCategory
+              ? 'Tidak ada dokumen yang sesuai'
+              : 'Belum ada dokumen tersedia'
+          }}
         </p>
       </div>
 
@@ -43,7 +57,7 @@
           :key="doc._id"
           :title="doc.title"
           :description="doc.description"
-          :date="doc.uploadDate"
+          :date="doc.createdAt || doc.uploadDate"
           :link="doc.link"
           @click="downloadDocument(doc)"
         >
@@ -65,8 +79,18 @@
       <!-- Quick Links -->
       <div class="bg-primary-50 border border-primary-200 rounded-lg p-6">
         <div class="flex items-start">
-          <svg class="w-6 h-6 text-primary-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            class="w-6 h-6 text-primary-600 mr-3 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <div class="flex-1">
             <h3 class="text-base font-semibold text-primary-900 mb-2">Tips Menggunakan Dokumen</h3>
@@ -88,6 +112,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useDocumentStore } from '../../stores/documentStore'
+import { useStudentMenu } from '../../composables/useStudentMenu'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import DocumentCard from '../../components/display/DocumentCard.vue'
 import BaseSearch from '../../components/base/BaseSearch.vue'
@@ -112,25 +137,18 @@ const categoryOptions = [
   { value: 'Panduan', label: 'Panduan' },
   { value: 'Template', label: 'Template' },
   { value: 'Referensi', label: 'Referensi' },
-  { value: 'Lainnya', label: 'Lainnya' }
+  { value: 'Lainnya', label: 'Lainnya' },
 ]
 
-const studentMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
-  { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
-  { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
-  { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] }
-]
+const { studentMenuItems } = useStudentMenu()
 
 const filteredDocuments = computed(() => {
   let result = documents.value
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(d =>
-      d.title.toLowerCase().includes(query) ||
-      d.description.toLowerCase().includes(query)
+    result = result.filter(
+      d => d.title.toLowerCase().includes(query) || d.description.toLowerCase().includes(query)
     )
   }
 
@@ -144,17 +162,17 @@ const filteredDocuments = computed(() => {
   return result
 })
 
-const getCategoryVariant = (category) => {
+const getCategoryVariant = category => {
   const variants = {
-    'Panduan': 'primary',
-    'Template': 'success',
-    'Referensi': 'warning',
-    'Lainnya': 'secondary'
+    Panduan: 'primary',
+    Template: 'success',
+    Referensi: 'warning',
+    Lainnya: 'secondary',
   }
   return variants[category] || 'secondary'
 }
 
-const downloadDocument = async (doc) => {
+const downloadDocument = async doc => {
   try {
     await documentStore.downloadDocument(doc._id || doc.id, doc.title)
   } catch (err) {
@@ -171,7 +189,7 @@ const fetchDocuments = async () => {
   try {
     const params = {
       category: filterCategory.value,
-      search: searchQuery.value
+      search: searchQuery.value,
     }
     await documentStore.fetchDocuments(params)
   } catch (err) {

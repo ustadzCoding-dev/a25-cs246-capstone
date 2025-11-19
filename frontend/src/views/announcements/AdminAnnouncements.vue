@@ -83,6 +83,7 @@
             :date="announcement.date"
             :priority="announcement.priority"
             :can-delete="true"
+            @edit="editAnnouncement(announcement)"
             @delete="handleDelete(announcement)"
             class="!border-0 !shadow-none"
           />
@@ -184,6 +185,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useAnnouncementStore } from '../../stores/announcementStore'
+import { useAdminMenu } from '../../composables/useAdminMenu'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
 import AnnouncementCard from '../../components/display/AnnouncementCard.vue'
@@ -256,13 +258,7 @@ const priorityOptions = [
   { value: 'important', label: 'Penting' }
 ]
 
-const adminMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/admin/dashboard', roles: ['admin'] },
-  { name: 'Kelola Tim', icon: 'team', path: '/admin/teams', roles: ['admin'] },
-  { name: 'Dokumen', icon: 'document', path: '/admin/documents', roles: ['admin'] },
-  { name: 'Timeline', icon: 'timeline', path: '/admin/timeline', roles: ['admin'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] }
-]
+const { adminMenuItems } = useAdminMenu()
 
 const filteredAnnouncements = computed(() => {
   let result = announcements.value
@@ -331,6 +327,14 @@ const handleSubmit = async () => {
   } finally {
     submitting.value = false
   }
+}
+
+const editAnnouncement = (announcement) => {
+  editingAnnouncement.value = announcement
+  form.title = announcement.title
+  form.content = announcement.content
+  form.priority = announcement.priority
+  showCreateModal.value = true
 }
 
 const handleDelete = (announcement) => {

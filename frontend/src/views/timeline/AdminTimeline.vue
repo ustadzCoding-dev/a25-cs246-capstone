@@ -7,7 +7,7 @@
           <h1 class="text-3xl font-bold text-gray-900">Kelola Timeline</h1>
           <p class="mt-2 text-gray-600">Kelola timeline dan deadline capstone project</p>
         </div>
-        
+
         <BaseButton
           variant="primary"
           @click="showCreateModal = true"
@@ -123,7 +123,7 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
-                      
+
                       <button
                         @click="deleteTimeline(item)"
                         class="text-danger-600 hover:text-danger-700 p-2"
@@ -168,6 +168,33 @@
         />
 
         <div class="grid grid-cols-2 gap-4">
+          <BaseSelect
+            v-model="form.type"
+            label="Tipe"
+            :options="[
+              { value: 'milestone', label: 'Milestone' },
+              { value: 'deadline', label: 'Deadline' },
+              { value: 'submission', label: 'Submission' },
+              { value: 'meeting', label: 'Meeting' },
+              { value: 'event', label: 'Event' }
+            ]"
+            required
+          />
+
+          <BaseSelect
+            v-model="form.priority"
+            label="Prioritas"
+            :options="[
+              { value: 'low', label: 'Rendah' },
+              { value: 'medium', label: 'Sedang' },
+              { value: 'high', label: 'Tinggi' },
+              { value: 'critical', label: 'Kritis' }
+            ]"
+            required
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
           <BaseDatePicker
             v-model="form.startDate"
             label="Tanggal Mulai"
@@ -183,14 +210,6 @@
             required
           />
         </div>
-
-        <BaseSelect
-          v-model="form.status"
-          label="Status"
-          :options="statusOptions"
-          :error="errors.status"
-          required
-        />
 
         <div v-if="error" class="p-3 bg-danger-50 border border-danger-200 rounded-lg">
           <p class="text-sm text-danger-700">{{ error }}</p>
@@ -253,6 +272,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTimelineStore } from '../../stores/timelineStore'
+import { useAdminMenu } from '../../composables/useAdminMenu'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
 import BaseInput from '../../components/base/BaseInput.vue'
@@ -281,9 +301,10 @@ const selectedTimeline = ref(null)
 const form = reactive({
   title: '',
   description: '',
+  type: 'milestone',
   startDate: '',
   endDate: '',
-  status: 'upcoming'
+  priority: 'medium'
 })
 
 const errors = reactive({
@@ -312,13 +333,7 @@ const statusOptions = [
   { value: 'completed', label: 'Selesai' }
 ]
 
-const adminMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/admin/dashboard', roles: ['admin'] },
-  { name: 'Kelola Tim', icon: 'team', path: '/admin/teams', roles: ['admin'] },
-  { name: 'Dokumen', icon: 'document', path: '/admin/documents', roles: ['admin'] },
-  { name: 'Timeline', icon: 'timeline', path: '/admin/timeline', roles: ['admin'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] }
-]
+const { adminMenuItems } = useAdminMenu()
 
 const getStatusColor = (status) => {
   const colors = {
@@ -387,8 +402,13 @@ const validateForm = () => {
     isValid = false
   }
 
-  if (!form.status) {
-    errors.status = 'Status wajib dipilih'
+  if (!form.type) {
+    errors.type = 'Tipe wajib dipilih'
+    isValid = false
+  }
+
+  if (!form.priority) {
+    errors.priority = 'Prioritas wajib dipilih'
     isValid = false
   }
 
@@ -405,9 +425,10 @@ const handleSubmit = async () => {
     const timelineData = {
       title: form.title,
       description: form.description,
+      type: form.type,
+      priority: form.priority,
       startDate: form.startDate,
-      endDate: form.endDate,
-      status: form.status
+      endDate: form.endDate
     }
 
     if (editingTimeline.value) {
@@ -429,9 +450,10 @@ const editTimeline = (item) => {
   editingTimeline.value = item
   form.title = item.title
   form.description = item.description
+  form.type = item.type
+  form.priority = item.priority
   form.startDate = item.startDate
   form.endDate = item.endDate
-  form.status = item.status
   showCreateModal.value = true
 }
 
@@ -456,9 +478,10 @@ const closeModal = () => {
   editingTimeline.value = null
   form.title = ''
   form.description = ''
+  form.type = 'milestone'
+  form.priority = 'medium'
   form.startDate = ''
   form.endDate = ''
-  form.status = 'upcoming'
   error.value = ''
   Object.keys(errors).forEach(key => errors[key] = '')
 }

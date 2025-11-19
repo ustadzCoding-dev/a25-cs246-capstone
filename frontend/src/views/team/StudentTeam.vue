@@ -7,7 +7,7 @@
           <h1 class="text-3xl font-bold text-gray-900">Tim Saya</h1>
           <p class="mt-2 text-gray-600">Kelola tim capstone Anda</p>
         </div>
-        
+
         <BaseButton
           v-if="!hasTeam && !hasPendingTeam"
           variant="primary"
@@ -23,6 +23,47 @@
       <!-- Loading State -->
       <div v-if="loading" class="bg-white rounded-lg shadow p-12">
         <BaseSpinner centered size="lg" label="Memuat data tim..." />
+      </div>
+
+      <!-- Pending Invitations -->
+      <div v-if="pendingInvitations.length > 0" class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div class="flex items-start mb-4">
+          <svg class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          <div>
+            <h3 class="text-base font-semibold text-blue-900">Undangan Tim Tertunda</h3>
+            <p class="text-sm text-blue-700">Anda memiliki {{ pendingInvitations.length }} undangan tim yang menunggu respons Anda</p>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div v-for="invitation in pendingInvitations" :key="invitation._id" class="bg-white rounded-lg p-4 flex items-center justify-between">
+            <div class="flex-1">
+              <h4 class="font-semibold text-gray-900">{{ invitation.teamId.teamName }}</h4>
+              <p class="text-sm text-gray-600">Use Case: {{ invitation.teamId.useCase }}</p>
+              <p class="text-sm text-gray-500">Dari: {{ invitation.leaderId.name }}</p>
+            </div>
+            <div class="flex gap-2">
+              <BaseButton
+                variant="success"
+                size="sm"
+                @click="acceptInvitation(invitation._id)"
+                :loading="acceptingInvitation === invitation._id"
+              >
+                Terima
+              </BaseButton>
+              <BaseButton
+                variant="danger"
+                size="sm"
+                @click="rejectInvitation(invitation._id)"
+                :loading="rejectingInvitation === invitation._id"
+              >
+                Tolak
+              </BaseButton>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- No Team State -->
@@ -166,6 +207,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTeamStore } from '../../stores/teamStore'
+import { useStudentMenu } from '../../composables/useStudentMenu'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import TeamStatusCard from '../../components/display/TeamStatusCard.vue'
 import TeamInfoCard from '../../components/display/TeamInfoCard.vue'
@@ -182,7 +224,9 @@ const teamStore = useTeamStore()
 const user = computed(() => authStore.user)
 const leavingTeam = ref(false)
 const showLeaveConfirm = ref(false)
-const invitations = ref([]) // TODO: Implement invitations API
+const pendingInvitations = ref([])
+const acceptingInvitation = ref(null)
+const rejectingInvitation = ref(null)
 
 // Get data from store
 const loading = computed(() => teamStore.loading)
@@ -190,13 +234,7 @@ const activeTeam = computed(() => teamStore.currentTeam)
 const hasTeam = computed(() => teamStore.hasTeam && activeTeam.value?.status === 'approved')
 const hasPendingTeam = computed(() => teamStore.hasTeam && activeTeam.value?.status === 'pending')
 
-const studentMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
-  { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
-  { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
-  { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] }
-]
+const { studentMenuItems } = useStudentMenu()
 
 const isLeader = computed(() => {
   return activeTeam.value?.leader?.email === user.value?.email
@@ -217,14 +255,14 @@ const pendingTeam = computed(() => {
 
 const handleLeaveTeam = async () => {
   leavingTeam.value = true
-  
+
   try {
     await teamStore.leaveTeam(activeTeam.value._id || activeTeam.value.id)
     showLeaveConfirm.value = false
-    
+
     // Refresh team data
     await fetchTeamData()
-    
+
   } catch (err) {
     console.error('Failed to leave team:', err)
   } finally {
@@ -235,13 +273,13 @@ const handleLeaveTeam = async () => {
 const handleAcceptInvitation = async (invitationId) => {
   try {
     await teamStore.acceptInvitation(invitationId)
-    
+
     // Remove from invitations list
     invitations.value = invitations.value.filter(inv => inv._id !== invitationId)
-    
+
     // Refresh team data
     await fetchTeamData()
-    
+
   } catch (err) {
     console.error('Failed to accept invitation:', err)
   }
@@ -250,10 +288,10 @@ const handleAcceptInvitation = async (invitationId) => {
 const handleRejectInvitation = async (invitationId) => {
   try {
     await teamStore.rejectInvitation(invitationId)
-    
+
     // Remove invitation from list
     invitations.value = invitations.value.filter(inv => inv._id !== invitationId)
-    
+
   } catch (err) {
     console.error('Failed to reject invitation:', err)
   }
@@ -265,11 +303,75 @@ const fetchTeamData = async () => {
     // For now, we'll use mock data until backend implements "my team" endpoint
     // TODO: Replace with actual API call when available
     // await teamStore.fetchTeamById(userId)
-    
+
     console.log('Fetching team data...')
-    
+
   } catch (err) {
     console.error('Failed to fetch team data:', err)
+  }
+}
+
+const fetchPendingInvitations = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/invitations', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      pendingInvitations.value = data.data || []
+      console.log('Pending invitations loaded:', pendingInvitations.value.length)
+    }
+  } catch (err) {
+    console.error('Failed to fetch pending invitations:', err)
+  }
+}
+
+const acceptInvitation = async (invitationId) => {
+  acceptingInvitation.value = invitationId
+  try {
+    const response = await fetch(`http://localhost:8000/api/invitations/${invitationId}/accept`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+
+    if (response.ok) {
+      // Remove from list
+      pendingInvitations.value = pendingInvitations.value.filter(inv => inv._id !== invitationId)
+      // Refresh team data
+      await fetchTeamData()
+      console.log('Invitation accepted')
+    }
+  } catch (err) {
+    console.error('Failed to accept invitation:', err)
+  } finally {
+    acceptingInvitation.value = null
+  }
+}
+
+const rejectInvitation = async (invitationId) => {
+  rejectingInvitation.value = invitationId
+  try {
+    const response = await fetch(`http://localhost:8000/api/invitations/${invitationId}/reject`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+
+    if (response.ok) {
+      // Remove from list
+      pendingInvitations.value = pendingInvitations.value.filter(inv => inv._id !== invitationId)
+      console.log('Invitation rejected')
+    }
+  } catch (err) {
+    console.error('Failed to reject invitation:', err)
+  } finally {
+    rejectingInvitation.value = null
   }
 }
 
@@ -278,7 +380,8 @@ const handleLogout = () => {
   router.push('/login')
 }
 
-onMounted(() => {
-  fetchTeamData()
+onMounted(async () => {
+  await fetchTeamData()
+  await fetchPendingInvitations()
 })
 </script>

@@ -181,12 +181,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTeamStore } from '../../stores/teamStore'
 import { useDocumentStore } from '../../stores/documentStore'
 import { useTimelineStore } from '../../stores/timelineStore'
+import { useAdminMenu } from '../../composables/useAdminMenu'
 import { getAdminDashboardStats } from '../../services/dashboardService'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
@@ -264,13 +265,7 @@ const recentActivities = computed(() => {
     : [{ id: 1, message: 'Sistem siap digunakan', time: 'Sekarang' }]
 })
 
-const adminMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/admin/dashboard', roles: ['admin'] },
-  { name: 'Kelola Tim', icon: 'team', path: '/admin/teams', roles: ['admin'] },
-  { name: 'Dokumen', icon: 'document', path: '/admin/documents', roles: ['admin'] },
-  { name: 'Timeline', icon: 'timeline', path: '/admin/timeline', roles: ['admin'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] },
-]
+const { adminMenuItems } = useAdminMenu()
 
 const approveTeam = async teamId => {
   try {

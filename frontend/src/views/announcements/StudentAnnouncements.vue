@@ -65,7 +65,7 @@
         <div v-else class="divide-y divide-gray-200">
           <div
             v-for="announcement in filteredAnnouncements"
-            :key="announcement._id"
+            :key="announcement.id || announcement._id"
             class="p-6 hover:bg-gray-50 transition-colors duration-200"
           >
             <AnnouncementCard
@@ -74,6 +74,7 @@
               :date="announcement.date"
               :priority="announcement.priority"
               :can-delete="false"
+              @read="markAsRead(announcement.id || announcement._id)"
               class="!bg-transparent !border-0 !shadow-none !p-0"
             />
           </div>
@@ -107,6 +108,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useAnnouncementStore } from '../../stores/announcementStore'
+import { useStudentMenu } from '../../composables/useStudentMenu'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import AnnouncementCard from '../../components/display/AnnouncementCard.vue'
 import BaseSearch from '../../components/base/BaseSearch.vue'
@@ -138,13 +140,7 @@ const priorityOptions = [
   { value: 'important', label: 'Penting' }
 ]
 
-const studentMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
-  { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
-  { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
-  { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] }
-]
+const { studentMenuItems } = useStudentMenu()
 
 const filteredAnnouncements = computed(() => {
   let result = announcements.value
@@ -168,12 +164,22 @@ const filteredAnnouncements = computed(() => {
 })
 
 const importantAnnouncements = computed(() => {
-  return announcements.value.filter(a => a.priority === 'important')
+  return announcements.value.filter(a =>
+    a.priority === 'important' && !a.isRead
+  )
 })
 
 const totalPages = computed(() => {
   return Math.ceil(filteredAnnouncements.value.length / itemsPerPage)
 })
+
+const markAsRead = async (announcementId) => {
+  try {
+    await announcementStore.markAsRead(announcementId)
+  } catch (err) {
+    console.error('Failed to mark announcement as read:', err)
+  }
+}
 
 const handleLogout = () => {
   authStore.logout()

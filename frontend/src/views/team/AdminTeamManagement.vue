@@ -256,6 +256,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTeamStore } from '../../stores/teamStore'
+import { useAdminMenu } from '../../composables/useAdminMenu'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
 import BaseSearch from '../../components/base/BaseSearch.vue'
@@ -320,13 +321,7 @@ const useCaseOptions = [
   { value: 'DC-10', label: 'DC-10' },
 ]
 
-const adminMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/admin/dashboard', roles: ['admin'] },
-  { name: 'Kelola Tim', icon: 'team', path: '/admin/teams', roles: ['admin'] },
-  { name: 'Dokumen', icon: 'document', path: '/admin/documents', roles: ['admin'] },
-  { name: 'Timeline', icon: 'timeline', path: '/admin/timeline', roles: ['admin'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] },
-]
+const { adminMenuItems } = useAdminMenu()
 
 const filteredTeams = computed(() => {
   let result = teams.value

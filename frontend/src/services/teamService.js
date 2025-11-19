@@ -38,6 +38,23 @@ export const getTeamById = async (id) => {
 }
 
 /**
+ * Get current user's team (Student only)
+ * @returns {Promise} Current team data or null if no team
+ */
+export const getCurrentTeam = async () => {
+  try {
+    const response = await api.get('/capstone-group/current')
+    return response.data
+  } catch (error) {
+    // If no team found, return success with null data
+    if (error.response?.status === 404) {
+      return { success: true, data: null }
+    }
+    throw error.response?.data || error
+  }
+}
+
+/**
  * Create new team (Student only)
  * @param {Object} teamData - Team data
  * @param {string} teamData.teamName - Team name
@@ -120,6 +137,7 @@ export const deleteTeam = async (id) => {
 export const getAllUseCases = async () => {
   try {
     const response = await api.get('/usecases')
+    // API returns { success, data, message } format
     return response.data
   } catch (error) {
     throw error.response?.data || error
@@ -143,6 +161,7 @@ export const getUseCaseById = async (id) => {
 export default {
   getAllTeams,
   getTeamById,
+  getCurrentTeam,
   createTeam,
   updateTeam,
   approveTeam,

@@ -9,19 +9,19 @@ export const timelineSchema = {
   create: Joi.object({
     title: Joi.string().required().min(3).max(100).trim(),
     description: Joi.string().required().min(10).max(500).trim(),
-    type: Joi.string().required().valid('milestone', 'deadline', 'review', 'submission'),
+    type: Joi.string().required().valid('milestone', 'deadline', 'submission', 'meeting', 'event'),
     startDate: Joi.date().required().iso(),
     endDate: Joi.date().required().iso().min(Joi.ref('startDate')),
-    priority: Joi.string().valid('low', 'medium', 'high').default('medium')
+    priority: Joi.string().valid('low', 'medium', 'high', 'critical').default('medium')
   }),
   update: Joi.object({
     title: Joi.string().min(3).max(100).trim(),
     description: Joi.string().min(10).max(500).trim(),
-    type: Joi.string().valid('milestone', 'deadline', 'review', 'submission'),
+    type: Joi.string().valid('milestone', 'deadline', 'submission', 'meeting', 'event'),
     startDate: Joi.date().iso(),
     endDate: Joi.date().iso(),
-    priority: Joi.string().valid('low', 'medium', 'high'),
-    status: Joi.string().valid('upcoming', 'ongoing', 'completed', 'overdue')
+    priority: Joi.string().valid('low', 'medium', 'high', 'critical'),
+    status: Joi.string().valid('upcoming', 'ongoing', 'completed', 'overdue', 'cancelled')
   }).min(1)
 };
 

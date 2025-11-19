@@ -85,6 +85,16 @@ const router = createRouter({
         title: "Kelola Pengumuman",
       },
     },
+    {
+      path: "/admin/usecase",
+      name: "admin-usecase",
+      component: () => import("../views/usecase/AdminUseCase.vue"),
+      meta: {
+        requiresAuth: true,
+        requiresAdmin: true,
+        title: "Kelola Use Case",
+      },
+    },
 
     // Protected Routes - Student
     {
@@ -102,6 +112,12 @@ const router = createRouter({
       name: "student-team",
       component: () => import("../views/team/StudentTeam.vue"),
       meta: { requiresAuth: true, title: "Tim Saya" },
+    },
+    {
+      path: "/team/register",
+      name: "team-register",
+      component: () => import("../views/team/TeamRegistrationForm.vue"),
+      meta: { requiresAuth: true, title: "Daftar Tim" },
     },
     {
       path: "/documents",
@@ -169,9 +185,20 @@ router.beforeEach((to, from, next) => {
 
     // Check if route requires admin role
     if (to.meta.requiresAdmin && !authStore.isAdmin) {
-      // Redirect to student dashboard if not admin
-      next({ name: "student-dashboard" });
-      return;
+      // Check if user email is admin email from env
+      const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map(e => e.trim()).filter(Boolean);
+      const isAdminByEmail = adminEmails.length > 0 && adminEmails.includes(authStore.userEmail);
+
+      if (!isAdminByEmail) {
+        // Redirect to student dashboard if not admin
+        next({ name: "student-dashboard" });
+        return;
+      }
+
+      // If admin by email, update the user role in store
+      if (authStore.user) {
+        authStore.user.role = 'admin';
+      }
     }
   }
 

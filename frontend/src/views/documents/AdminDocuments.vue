@@ -53,8 +53,32 @@
 
       <!-- Documents Table -->
       <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 class="text-xl font-semibold text-gray-900">Daftar Dokumen</h2>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="showDeletedDocuments = false"
+              :class="[
+                'px-4 py-2 rounded-lg font-medium transition-colors',
+                !showDeletedDocuments
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ]"
+            >
+              Aktif
+            </button>
+            <button
+              @click="showDeletedDocuments = true"
+              :class="[
+                'px-4 py-2 rounded-lg font-medium transition-colors',
+                showDeletedDocuments
+                  ? 'bg-danger-100 text-danger-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ]"
+            >
+              Dihapus
+            </button>
+          </div>
         </div>
 
         <div v-if="loading" class="p-12">
@@ -104,11 +128,11 @@
                     <h3 class="text-base font-semibold text-gray-900">{{ doc.title }}</h3>
                     <p class="text-sm text-gray-600 mt-1">{{ doc.description }}</p>
                     <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                      <span>{{ formatDate(doc.uploadDate) }}</span>
+                      <span>{{ formatDate(doc.createdAt) }}</span>
                       <span>•</span>
-                      <span>{{ doc.fileSize }}</span>
+                      <span>{{ doc.fileName }}</span>
                       <span>•</span>
-                      <span>{{ doc.downloads }} downloads</span>
+                      <span>{{ doc.downloadCount }} downloads</span>
                       <span>•</span>
                       <BaseBadge size="sm" :variant="getCategoryVariant(doc.category)">
                         {{ doc.category }}
@@ -119,50 +143,69 @@
               </div>
 
               <div class="flex items-center space-x-2 ml-4">
-                <button
-                  @click="downloadDocument(doc)"
-                  class="text-primary-600 hover:text-primary-700 p-2"
-                  title="Download"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                </button>
+                <template v-if="!showDeletedDocuments">
+                  <button
+                    @click="downloadDocument(doc)"
+                    class="text-primary-600 hover:text-primary-700 p-2"
+                    title="Download"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                  </button>
 
-                <button
-                  @click="editDocument(doc)"
-                  class="text-gray-600 hover:text-gray-700 p-2"
-                  title="Edit"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </button>
+                  <button
+                    @click="editDocument(doc)"
+                    class="text-gray-600 hover:text-gray-700 p-2"
+                    title="Edit"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
 
-                <button
-                  @click="deleteDocument(doc)"
-                  class="text-danger-600 hover:text-danger-700 p-2"
-                  title="Hapus"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
+                  <button
+                    @click="deleteDocument(doc)"
+                    class="text-danger-600 hover:text-danger-700 p-2"
+                    title="Hapus"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </template>
+
+                <template v-else>
+                  <button
+                    @click="restoreDeletedDocument(doc)"
+                    class="text-success-600 hover:text-success-700 p-2"
+                    title="Restore"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                  </button>
+                </template>
               </div>
             </div>
           </div>
@@ -199,6 +242,17 @@
           label="Kategori"
           :options="categoryOptions"
           :error="errors.category"
+          required
+        />
+
+        <BaseSelect
+          v-model="form.visibility"
+          label="Visibilitas"
+          :options="[
+            { value: 'public', label: 'Public (Semua siswa bisa akses)' },
+            { value: 'private', label: 'Private (Hanya admin)' },
+          ]"
+          :error="errors.visibility"
           required
         />
 
@@ -264,6 +318,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useDocumentStore } from '../../stores/documentStore'
+import { useAdminMenu } from '../../composables/useAdminMenu'
 import { getAdminDashboardStats } from '../../services/dashboardService'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
@@ -291,6 +346,7 @@ const filterCategory = ref('')
 
 const showUploadModal = ref(false)
 const showDeleteModal = ref(false)
+const showDeletedDocuments = ref(false)
 const editingDocument = ref(null)
 const selectedDocument = ref(null)
 
@@ -298,6 +354,7 @@ const form = reactive({
   title: '',
   description: '',
   category: '',
+  visibility: 'public',
   file: null,
   link: '',
 })
@@ -306,6 +363,7 @@ const errors = reactive({
   title: '',
   description: '',
   category: '',
+  visibility: '',
   file: '',
   link: '',
 })
@@ -323,7 +381,7 @@ const stats = computed(() => {
   return {
     total: dashboardStats.value.documents?.total || 0,
     thisMonth: dashboardStats.value.documents?.total || 0,
-    totalDownloads: 0,
+    totalDownloads: dashboardStats.value.documents?.totalDownloads || 0,
   }
 })
 
@@ -335,16 +393,17 @@ const categoryOptions = [
   { value: 'Lainnya', label: 'Lainnya' },
 ]
 
-const adminMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/admin/dashboard', roles: ['admin'] },
-  { name: 'Kelola Tim', icon: 'team', path: '/admin/teams', roles: ['admin'] },
-  { name: 'Dokumen', icon: 'document', path: '/admin/documents', roles: ['admin'] },
-  { name: 'Timeline', icon: 'timeline', path: '/admin/timeline', roles: ['admin'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] },
-]
+const { adminMenuItems } = useAdminMenu()
 
 const filteredDocuments = computed(() => {
   let result = documents.value
+
+  // Filter by active/deleted status
+  if (showDeletedDocuments.value) {
+    result = result.filter(d => d.isActive === false)
+  } else {
+    result = result.filter(d => d.isActive !== false)
+  }
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
@@ -353,7 +412,7 @@ const filteredDocuments = computed(() => {
     )
   }
 
-  if (filterCategory.value) {
+  if (filterCategory.value && !showDeletedDocuments.value) {
     result = result.filter(d => d.category === filterCategory.value)
   }
 
@@ -382,18 +441,33 @@ const validateForm = () => {
   Object.keys(errors).forEach(key => (errors[key] = ''))
   let isValid = true
 
-  if (!form.title.trim()) {
+  if (!form.title || !form.title.trim()) {
     errors.title = 'Judul wajib diisi'
     isValid = false
   }
 
-  if (!form.description.trim()) {
+  if (form.title && form.title.trim().length < 3) {
+    errors.title = 'Judul minimal 3 karakter'
+    isValid = false
+  }
+
+  if (!form.description || !form.description.trim()) {
     errors.description = 'Deskripsi wajib diisi'
+    isValid = false
+  }
+
+  if (form.description && form.description.trim().length < 10) {
+    errors.description = 'Deskripsi minimal 10 karakter'
     isValid = false
   }
 
   if (!form.category) {
     errors.category = 'Kategori wajib dipilih'
+    isValid = false
+  }
+
+  if (!form.visibility) {
+    errors.visibility = 'Visibilitas wajib dipilih'
     isValid = false
   }
 
@@ -412,26 +486,60 @@ const handleSubmit = async () => {
   error.value = ''
 
   try {
-    // Create FormData for file upload
-    const formData = new FormData()
-    formData.append('title', form.title)
-    formData.append('description', form.description)
-    formData.append('category', form.category)
+    if (editingDocument.value) {
+      // Update existing document
+      const updateData = {
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        visibility: form.visibility
+      }
 
-    if (form.file) {
-      formData.append('file', form.file)
+      console.log('=== Document Update Debug ===')
+      console.log('Document ID:', editingDocument.value._id || editingDocument.value.id)
+      console.log('Update Data:', updateData)
+
+      await documentStore.updateDocument(editingDocument.value._id || editingDocument.value.id, updateData)
+    } else {
+      // Create new document
+      const formData = new FormData()
+      formData.append('title', form.title)
+      formData.append('description', form.description)
+      formData.append('category', form.category)
+      formData.append('visibility', form.visibility)
+
+      if (form.file) {
+        formData.append('file', form.file)
+      }
+
+      if (form.link) {
+        formData.append('link', form.link)
+      }
+
+      console.log('=== Document Upload Debug ===')
+      console.log('Title:', form.title)
+      console.log('Description:', form.description)
+      console.log('Category:', form.category)
+      console.log('Visibility:', form.visibility)
+      console.log('File:', form.file ? { name: form.file.name, size: form.file.size, type: form.file.type } : null)
+
+      await documentStore.uploadDocument(formData)
     }
-
-    if (form.link) {
-      formData.append('link', form.link)
-    }
-
-    // Upload document
-    await documentStore.uploadDocument(formData)
 
     closeModal()
     await fetchDocuments()
+
+    // Refresh stats after upload/update
+    try {
+      const statsResponse = await getAdminDashboardStats()
+      if (statsResponse.success) {
+        dashboardStats.value = statsResponse.data
+      }
+    } catch (err) {
+      console.error('Failed to refresh stats:', err)
+    }
   } catch (err) {
+    console.error('Submit error:', err)
     error.value = err.message || 'Gagal menyimpan dokumen'
   } finally {
     submitting.value = false
@@ -466,6 +574,39 @@ const confirmDelete = async () => {
     await documentStore.deleteDocument(selectedDocument.value._id || selectedDocument.value.id)
     showDeleteModal.value = false
     await fetchDocuments()
+
+    // Refresh stats after delete
+    try {
+      const statsResponse = await getAdminDashboardStats()
+      if (statsResponse.success) {
+        dashboardStats.value = statsResponse.data
+      }
+    } catch (err) {
+      console.error('Failed to refresh stats:', err)
+    }
+  } finally {
+    deleting.value = false
+  }
+}
+
+const restoreDeletedDocument = async doc => {
+  deleting.value = true
+  try {
+    await documentStore.restoreDocument(doc._id || doc.id)
+    await fetchDocuments()
+
+    // Refresh stats after restore
+    try {
+      const statsResponse = await getAdminDashboardStats()
+      if (statsResponse.success) {
+        dashboardStats.value = statsResponse.data
+      }
+    } catch (err) {
+      console.error('Failed to refresh stats:', err)
+    }
+  } catch (err) {
+    console.error('Restore failed:', err)
+    error.value = err.message || 'Gagal restore dokumen'
   } finally {
     deleting.value = false
   }
@@ -477,6 +618,7 @@ const closeModal = () => {
   form.title = ''
   form.description = ''
   form.category = ''
+  form.visibility = 'public'
   form.file = null
   form.link = ''
   error.value = ''
@@ -493,6 +635,7 @@ const fetchDocuments = async () => {
     const params = {
       category: filterCategory.value,
       search: searchQuery.value,
+      showDeleted: showDeletedDocuments.value
     }
     await documentStore.fetchDocuments(params)
   } catch (err) {
@@ -501,7 +644,7 @@ const fetchDocuments = async () => {
 }
 
 // Watch filters and refetch
-watch([searchQuery, filterCategory], () => {
+watch([searchQuery, filterCategory, showDeletedDocuments], () => {
   fetchDocuments()
 })
 

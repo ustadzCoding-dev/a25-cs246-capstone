@@ -45,7 +45,8 @@ export const useAnnouncementStore = defineStore('announcement', () => {
 
     try {
       const response = await announcementService.getAnnouncements(params)
-      announcements.value = response.data
+      // response.data is array of announcements
+      announcements.value = Array.isArray(response.data) ? response.data : (response.data?.data || [])
       return response
     } catch (err) {
       error.value = err.message

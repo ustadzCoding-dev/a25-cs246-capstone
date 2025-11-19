@@ -30,14 +30,14 @@ export class TeamService {
     // 3. Validate members
     await this.validateMembers(teamData.membersUserId);
 
-    // 4. Validate team composition
-    this.validateTeamComposition(teamData.membersUserId);
-
-    // 5. Check members not in other team
-    await this.checkMembersAvailability(teamData.membersUserId);
-
-    // 6. Validate use case
+    // 4. Validate use case first (to get composition requirements)
     const useCase = await this.validateUseCase(teamData.useCaseId);
+
+    // 5. Validate team composition against use case requirements
+    await this.validateTeamComposition(teamData.membersUserId, useCase);
+
+    // 6. Check members not in other team
+    await this.checkMembersAvailability(teamData.membersUserId);
 
     // 7. Create team
     const team = await CapstoneGroup.create({
@@ -54,6 +54,19 @@ export class TeamService {
 
     // 9. Update use case
     await this.updateUseCaseSlots(teamData.useCaseId);
+
+    // 10. Create invitations for team members (except leader)
+    const Invitation = (await import('../models/Invitation.js')).default;
+    const otherMembers = teamData.membersUserId.filter(memberId => memberId !== userId);
+
+    for (const memberId of otherMembers) {
+      await Invitation.create({
+        leaderId: userId,
+        memberId: memberId,
+        teamId: team._id,
+        status: 'pending'
+      });
+    }
 
     return team;
   }
@@ -235,6 +248,62 @@ export class TeamService {
   }
 
   /**
+   * Get current user's team (Student)
+   * @param {string} userId - User ID
+   * @returns {Promise<Object|null>} Team data or null if no team
+   */
+  async getCurrentTeamByUserId(userId) {
+    const team = await CapstoneGroup.findOne({ membersUserId: userId })
+      .populate('membersUserId', 'name email learningPath')
+      .populate('useCaseId', 'title partner description');
+
+    return team || null;
+  }
+
+  /**
+   * Set team composition requirements for a use case
+   * @param {string} useCaseId - Use case ID
+   * @param {Array<Object>} teamComposition - Team composition requirements
+   * @returns {Promise<Object>} Updated use case
+   * @throws {NotFoundError} If use case not found
+   * @throws {ValidationError} If composition is invalid
+   */
+  async setTeamComposition(useCaseId, teamComposition) {
+    // Validate composition
+    if (!Array.isArray(teamComposition) || teamComposition.length === 0) {
+      throw new ValidationError('Team composition must be a non-empty array');
+    }
+
+    // Validate each composition entry
+    let totalTeamSize = 0;
+    for (const comp of teamComposition) {
+      if (!comp.learningPath || !comp.count) {
+        throw new ValidationError('Each composition entry must have learningPath and count');
+      }
+      if (comp.count < 1) {
+        throw new ValidationError('Count must be at least 1');
+      }
+      totalTeamSize += comp.count;
+    }
+
+    // Update use case
+    const useCase = await UseCase.findByIdAndUpdate(
+      useCaseId,
+      {
+        teamComposition,
+        totalTeamSize
+      },
+      { new: true }
+    );
+
+    if (!useCase) {
+      throw new NotFoundError('Use case not found');
+    }
+
+    return useCase;
+  }
+
+  /**
    * PRIVATE METHODS
    */
 
@@ -281,19 +350,58 @@ export class TeamService {
   }
 
   /**
-   * Validate team composition (2-4 members, at least 1 technical)
+   * Validate team composition against use case requirements
    * @private
    */
-  validateTeamComposition(memberIds) {
-    // Check team size
-    if (memberIds.length < 2 || memberIds.length > 4) {
-      throw new ValidationError('Team must have 2-4 members');
-    }
-
+  async validateTeamComposition(memberIds, useCase) {
     // Check for duplicates
     const uniqueIds = new Set(memberIds);
     if (uniqueIds.size !== memberIds.length) {
       throw new ValidationError('Duplicate members not allowed');
+    }
+
+    // If use case has custom composition requirements
+    if (useCase.teamComposition && useCase.teamComposition.length > 0) {
+      // Fetch members with their learning paths
+      const members = await User.find({ _id: { $in: memberIds } });
+
+      // Count members by learning path
+      const compositionCount = {};
+      members.forEach(member => {
+        const path = member.learningPath;
+        compositionCount[path] = (compositionCount[path] || 0) + 1;
+      });
+
+      // Validate against required composition
+      for (const requirement of useCase.teamComposition) {
+        const actualCount = compositionCount[requirement.learningPath] || 0;
+        if (actualCount !== requirement.count) {
+          throw new ValidationError(
+            `Team composition mismatch. Expected ${requirement.count} member(s) from "${requirement.learningPath}", got ${actualCount}`
+          );
+        }
+      }
+
+      // Check total team size matches
+      if (memberIds.length !== useCase.totalTeamSize) {
+        throw new ValidationError(
+          `Team must have exactly ${useCase.totalTeamSize} members, got ${memberIds.length}`
+        );
+      }
+    } else {
+      // Default validation: 2-4 members with same learning path
+      if (memberIds.length < 2 || memberIds.length > 4) {
+        throw new ValidationError('Team must have 2-4 members');
+      }
+
+      // Fetch members and check learning path consistency
+      const members = await User.find({ _id: { $in: memberIds } });
+      const learningPaths = members.map(m => m.learningPath);
+      const uniquePaths = new Set(learningPaths);
+
+      if (uniquePaths.size > 1) {
+        throw new ValidationError('All team members must have the same learning path');
+      }
     }
   }
 

@@ -121,18 +121,18 @@
             </router-link>
           </div>
         </div>
-        
+
         <div v-if="loading" class="p-12">
           <BaseSpinner centered size="lg" label="Memuat data..." />
         </div>
-        
+
         <div v-else-if="recentDocuments.length === 0" class="p-12 text-center">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           <p class="mt-2 text-sm text-gray-500">Belum ada dokumen tersedia</p>
         </div>
-        
+
         <div v-else class="divide-y divide-gray-200">
           <DocumentCard
             v-for="doc in recentDocuments"
@@ -157,11 +157,11 @@
             Lihat Semua
           </router-link>
         </div>
-        
+
         <div v-if="recentAnnouncements.length === 0" class="text-center py-8">
           <p class="text-sm text-gray-500">Belum ada pengumuman</p>
         </div>
-        
+
         <div v-else class="space-y-4">
           <AnnouncementCard
             v-for="announcement in recentAnnouncements"
@@ -185,6 +185,8 @@ import { useAuthStore } from '../../stores/authStore'
 import { useTeamStore } from '../../stores/teamStore'
 import { useDocumentStore } from '../../stores/documentStore'
 import { useTimelineStore } from '../../stores/timelineStore'
+import { useAnnouncementStore } from '../../stores/announcementStore'
+import { useStudentMenu } from '../../composables/useStudentMenu'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import TeamStatusCard from '../../components/display/TeamStatusCard.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
@@ -198,11 +200,12 @@ const authStore = useAuthStore()
 const teamStore = useTeamStore()
 const documentStore = useDocumentStore()
 const timelineStore = useTimelineStore()
+const announcementStore = useAnnouncementStore()
 
 const user = computed(() => authStore.user)
 
 // Get data from stores
-const loading = computed(() => 
+const loading = computed(() =>
   teamStore.loading || documentStore.documentsLoading || timelineStore.timelinesLoading
 )
 
@@ -210,7 +213,7 @@ const hasTeam = computed(() => teamStore.hasTeam)
 const teamInfo = computed(() => {
   const team = teamStore.currentTeam
   if (!team) return null
-  
+
   return {
     teamName: team.teamName,
     leaderName: team.leader?.name || team.leader?.email,
@@ -226,28 +229,23 @@ const stats = computed(() => ({
   newAnnouncements: 0 // TODO: Add announcement store
 }))
 
-const recentDocuments = computed(() => 
+const recentDocuments = computed(() =>
   documentStore.documents.slice(0, 2)
 )
 
-const recentAnnouncements = ref([
-  {
-    id: 1,
-    title: 'Deadline Submission Minggu 3',
-    content: 'Harap submit laporan kemajuan minggu 3 sebelum tanggal 15 November 2025.',
-    date: '2025-11-10',
-    priority: 'important'
-  }
-])
+const recentAnnouncements = computed(() => {
+  return (announcementStore.announcements || [])
+    .map(a => ({
+      id: a.id || a._id,
+      title: a.title,
+      content: a.content,
+      date: a.date || a.createdAt,
+      priority: a.priority
+    }))
+    .slice(0, 2)
+})
 
-const studentMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
-  { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
-  { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
-  { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] },
-  { name: 'Profil', icon: 'profile', path: '/profile', roles: ['student'] }
-]
+const { studentMenuItems } = useStudentMenu()
 
 const handleLogout = () => {
   authStore.logout()
@@ -260,7 +258,8 @@ onMounted(async () => {
     await Promise.all([
       teamStore.fetchCurrentTeam(),
       documentStore.fetchDocuments({ limit: 5 }),
-      timelineStore.fetchTimelines()
+      timelineStore.fetchTimelines(),
+      announcementStore.fetchAnnouncements()
     ])
   } catch (err) {
     console.error('Failed to fetch dashboard data:', err)

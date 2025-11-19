@@ -24,16 +24,31 @@ export class DocumentService {
    * @throws {ConflictError} If title already exists
    */
   async uploadDocument(documentData, file, adminId) {
-    // 1. Validate input
-    this.validateDocumentData(documentData);
+    console.log('=== DocumentService.uploadDocument ===');
+    console.log('documentData:', documentData);
+    console.log('file:', file ? { filename: file.filename, mimetype: file.mimetype, size: file.size } : null);
+    console.log('adminId:', adminId);
 
-    // 2. Validate file
-    if (!file) {
-      throw new ValidationError('File is required');
+    try {
+      // 1. Validate input
+      console.log('Validating document data...');
+      this.validateDocumentData(documentData);
+      console.log('Document data validation passed');
+
+      // 2. Validate file
+      if (!file) {
+        throw new ValidationError('File is required');
+      }
+      console.log('File validation passed');
+
+      // 3. Check title uniqueness
+      console.log('Checking title uniqueness...');
+      await this.checkTitleUniqueness(documentData.title);
+      console.log('Title uniqueness check passed');
+    } catch (error) {
+      console.error('DocumentService validation error:', error.message);
+      throw error;
     }
-
-    // 3. Check title uniqueness
-    await this.checkTitleUniqueness(documentData.title);
 
     // 4. Create document record
     const fileUrl = `/uploads/documents/${file.filename}`;
@@ -61,21 +76,35 @@ export class DocumentService {
    * @param {string} filters.search - Search query
    * @param {number} filters.page - Page number
    * @param {number} filters.limit - Items per page
+   * @param {string} filters.userRole - User role (admin or student)
    * @returns {Promise<Object>} Documents and pagination info
    */
   async getAllDocuments(filters = {}) {
     const {
       category,
-      visibility = 'public',
+      visibility,
       search,
       page = 1,
-      limit = 10
+      limit = 10,
+      userRole = 'student',
+      showDeleted = false
     } = filters;
 
     // Build query
-    const query = { isActive: true };
+    const query = {};
 
-    if (visibility) {
+    // Filter by active/deleted status
+    if (showDeleted) {
+      query.isActive = false;
+    } else {
+      query.isActive = true;
+    }
+
+    // If not admin, only show public documents
+    if (userRole !== 'admin') {
+      query.visibility = 'public';
+    } else if (visibility) {
+      // If admin specifies visibility, use it
       query.visibility = visibility;
     }
 
@@ -135,7 +164,7 @@ export class DocumentService {
   /**
    * Download document
    * @param {string} documentId - Document ID
-   * @returns {Promise<Object>} Document with updated download count
+   * @returns {Promise<Object>} Object with document and filePath
    * @throws {NotFoundError} If document not found
    */
   async downloadDocument(documentId) {
@@ -149,11 +178,17 @@ export class DocumentService {
       throw new NotFoundError('Document not found');
     }
 
-    return document;
+    // Build file path
+    const filePath = path.join(process.cwd(), 'uploads', 'documents', document.fileName);
+
+    return {
+      document,
+      filePath
+    };
   }
 
   /**
-   * Delete document
+   * Delete document (Soft delete - only mark as inactive)
    * @param {string} documentId - Document ID
    * @returns {Promise<void>}
    * @throws {NotFoundError} If document not found
@@ -165,12 +200,30 @@ export class DocumentService {
       throw new NotFoundError('Document not found');
     }
 
-    // Delete file from filesystem
-    await this.deleteFile(document.fileName);
-
-    // Soft delete from database
+    // Soft delete from database (do NOT delete file)
+    // File will be deleted only on permanent delete
     document.isActive = false;
     await document.save();
+  }
+
+  /**
+   * Restore a deleted document
+   * @param {string} documentId - Document ID
+   * @returns {Promise<Object>} Restored document
+   * @throws {NotFoundError} If document not found
+   */
+  async restoreDocument(documentId) {
+    const document = await Document.findById(documentId);
+
+    if (!document) {
+      throw new NotFoundError('Document not found');
+    }
+
+    // Restore from soft delete
+    document.isActive = true;
+    await document.save();
+
+    return document;
   }
 
   /**
@@ -298,10 +351,18 @@ export class DocumentService {
   async deleteFile(fileName) {
     try {
       const filePath = path.join(process.cwd(), 'uploads', 'documents', fileName);
-      await fs.unlink(filePath);
+      // Check if file exists before deleting
+      try {
+        await fs.access(filePath);
+        await fs.unlink(filePath);
+        console.log(`File deleted: ${fileName}`);
+      } catch {
+        // File doesn't exist, which is fine for soft delete
+        console.log(`File not found (already deleted): ${fileName}`);
+      }
     } catch (error) {
       // Log error but don't throw - file might already be deleted
-      console.error(`Failed to delete file ${fileName}:`, error.message);
+      console.error(`Error deleting file ${fileName}:`, error.message);
     }
   }
 }

@@ -12,9 +12,9 @@ import api from './api'
 export const getAdminDashboardStats = async () => {
   try {
     const response = await api.get('/dashboard/stats')
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 
@@ -25,9 +25,9 @@ export const getAdminDashboardStats = async () => {
 export const getStudentDashboardStats = async () => {
   try {
     const response = await api.get('/dashboard/student-stats')
-    return response.data
+    return response
   } catch (error) {
-    throw error.response?.data || error
+    throw error
   }
 }
 

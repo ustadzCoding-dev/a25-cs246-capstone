@@ -6,18 +6,16 @@ import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/database.js';
 import routes from './routes/index.js';
-import errorHandler from './middleware/errorHandler.js';
 import logger from './utils/logger.js';
 import swaggerSpec from './config/swagger.js';
 import configurePassport from './config/passport.js';
 import { responseFormatter } from './middleware/responseFormatter.js';
 import { auditLogger } from './middleware/auditLogger.js';
 import { handleError } from './utils/errorHandler.js';
+import { multerErrorHandler } from './middleware/multerErrorHandler.js';
 import {
   helmetMiddleware,
   limiter,
-  sanitizeData,
-  preventXSS,
   preventHPP,
   customHeaders
 } from './middleware/security.js';
@@ -124,8 +122,12 @@ app.use((req, res) => {
   });
 });
 
-// ========== ERROR HANDLER ==========
-app.use((err, req, res, next) => {
+// ========== ERROR HANDLERS ==========
+// Multer error handler (must come before general error handler)
+app.use(multerErrorHandler);
+
+// General error handler
+app.use((err, req, res, _next) => {
   handleError(err, req, res);
 });
 
