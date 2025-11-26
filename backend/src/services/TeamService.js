@@ -63,10 +63,10 @@ export class TeamService {
       team = await CapstoneGroup.create({
         teamName: teamData.teamName.trim(),
         membersUserId: memberIds,
-        leaderId: userId,
         useCaseId: teamData.useCaseId,
         status: 'pending',
-        submittedAt: new Date()
+        submittedAt: new Date(),
+        createdBy: userId
       });
       console.log('[createTeam] Team created:', team._id);
     } catch (err) {
@@ -176,6 +176,181 @@ export class TeamService {
     }
 
     return team;
+  }
+
+  /**
+   * Edit team members (Leader only, team must be pending)
+   * @param {string} teamId - Team ID
+   * @param {string} leaderId - Leader user ID
+   * @param {Object} editData - Edit data
+   * @param {string} editData.teamName - New team name (optional)
+   * @param {Array<string>} editData.membersUserId - New members list
+   * @returns {Promise<Object>} Updated team with changes summary
+   * @throws {ValidationError} If validation fails
+   * @throws {NotFoundError} If team not found
+   */
+  async editTeam(teamId, leaderId, editData) {
+    console.log('[editTeam] Starting edit for team:', teamId);
+    console.log('[editTeam] New members:', editData.membersUserId);
+
+    // 1. Find team
+    const team = await this.findTeamById(teamId);
+    console.log('[editTeam] Team found:', team.teamName);
+
+    // 2. Verify leader owns this team
+    const isLeader = team.membersUserId.some(m => m._id.toString() === leaderId.toString());
+    if (!isLeader) {
+      throw new ValidationError('Only team leader can edit team');
+    }
+    console.log('[editTeam] Leader verified');
+
+    // 3. Check team is pending
+    if (team.status !== 'pending') {
+      throw new ValidationError('Only pending teams can be edited');
+    }
+    console.log('[editTeam] Team status is pending');
+
+    // 4. Validate new members and convert emails to ObjectIds
+    console.log('[editTeam] Validating new members...');
+    const newMembers = await this.validateMembers(editData.membersUserId);
+    const newMemberIds = newMembers.map(m => m._id);
+    console.log('[editTeam] New members converted to IDs:', newMemberIds);
+
+    // 5. Validate team composition
+    console.log('[editTeam] Validating team composition...');
+    const useCase = await this.validateUseCase(team.useCaseId);
+    await this.validateTeamComposition(newMemberIds, useCase);
+    console.log('[editTeam] Team composition validated!');
+
+    // 6. Identify changes
+    const oldMemberIds = team.membersUserId.map(m => m._id || m);
+    const addedMemberIds = newMemberIds.filter(
+      id => !oldMemberIds.some(oldId => oldId.toString() === id.toString())
+    );
+    const removedMemberIds = oldMemberIds.filter(
+      id => !newMemberIds.some(newId => newId.toString() === id.toString())
+    );
+    const keptMemberIds = newMemberIds.filter(
+      id => oldMemberIds.some(oldId => oldId.toString() === id.toString())
+    );
+
+    console.log('[editTeam] Changes identified:');
+    console.log('[editTeam] Added:', addedMemberIds.length, 'members');
+    console.log('[editTeam] Removed:', removedMemberIds.length, 'members');
+    console.log('[editTeam] Kept:', keptMemberIds.length, 'members');
+
+    // 7. Check added members availability
+    if (addedMemberIds.length > 0) {
+      console.log('[editTeam] Checking added members availability...');
+      await this.checkMembersAvailability(addedMemberIds);
+      console.log('[editTeam] Added members availability checked!');
+    }
+
+    // 8. Handle removed members - clear capstoneGroupId and restore slots
+    if (removedMemberIds.length > 0) {
+      console.log('[editTeam] Clearing capstoneGroupId from removed members...');
+      await User.updateMany(
+        { _id: { $in: removedMemberIds } },
+        { $set: { capstoneGroupId: null } }
+      );
+      console.log('[editTeam] Removed members cleared!');
+
+      // Restore use case slots for removed members
+      console.log('[editTeam] Restoring use case slots for removed members...');
+      await UseCase.findByIdAndUpdate(
+        team.useCaseId,
+        { $inc: { availableSlots: removedMemberIds.length } }
+      );
+      console.log('[editTeam] Use case slots restored!');
+    }
+
+    // 9. Handle added members - set capstoneGroupId
+    if (addedMemberIds.length > 0) {
+      console.log('[editTeam] Setting capstoneGroupId for added members...');
+      await User.updateMany(
+        { _id: { $in: addedMemberIds } },
+        { $set: { capstoneGroupId: team._id } }
+      );
+      console.log('[editTeam] Added members updated!');
+
+      // Reduce use case slots for added members
+      console.log('[editTeam] Reducing use case slots for added members...');
+      await UseCase.findByIdAndUpdate(
+        team.useCaseId,
+        { $inc: { availableSlots: -addedMemberIds.length } }
+      );
+      console.log('[editTeam] Use case slots reduced!');
+    }
+
+    // 10. Update team members
+    console.log('[editTeam] Updating team members...');
+    team.membersUserId = newMemberIds;
+    if (editData.teamName) {
+      team.teamName = editData.teamName.trim();
+    }
+    await team.save();
+    console.log('[editTeam] Team updated!');
+
+    // 11. Create invitations for added members
+    if (addedMemberIds.length > 0) {
+      console.log('[editTeam] Creating invitations for added members...');
+      const Invitation = (await import('../models/Invitation.js')).default;
+      const leader = await User.findById(leaderId);
+
+      for (const memberId of addedMemberIds) {
+        const invitation = await Invitation.create({
+          leaderId: leaderId,
+          memberId: memberId,
+          teamId: team._id,
+          status: 'pending'
+        });
+        console.log('[editTeam] Invitation created for:', memberId);
+
+        // Send invitation email
+        try {
+          const member = await User.findById(memberId);
+          const populatedTeam = await this.findTeamById(team._id);
+
+          if (member && leader) {
+            console.log('[editTeam] Sending invitation email to:', member.email);
+            await EmailService.sendInvitationEmail({
+              memberEmail: member.email,
+              memberName: member.name,
+              teamName: populatedTeam.teamName,
+              useCaseName: populatedTeam.useCaseId?.title || 'Unknown',
+              leaderName: leader.name,
+              acceptLink: `${process.env.FRONTEND_URL}/invitations/${invitation._id}/accept`,
+              rejectLink: `${process.env.FRONTEND_URL}/invitations/${invitation._id}/reject`
+            });
+            console.log('[editTeam] Email sent to:', member.email);
+          }
+        } catch (emailErr) {
+          console.error('[editTeam] Error sending invitation email:', emailErr.message);
+        }
+      }
+      console.log('[editTeam] Invitations created!');
+    }
+
+    // 12. Delete invitations for removed members
+    if (removedMemberIds.length > 0) {
+      console.log('[editTeam] Deleting invitations for removed members...');
+      const Invitation = (await import('../models/Invitation.js')).default;
+      await Invitation.deleteMany({
+        teamId: team._id,
+        memberId: { $in: removedMemberIds }
+      });
+      console.log('[editTeam] Invitations deleted!');
+    }
+
+    console.log('[editTeam] ✅ TEAM EDIT COMPLETE!');
+    return {
+      team,
+      changes: {
+        added: addedMemberIds,
+        removed: removedMemberIds,
+        kept: keptMemberIds
+      }
+    };
   }
 
   /**
@@ -455,16 +630,8 @@ export class TeamService {
    */
   async getCurrentTeamByUserId(userId) {
     const team = await CapstoneGroup.findOne({ membersUserId: userId })
-      .populate('leaderId', 'name email')
       .populate('membersUserId', 'name email learningPath')
       .populate('useCaseId', 'title partner description');
-
-    // If team doesn't have leaderId (old teams), set it to first member
-    if (team && !team.leaderId && team.membersUserId && team.membersUserId.length > 0) {
-      console.log('[getCurrentTeamByUserId] Setting leaderId for old team:', team._id);
-      team.leaderId = team.membersUserId[0];
-      await team.save();
-    }
 
     return team || null;
   }
@@ -740,123 +907,6 @@ export class TeamService {
     if (useCase.availableSlots <= 0) {
       await UseCase.findByIdAndUpdate(useCaseId, { status: 'closed' });
     }
-  }
-
-  /**
-   * Edit team members (only for pending teams)
-   * @param {string} teamId - Team ID
-   * @param {Array<string>} newMemberIds - New list of member IDs/emails
-   * @param {string} userId - Current user ID (must be leader)
-   * @returns {Promise<Object>} Updated team
-   * @throws {ValidationError} If team is not pending or validation fails
-   * @throws {NotFoundError} If team not found
-   */
-  async editTeam(teamId, newMemberIds, userId) {
-    console.log('[editTeam] Starting edit for team:', teamId);
-    console.log('[editTeam] New members:', newMemberIds);
-
-    // 1. Find team
-    const team = await this.findTeamById(teamId);
-    console.log('[editTeam] Team found:', team.teamName);
-
-    // 2. Check if user is leader
-    if (team.leaderId.toString() !== userId.toString()) {
-      throw new ValidationError('Only team leader can edit team');
-    }
-
-    // 3. Check if team is still pending
-    if (team.status !== 'pending') {
-      throw new ValidationError('Can only edit pending teams');
-    }
-
-    // 4. Validate new members
-    console.log('[editTeam] Validating new members...');
-    const newMembers = await this.validateMembers(newMemberIds);
-    const newMemberObjectIds = newMembers.map(m => m._id);
-    console.log('[editTeam] New members validated:', newMemberObjectIds);
-
-    // 5. Identify added and removed members
-    const currentMemberIds = team.membersUserId.map(id => id.toString());
-    const newMemberIdStrings = newMemberObjectIds.map(id => id.toString());
-
-    const addedMembers = newMemberObjectIds.filter(id => !currentMemberIds.includes(id.toString()));
-    const removedMembers = team.membersUserId.filter(id => !newMemberIdStrings.includes(id.toString()));
-
-    console.log('[editTeam] Added members:', addedMembers);
-    console.log('[editTeam] Removed members:', removedMembers);
-
-    // 6. Handle removed members - clear capstoneGroupId and restore slots
-    if (removedMembers.length > 0) {
-      console.log('[editTeam] Clearing capstoneGroupId from removed members');
-      await User.updateMany(
-        { _id: { $in: removedMembers } },
-        { $set: { capstoneGroupId: null } }
-      );
-
-      // Delete invitations for removed members
-      const { default: Invitation } = await import('../models/Invitation.js');
-      await Invitation.deleteMany({
-        teamId: teamId,
-        memberId: { $in: removedMembers }
-      });
-      console.log('[editTeam] Removed members cleared and invitations deleted');
-    }
-
-    // 7. Update team with new members
-    console.log('[editTeam] Updating team members');
-    team.membersUserId = newMemberObjectIds;
-    await team.save();
-    console.log('[editTeam] Team members updated');
-
-    // 8. Create invitations for added members
-    if (addedMembers.length > 0) {
-      console.log('[editTeam] Creating invitations for added members');
-      const { default: Invitation } = await import('../models/Invitation.js');
-
-      for (const memberId of addedMembers) {
-        // Skip if member is leader
-        if (memberId.toString() === userId.toString()) {
-          console.log('[editTeam] Skipping invitation for leader');
-          continue;
-        }
-
-        const invitation = new Invitation({
-          leaderId: userId,
-          memberId: memberId,
-          teamId: teamId,
-          status: 'pending'
-        });
-        await invitation.save();
-        console.log('[editTeam] Invitation created for:', memberId);
-
-        // Send invitation email
-        try {
-          const member = await User.findById(memberId);
-          const leader = await User.findById(userId);
-
-          if (member && leader) {
-            const acceptLink = `${process.env.FRONTEND_URL}/invitations/${invitation._id}/accept`;
-            const rejectLink = `${process.env.FRONTEND_URL}/invitations/${invitation._id}/reject`;
-
-            await EmailService.sendInvitationEmail({
-              memberEmail: member.email,
-              memberName: member.name,
-              teamName: team.teamName,
-              useCaseName: team.useCase,
-              leaderName: leader.name,
-              acceptLink,
-              rejectLink
-            });
-            console.log('[editTeam] Invitation email sent to:', member.email);
-          }
-        } catch (emailErr) {
-          console.error('[editTeam] Error sending invitation email:', emailErr.message);
-        }
-      }
-    }
-
-    console.log('[editTeam] ✅ TEAM EDIT COMPLETE!');
-    return team;
   }
 }
 

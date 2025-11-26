@@ -23,12 +23,6 @@ const capstoneGroupSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  // Leader ID (Team creator)
-  leaderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
   // Data Anggota Tim
   membersUserId: [
     {
@@ -77,7 +71,7 @@ capstoneGroupSchema.set('toJSON', {
   }
 });
 
-capstoneGroupSchema.post('findOneAndDelete', async function (doc) {
+capstoneGroupSchema.post('findOneAndDelete', async function (doc, next) {
   if (doc) {
     try {
       const User = mongoose.model('User');

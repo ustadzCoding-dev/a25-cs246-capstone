@@ -107,10 +107,6 @@
 
       <!-- Active Team State -->
       <div v-else-if="hasTeam && activeTeam">
-        <!-- DEBUG: Show hasTeam and activeTeam -->
-        <div class="bg-blue-50 p-4 rounded mb-4">
-          <p class="text-sm text-blue-800">DEBUG - hasTeam: {{ hasTeam }}, activeTeam exists: {{ !!activeTeam }}, status: {{ activeTeam?.status }}</p>
-        </div>
         <!-- Team Status -->
         <TeamStatusCard
           :team-name="activeTeam.teamName"
@@ -122,9 +118,6 @@
 
         <!-- Team Details -->
         <div v-if="activeTeam" class="bg-white rounded-lg shadow p-6">
-          <!-- DEBUG: Force isLeader computation -->
-          <div style="display: none;">{{ isLeader }}</div>
-
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-semibold text-gray-900">Detail Tim</h2>
             <BaseBadge :variant="statusVariant" size="lg">
@@ -134,23 +127,16 @@
 
           <TeamInfoCard :team="activeTeam" />
 
-          <!-- DEBUG: Show all conditions -->
-          <div class="mt-6 pt-6 border-t border-gray-200 bg-yellow-50 p-4 rounded">
-            <p class="text-sm text-yellow-800">
-              DEBUG - isLeader: {{ isLeader }}, status: {{ activeTeam.status }}, condition: {{ isLeader && activeTeam.status === 'pending' }}
-            </p>
-          </div>
-
           <!-- Edit Team Button (if leader and pending) -->
-          <div v-if="isLeader && activeTeam.status === 'pending'" class="mt-6 pt-6 border-t border-gray-200">
+          <div v-if="isLeader && hasPendingTeam" class="mt-6 pt-6 border-t border-gray-200">
             <div class="flex items-start space-x-3">
               <svg class="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               <div class="flex-1">
-                <h3 class="text-sm font-semibold text-gray-900">Edit Anggota Tim</h3>
+                <h3 class="text-sm font-semibold text-gray-900">Edit Tim</h3>
                 <p class="mt-1 text-sm text-gray-600">
-                  Anda dapat menambah atau menghapus anggota tim. Perubahan akan dikirim kembali ke admin untuk persetujuan.
+                  Ubah nama tim atau tambah/hapus anggota tim. Tim harus menunggu persetujuan admin.
                 </p>
                 <BaseButton
                   variant="primary"
@@ -193,14 +179,6 @@
       <!-- Removed: This section is replaced by Pending Invitations section above -->
     </div>
 
-    <!-- Edit Team Modal -->
-    <EditTeamModal
-      v-model="showEditModal"
-      :team="activeTeam"
-      :loading="editingTeam"
-      @save="handleEditTeam"
-    />
-
     <!-- Leave Team Confirmation Modal -->
     <BaseModal
       v-model="showLeaveConfirm"
@@ -233,6 +211,14 @@
         </div>
       </template>
     </BaseModal>
+
+    <!-- Edit Team Modal -->
+    <EditTeamModal
+      v-model="showEditModal"
+      :team="activeTeam"
+      :use-cases="teamStore.useCases"
+      @submit="handleEditTeam"
+    />
   </DashboardLayout>
 </template>
 
@@ -246,7 +232,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import TeamStatusCard from '../../components/display/TeamStatusCard.vue'
 import TeamInfoCard from '../../components/display/TeamInfoCard.vue'
 import InvitationCard from '../../components/display/InvitationCard.vue'
-import EditTeamModal from '../../components/team/EditTeamModal.vue'
+import EditTeamModal from '../../components/modals/EditTeamModal.vue'
 import BaseButton from '../../components/base/BaseButton.vue'
 import BaseSpinner from '../../components/base/BaseSpinner.vue'
 import BaseBadge from '../../components/base/BaseBadge.vue'
@@ -256,11 +242,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const teamStore = useTeamStore()
 
-const user = computed(() => {
-  const u = authStore.user
-  console.log('[user computed] User:', u?.email)
-  return u
-})
+const user = computed(() => authStore.user)
 const leavingTeam = ref(false)
 const showLeaveConfirm = ref(false)
 const showEditModal = ref(false)
@@ -278,11 +260,7 @@ const hasPendingTeam = computed(() => teamStore.hasTeam && activeTeam.value?.sta
 const { studentMenuItems } = useStudentMenu()
 
 const isLeader = computed(() => {
-  const result = activeTeam.value?.leader?.email === user.value?.email
-  console.log('[isLeader] Leader email:', activeTeam.value?.leader?.email)
-  console.log('[isLeader] User email:', user.value?.email)
-  console.log('[isLeader] Result:', result)
-  return result
+  return activeTeam.value?.leader?.email === user.value?.email
 })
 
 const statusVariant = computed(() => {
@@ -312,6 +290,25 @@ const handleLeaveTeam = async () => {
     console.error('Failed to leave team:', err)
   } finally {
     leavingTeam.value = false
+  }
+}
+
+const handleEditTeam = async (editData) => {
+  editingTeam.value = true
+
+  try {
+    await teamStore.editTeam(activeTeam.value._id || activeTeam.value.id, editData)
+    showEditModal.value = false
+    teamStore.setSuccess('Tim berhasil diperbarui')
+
+    // Refresh team data
+    await fetchTeamData()
+
+  } catch (err) {
+    console.error('Failed to edit team:', err)
+    teamStore.setError(err, 'handleEditTeam')
+  } finally {
+    editingTeam.value = false
   }
 }
 
@@ -436,27 +433,6 @@ const rejectInvitation = async (invitationId) => {
     console.error('Failed to reject invitation:', err)
   } finally {
     rejectingInvitation.value = null
-  }
-}
-
-const handleEditTeam = async (newMembers) => {
-  editingTeam.value = true
-
-  try {
-    await teamStore.editTeam(activeTeam.value._id || activeTeam.value.id, newMembers)
-    showEditModal.value = false
-
-    // Show success message
-    console.log('Tim berhasil diperbarui')
-
-    // Refresh team data
-    await fetchTeamData()
-
-  } catch (err) {
-    console.error('Failed to edit team:', err)
-    alert(err.message || 'Gagal mengubah tim')
-  } finally {
-    editingTeam.value = false
   }
 }
 

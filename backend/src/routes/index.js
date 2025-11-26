@@ -10,7 +10,7 @@ import User from '../models/User.js';
 
 // Controllers
 import { getAllUsers, getUserById, updateUserProfile } from '../controllers/userController.js';
-import { getAllCapstoneGroups, registerTeam, approveCapstoneGroup, rejectCapstoneGroup, deleteCapstoneGroup, getCapstoneGroupById, getCurrentCapstoneGroup, setTeamComposition, updateCapstoneGroup, editTeam } from '../controllers/capstoneGroupController.js';
+import { getAllCapstoneGroups, registerTeam, editTeam, approveCapstoneGroup, rejectCapstoneGroup, deleteCapstoneGroup, getCapstoneGroupById, getCurrentCapstoneGroup, setTeamComposition, updateCapstoneGroup } from '../controllers/capstoneGroupController.js';
 import { getAllDocuments, getDocumentById, addDocument, updateDocument, deleteDocument, restoreDocument, downloadDocument } from '../controllers/documentController.js';
 import { getAllTimelines, addTimeline, updateTimeline, deleteTimeline, getTimelineById, getTimelineStats } from '../controllers/timelineController.js';
 import { getAnnouncements, getAnnouncementById, createAnnouncement, updateAnnouncement, deleteAnnouncement, markAnnouncementAsRead } from '../controllers/announcementController.js';
@@ -124,7 +124,7 @@ router.get('/students/lookup/:studentId', async (req, res) => {
 // Student: Register team
 router.post('/capstone-group/register', protect, studentOnly, validate(teamSchema.create), registerTeam);
 
-// Student: Edit team (only leader, only pending teams)
+// Student: Edit pending team (Leader only)
 router.put('/capstone-group/:id/edit', protect, studentOnly, validate(teamSchema.create), editTeam);
 
 // All: View teams

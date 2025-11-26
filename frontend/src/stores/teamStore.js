@@ -264,32 +264,6 @@ export const useTeamStore = defineStore('team', {
     },
 
     /**
-     * Edit team members (Student - leader only)
-     */
-    async editTeam(id, members) {
-      this.loading = true
-      this.error = null
-
-      try {
-        const response = await teamService.editTeam(id, members)
-
-        if (response.success) {
-          // Update current team if it's the same
-          if (this.currentTeam?.id === id || this.currentTeam?._id === id) {
-            this.currentTeam = response.data
-          }
-        }
-
-        return response
-      } catch (error) {
-        this.error = error.message || 'Failed to edit team'
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    /**
      * Update team (Admin)
      */
     async updateTeam(id, updateData) {
@@ -315,6 +289,38 @@ export const useTeamStore = defineStore('team', {
         return response
       } catch (error) {
         this.error = error.message || 'Failed to update team'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Edit pending team (Leader only)
+     */
+    async editTeam(id, teamData) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.editTeam(id, teamData)
+
+        if (response.success) {
+          // Update current team with new data
+          if (this.currentTeam?.id === id || this.currentTeam?._id === id) {
+            this.currentTeam = response.data.team
+          }
+
+          // Update team in list
+          const index = this.teams.findIndex(team => team._id === id || team.id === id)
+          if (index !== -1) {
+            this.teams[index] = response.data.team
+          }
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to edit team'
         throw error
       } finally {
         this.loading = false

@@ -18,6 +18,23 @@ export const registerTeam = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Edit a pending capstone team (Leader only)
+ * PUT /api/capstone-group/:id/edit
+ */
+export const editTeam = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { teamName, membersUserId } = req.validatedBody;
+  const leaderId = req.user._id;
+
+  const result = await TeamService.editTeam(id, leaderId, {
+    teamName,
+    membersUserId
+  });
+
+  res.success(result, 'Team edited successfully', 200);
+});
+
+/**
  * Get all capstone teams with filters and pagination
  * GET /api/capstone-groups
  */
@@ -142,18 +159,4 @@ export const setTeamComposition = asyncHandler(async (req, res) => {
   const useCase = await TeamService.setTeamComposition(usecaseId, teamComposition);
 
   res.success(useCase, 'Team composition updated successfully', 200);
-});
-
-/**
- * Edit team members (Student only - leader)
- * PUT /api/capstone-group/:id/edit
- */
-export const editTeam = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { members } = req.validatedBody;
-  const userId = req.user._id;
-
-  const team = await TeamService.editTeam(id, members, userId);
-
-  res.success(team, 'Team updated successfully', 200);
 });

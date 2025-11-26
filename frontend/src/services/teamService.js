@@ -120,6 +120,23 @@ export const rejectTeam = async (id, reason) => {
 }
 
 /**
+ * Edit pending team (Leader only)
+ * @param {string} id - Team ID
+ * @param {Object} teamData - Team data to update
+ * @param {string} teamData.teamName - Team name (optional)
+ * @param {Array<string>} teamData.membersUserId - New members list
+ * @returns {Promise} Updated team with changes summary
+ */
+export const editTeam = async (id, teamData) => {
+  try {
+    const response = await api.put(`/capstone-group/${id}/edit`, teamData)
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error
+  }
+}
+
+/**
  * Delete team (Admin only)
  * @param {string} id - Team ID
  * @returns {Promise} Success message
@@ -128,21 +145,6 @@ export const deleteTeam = async (id) => {
   try {
     const response = await api.delete(`/capstone-group/${id}`)
     return response.data
-  } catch (error) {
-    throw error.response?.data || error
-  }
-}
-
-/**
- * Edit team members (Student - leader only, pending teams only)
- * @param {string} id - Team ID
- * @param {Array} members - New list of member IDs/emails
- * @returns {Promise} Updated team data
- */
-export const editTeam = async (id, members) => {
-  try {
-    const response = await api.put(`/capstone-group/${id}/edit`, { members })
-    return response
   } catch (error) {
     throw error.response?.data || error
   }
@@ -189,8 +191,8 @@ export default {
   updateTeam,
   approveTeam,
   rejectTeam,
-  deleteTeam,
   editTeam,
+  deleteTeam,
   getAllUseCases,
   getUseCaseById
 }

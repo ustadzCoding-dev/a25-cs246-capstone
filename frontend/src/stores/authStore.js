@@ -90,6 +90,24 @@ export const useAuthStore = defineStore("auth", () => {
       user.value = data.user;
       token.value = data.token;
 
+      // Fetch fresh user data to ensure dicodingId is populated
+      // This is important for users logging in again after profile completion
+      console.log('📥 Fetching fresh user data after Google login...');
+      try {
+        const freshUserData = await authService.getProfile();
+        if (freshUserData) {
+          user.value = freshUserData;
+          console.log('✅ User data refreshed:', {
+            email: user.value.email,
+            dicodingId: user.value.dicodingId,
+            learningPath: user.value.learningPath
+          });
+        }
+      } catch (err) {
+        console.warn('⚠️ Failed to refresh user data:', err.message);
+        // Continue anyway - user data from callback is still valid
+      }
+
       return data;
     } catch (err) {
       error.value = err.message || "Failed to complete Google login";
