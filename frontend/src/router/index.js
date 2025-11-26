@@ -197,15 +197,29 @@ router.beforeEach((to, from, next) => {
       }
 
       // Check if profile is incomplete (for Google OAuth users)
+      // Profile is incomplete if:
+      // 1. User is from Google provider
+      // 2. AND user doesn't have dicodingId (which is assigned during profile completion)
       const isProfileIncomplete =
         user?.provider === "google" &&
-        (!user.dicodingId || !user.learningPath || !user.university);
+        !user.dicodingId;
+
+      console.log('🔍 Profile completion check:', {
+        provider: user?.provider,
+        dicodingId: user?.dicodingId,
+        learningPath: user?.learningPath,
+        university: user?.university,
+        isIncomplete: isProfileIncomplete
+      });
 
       // Redirect to profile completion if incomplete
       if (isProfileIncomplete) {
+        console.log('⚠️ Profile incomplete, redirecting to profile-complete');
         next({ name: "profile-complete" });
         return;
       }
+
+      console.log('✅ Profile complete, allowing access');
     }
 
     // Check if route requires admin role

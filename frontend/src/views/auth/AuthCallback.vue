@@ -66,7 +66,18 @@ onMounted(async () => {
     // Handle Google callback in store
     await authStore.handleGoogleCallback(token);
 
-    // Redirect based on user role
+    console.log('✅ Google callback handled, user data:', {
+      email: authStore.user?.email,
+      dicodingId: authStore.user?.dicodingId,
+      learningPath: authStore.user?.learningPath,
+      provider: authStore.user?.provider
+    });
+
+    // Let router guard handle redirect logic
+    // Router guard will check if profile is complete and redirect appropriately:
+    // - If profile incomplete (Google user without dicodingId): redirect to /profile/complete
+    // - If admin: redirect to /admin/dashboard
+    // - Otherwise: redirect to /dashboard
     const redirectPath = authStore.isAdmin ? "/admin/dashboard" : "/dashboard";
 
     // Small delay for better UX

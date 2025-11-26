@@ -189,13 +189,26 @@ const handleSubmit = async () => {
   errorMessage.value = "";
 
   try {
+    console.log("📝 Submitting profile completion form...");
+
     await authStore.completeProfile({
       learningPath: form.learningPath.trim(),
       university: form.university.trim(),
     });
 
+    console.log("✅ Profile completion successful, user data:", {
+      email: authStore.user?.email,
+      dicodingId: authStore.user?.dicodingId,
+      learningPath: authStore.user?.learningPath,
+      university: authStore.user?.university
+    });
+
+    // Small delay to ensure state updates
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     // Redirect to appropriate dashboard
     const redirectPath = authStore.isAdmin ? "/admin/dashboard" : "/dashboard";
+    console.log("🔄 Redirecting to:", redirectPath);
     router.replace(redirectPath);
   } catch (err) {
     console.error("Profile completion error:", err);
@@ -213,9 +226,9 @@ const handleLogout = () => {
 
 // Check if user already has complete profile
 onMounted(async () => {
-  const currentUser = authStore.user;
+  let currentUser = authStore.user;
 
-  console.log('🔍 Profile check:', {
+  console.log('🔍 Profile check (initial):', {
     user: currentUser?.email,
     role: currentUser?.role,
     isAdmin: authStore.isAdmin,
@@ -234,12 +247,23 @@ onMounted(async () => {
   // Fetch learning paths
   await fetchLearningPaths();
 
+  // Re-check user data after potential refresh from authStore.handleGoogleCallback
+  // This ensures we have the latest dicodingId from database
+  currentUser = authStore.user;
+  console.log('🔍 Profile check (after refresh):', {
+    user: currentUser?.email,
+    dicodingId: currentUser?.dicodingId,
+    learningPath: currentUser?.learningPath,
+    university: currentUser?.university
+  });
+
   // If profile already complete, redirect to dashboard
   if (
     currentUser?.dicodingId &&
     currentUser?.learningPath &&
     currentUser?.university
   ) {
+    console.log('✅ Profile already complete, redirecting to dashboard...');
     const redirectPath = authStore.isAdmin ? "/admin/dashboard" : "/dashboard";
     router.replace(redirectPath);
   }

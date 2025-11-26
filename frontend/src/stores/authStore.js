@@ -130,17 +130,25 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       console.log("🔄 Calling completeProfile API with:", profileData);
 
-      const data = await authService.completeProfile(profileData);
+      const response = await authService.completeProfile(profileData);
 
-      console.log("✅ Profile completion response:", data);
+      console.log("✅ Profile completion response:", response);
 
       // Update user data in store and localStorage
-      user.value = data.user;
+      // authService returns { user: userData }
+      if (response?.user) {
+        user.value = response.user;
+        localStorage.setItem("user", JSON.stringify(response.user));
 
-      // Update localStorage
-      localStorage.setItem("user", JSON.stringify(data.user));
+        console.log("✅ User data updated in store:", {
+          email: user.value.email,
+          dicodingId: user.value.dicodingId,
+          learningPath: user.value.learningPath,
+          university: user.value.university
+        });
+      }
 
-      return data;
+      return response;
     } catch (err) {
       console.error("❌ Complete profile error:", err);
       error.value = err.message || "Failed to complete profile";
