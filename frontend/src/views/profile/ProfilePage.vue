@@ -93,21 +93,19 @@
           />
 
           <!-- Learning Path -->
-          <BaseSelect
-            v-model="profileForm.learningPath"
+          <BaseInput
+            :model-value="profileForm.learningPath"
             label="Learning Path"
-            :options="learningPathOptions"
-            :error="profileErrors.learningPath"
-            required
+            :disabled="true"
+            hint="Learning path otomatis dari sistem"
           />
 
           <!-- University -->
           <BaseInput
-            v-model="profileForm.university"
+            :model-value="profileForm.university"
             label="Universitas"
-            placeholder="Nama universitas"
-            :error="profileErrors.university"
-            required
+            :disabled="true"
+            hint="Universitas otomatis dari sistem"
           />
 
           <!-- Error Alert -->
@@ -130,7 +128,7 @@
       </div>
 
       <!-- Change Password -->
-      <div class="bg-white rounded-lg shadow">
+      <div v-if="user?.provider === 'local'" class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200">
           <h2 class="text-xl font-semibold text-gray-900">Ubah Password</h2>
         </div>
@@ -181,6 +179,48 @@
             </BaseButton>
           </div>
         </form>
+      </div>
+
+      <!-- OAuth Info Alert -->
+      <div v-else class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-start">
+          <svg
+            class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Keamanan Akun</h3>
+            <p class="text-sm text-gray-600 mb-3">
+              Akun Anda menggunakan login Google untuk keamanan maksimal. Password dikelola langsung
+              oleh Google.
+            </p>
+            <a
+              href="https://myaccount.google.com/security"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm"
+            >
+              Kelola Akun Google Anda
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </a>
+          </div>
+        </div>
       </div>
 
       <!-- Account Information -->
@@ -285,8 +325,6 @@ const profileForm = reactive({
 
 const profileErrors = reactive({
   name: '',
-  learningPath: '',
-  university: '',
 })
 
 const profileError = ref('')
@@ -304,18 +342,6 @@ const passwordErrors = reactive({
 })
 
 const passwordError = ref('')
-
-const learningPathOptions = [
-  {
-    value: 'Front-End Web & Back-End with AI',
-    label: 'Front-End Web & Back-End with AI',
-  },
-  { value: 'Android Development', label: 'Android Development' },
-  { value: 'iOS Development', label: 'iOS Development' },
-  { value: 'Machine Learning', label: 'Machine Learning' },
-  { value: 'Cloud Computing', label: 'Cloud Computing' },
-  { value: 'DevOps', label: 'DevOps' },
-]
 
 const menuItems = computed(() => {
   if (user.value?.role === 'admin') {
@@ -384,23 +410,11 @@ const menuItems = computed(() => {
 
 const validateProfileForm = () => {
   profileErrors.name = ''
-  profileErrors.learningPath = ''
-  profileErrors.university = ''
 
   let isValid = true
 
   if (!profileForm.name.trim()) {
     profileErrors.name = 'Nama wajib diisi'
-    isValid = false
-  }
-
-  if (!profileForm.learningPath) {
-    profileErrors.learningPath = 'Learning path wajib dipilih'
-    isValid = false
-  }
-
-  if (!profileForm.university.trim()) {
-    profileErrors.university = 'Universitas wajib diisi'
     isValid = false
   }
 
@@ -448,8 +462,6 @@ const handleUpdateProfile = async () => {
   try {
     const profileData = {
       name: profileForm.name,
-      learningPath: profileForm.learningPath,
-      university: profileForm.university,
     }
 
     const response = await userService.updateUserProfile(profileData)
@@ -484,8 +496,11 @@ const handleChangePassword = async () => {
 
     const response = await userService.changePassword(passwordData)
 
-    if (response.success) {
-      success.value = 'Password berhasil diubah!'
+    // Handle response - bisa berformat { success, message } atau { data, success, message }
+    const isSuccess = response.success === true || response?.data?.success === true
+
+    if (isSuccess) {
+      success.value = response.message || 'Password berhasil diubah!'
 
       // Reset form
       passwordForm.currentPassword = ''
@@ -494,9 +509,14 @@ const handleChangePassword = async () => {
 
       // Scroll to top to show success message
       window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      passwordError.value = response.message || 'Gagal mengubah password'
     }
   } catch (err) {
-    passwordError.value = err.message || 'Gagal mengubah password'
+    // Handle error response
+    const errorMessage = err.message || err?.data?.message || 'Gagal mengubah password'
+    passwordError.value = errorMessage
+    console.error('Error changing password:', err)
   } finally {
     changingPassword.value = false
   }
@@ -539,7 +559,7 @@ onMounted(() => {
   // Initialize form with user data
   if (user.value) {
     profileForm.name = user.value.name || ''
-    profileForm.learningPath = user.value.learningPath || ''
+    profileForm.learningPath = user.value.learningPathName || user.value.learningPath || ''
     profileForm.university = user.value.university || ''
   }
 })

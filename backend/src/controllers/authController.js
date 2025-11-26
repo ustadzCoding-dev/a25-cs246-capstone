@@ -52,24 +52,20 @@ export const registerUser = async (req, res) => {
       }
 
       switch (learningPath) {
-      case 'Front-End Web & Back-End with AI':
-        generateDicodingId = `FEBE${newSeqNumber
-          .toString()
-          .padStart(5, '0')}AI`;
-        break;
-      case 'React & Back-End with AI':
-        generateDicodingId = `REBE${newSeqNumber
-          .toString()
-          .padStart(5, '0')}AI`;
-        break;
-      case 'Machine Learning':
-        generateDicodingId = `ML${newSeqNumber.toString().padStart(5, '0')}`;
-        break;
-      default:
-        return res.status(400).json({
-          success: false,
-          message: 'Learning Path tidak valid.'
-        });
+        case 'Front-End Web & Back-End with AI':
+          generateDicodingId = `FEBE${newSeqNumber.toString().padStart(5, '0')}AI`;
+          break;
+        case 'React & Back-End with AI':
+          generateDicodingId = `REBE${newSeqNumber.toString().padStart(5, '0')}AI`;
+          break;
+        case 'Machine Learning':
+          generateDicodingId = `ML${newSeqNumber.toString().padStart(5, '0')}`;
+          break;
+        default:
+          return res.status(400).json({
+            success: false,
+            message: 'Learning Path tidak valid.'
+          });
       }
     }
 
@@ -79,7 +75,7 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      learningPath: userRole === 'student' ? learningPath : null, // Admin/Mentor tidak perlu learning path
+      learningPathName: userRole === 'student' ? learningPath : null, // Admin/Mentor tidak perlu learning path
       role: userRole,
       university: userRole === 'student' ? university : null,
       provider: 'local',
@@ -124,9 +120,7 @@ export const loginUser = async (req, res) => {
     console.log('[LOGIN] Attempting login for:', email);
 
     // Pengecekan user (hanya local users)
-    const user = await User.findOne({ email, provider: 'local' }).select(
-      '+password'
-    );
+    const user = await User.findOne({ email, provider: 'local' }).select('+password');
 
     if (!user) {
       console.log('[LOGIN] User not found:', email);
@@ -204,14 +198,11 @@ export const googleCallback = async (req, res) => {
       const existingUser = await User.findOne({ email });
 
       if (existingUser && existingUser.provider === 'local') {
-        return res.redirect(
-          `${process.env.FRONTEND_URL}/login?error=email_already_exists`
-        );
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=email_already_exists`);
       }
 
       // Determine role based on admin whitelist
-      const adminEmails =
-        process.env.ADMIN_EMAILS?.split(',').map((e) => e.trim()) || [];
+      const adminEmails = process.env.ADMIN_EMAILS?.split(',').map((e) => e.trim()) || [];
       const role = adminEmails.includes(email) ? 'admin' : 'student';
 
       // Create new user (Google OAuth - no dicodingId yet, can be filled later)
@@ -242,10 +233,7 @@ export const googleCallback = async (req, res) => {
     }
 
     // Generate tokens (use new JWT system for Google OAuth)
-    const { accessToken, refreshToken } = generateTokens(
-      user._id.toString(),
-      user.role
-    );
+    const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.role);
 
     // Save refresh token to user
     user.refreshToken = refreshToken;
@@ -279,9 +267,7 @@ export const localLogin = async (req, res) => {
     console.log('[LOCAL_LOGIN] Attempting login for:', email);
 
     // Find user (include password field, only local users)
-    const user = await User.findOne({ email, provider: 'local' }).select(
-      '+password'
-    );
+    const user = await User.findOne({ email, provider: 'local' }).select('+password');
 
     console.log('[LOCAL_LOGIN] User found:', !!user);
 
@@ -303,10 +289,7 @@ export const localLogin = async (req, res) => {
     }
 
     // Generate tokens (new system)
-    const { accessToken, refreshToken } = generateTokens(
-      user._id.toString(),
-      user.role
-    );
+    const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.role);
 
     // Save refresh token
     user.refreshToken = refreshToken;
@@ -426,8 +409,7 @@ export const logout = async (req, res) => {
  */
 export const getCurrentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id)
-      .populate('capstoneGroupId');
+    const user = await User.findById(req.user.id).populate('capstoneGroupId');
 
     if (!user) {
       return res.status(404).json({
@@ -487,16 +469,8 @@ export const completeProfile = async (req, res) => {
 
     console.log('👤 Found user:', user.email, 'Provider:', user.provider);
 
-    // Only allow Google users to complete profile
-    if (user.provider !== 'google') {
-      return res.status(400).json({
-        success: false,
-        message: 'Only Google OAuth users can complete profile'
-      });
-    }
-
-    // Check if already completed
-    if (user.dicodingId) {
+    // Check if profile is already complete (has learning path and university)
+    if (user.learningPath && user.university && user.dicodingId) {
       return res.status(400).json({
         success: false,
         message: 'Profile already completed'
@@ -514,7 +488,7 @@ export const completeProfile = async (req, res) => {
         success: false,
         message: 'Invalid learning path',
         received: learningPath.trim(),
-        valid: allPaths.map(p => p.name)
+        valid: allPaths.map((p) => p.name)
       });
     }
 
@@ -542,9 +516,7 @@ export const completeProfile = async (req, res) => {
     user.university = university.trim();
     await user.save();
 
-    console.log(
-      `✅ Profile completed for user: ${user.email} - ${generateDicodingId}`
-    );
+    console.log(`✅ Profile completed for user: ${user.email} - ${generateDicodingId}`);
 
     res.json({
       success: true,

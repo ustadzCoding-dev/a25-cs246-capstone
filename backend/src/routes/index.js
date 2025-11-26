@@ -9,14 +9,66 @@ import { asyncHandler } from '../utils/errorHandler.js';
 import User from '../models/User.js';
 
 // Controllers
-import { getAllUsers, getUserById, updateUserProfile } from '../controllers/userController.js';
-import { getAllCapstoneGroups, registerTeam, editTeam, approveCapstoneGroup, rejectCapstoneGroup, deleteCapstoneGroup, getCapstoneGroupById, getCurrentCapstoneGroup, setTeamComposition, updateCapstoneGroup } from '../controllers/capstoneGroupController.js';
-import { getAllDocuments, getDocumentById, addDocument, updateDocument, deleteDocument, restoreDocument, downloadDocument } from '../controllers/documentController.js';
-import { getAllTimelines, addTimeline, updateTimeline, deleteTimeline, getTimelineById, getTimelineStats } from '../controllers/timelineController.js';
-import { getAnnouncements, getAnnouncementById, createAnnouncement, updateAnnouncement, deleteAnnouncement, markAnnouncementAsRead } from '../controllers/announcementController.js';
+import {
+  getAllUsers,
+  getUserById,
+  updateUserProfile,
+  changePassword
+} from '../controllers/userController.js';
+import {
+  getAllCapstoneGroups,
+  registerTeam,
+  editTeam,
+  approveCapstoneGroup,
+  rejectCapstoneGroup,
+  deleteCapstoneGroup,
+  getCapstoneGroupById,
+  getCurrentCapstoneGroup,
+  setTeamComposition,
+  updateCapstoneGroup
+} from '../controllers/capstoneGroupController.js';
+import {
+  getAllDocuments,
+  getDocumentById,
+  addDocument,
+  updateDocument,
+  deleteDocument,
+  restoreDocument,
+  downloadDocument
+} from '../controllers/documentController.js';
+import {
+  getAllTimelines,
+  addTimeline,
+  updateTimeline,
+  deleteTimeline,
+  getTimelineById,
+  getTimelineStats
+} from '../controllers/timelineController.js';
+import {
+  getAnnouncements,
+  getAnnouncementById,
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+  markAnnouncementAsRead
+} from '../controllers/announcementController.js';
 import { getDashboardStats, getStudentDashboardStats } from '../controllers/dashboardController.js';
-import { getPendingInvitations, getTeamInvitations, createInvitation, acceptInvitation, rejectInvitation, deleteInvitation } from '../controllers/invitationController.js';
-import { getAllLearningPaths, getLearningPathById, createLearningPath, updateLearningPath, deleteLearningPath, toggleLearningPathStatus } from '../controllers/learningPathController.js';
+import {
+  getPendingInvitations,
+  getTeamInvitations,
+  createInvitation,
+  acceptInvitation,
+  rejectInvitation,
+  deleteInvitation
+} from '../controllers/invitationController.js';
+import {
+  getAllLearningPaths,
+  getLearningPathById,
+  createLearningPath,
+  updateLearningPath,
+  deleteLearningPath,
+  toggleLearningPathStatus
+} from '../controllers/learningPathController.js';
 
 const router = express.Router();
 
@@ -62,6 +114,7 @@ router.use('/auth', authRoutes);
 router.get('/users', protect, getAllUsers);
 router.get('/user/profile', protect, getUserById);
 router.put('/user/profile/update', protect, updateUserProfile);
+router.put('/user/password/change', protect, changePassword);
 
 // ========== LEARNING PATHS ==========
 // Get all active learning paths (public - for student profile)
@@ -93,10 +146,7 @@ router.get('/students/lookup/:studentId', async (req, res) => {
 
     // Find by studentId (coding ID like fui0001) or email
     const student = await User.findOne({
-      $or: [
-        { studentId: studentId },
-        { email: { $regex: `^${studentId}`, $options: 'i' } }
-      ]
+      $or: [{ studentId: studentId }, { email: { $regex: `^${studentId}`, $options: 'i' } }]
     }).select('_id studentId name email learningPathId learningPathName');
 
     if (!student) {
@@ -106,14 +156,18 @@ router.get('/students/lookup/:studentId', async (req, res) => {
       });
     }
 
-    res.success({
-      id: student._id,
-      studentId: student.studentId,
-      name: student.name,
-      email: student.email,
-      learningPathId: student.learningPathId,
-      learningPathName: student.learningPathName
-    }, 'Student found', 200);
+    res.success(
+      {
+        id: student._id,
+        studentId: student.studentId,
+        name: student.name,
+        email: student.email,
+        learningPathId: student.learningPathId,
+        learningPathName: student.learningPathName
+      },
+      'Student found',
+      200
+    );
   } catch (err) {
     console.error('Failed to lookup student:', err);
     res.error('Failed to lookup student', 500);
@@ -122,7 +176,13 @@ router.get('/students/lookup/:studentId', async (req, res) => {
 
 // ========== CAPSTONE GROUPS ==========
 // Student: Register team
-router.post('/capstone-group/register', protect, studentOnly, validate(teamSchema.create), registerTeam);
+router.post(
+  '/capstone-group/register',
+  protect,
+  studentOnly,
+  validate(teamSchema.create),
+  registerTeam
+);
 
 // Student: Edit pending team (Leader only)
 router.put('/capstone-group/:id/edit', protect, studentOnly, validate(teamSchema.create), editTeam);
@@ -134,19 +194,30 @@ router.get('/capstone-group/:id', protect, getCapstoneGroupById);
 
 // Admin: Approve/Reject/Delete teams
 router.put('/capstone-group/:id/approve', protect, adminOnly, approveCapstoneGroup);
-router.put('/capstone-group/:id/reject', protect, adminOnly, validate(teamSchema.reject), rejectCapstoneGroup);
+router.put(
+  '/capstone-group/:id/reject',
+  protect,
+  adminOnly,
+  validate(teamSchema.reject),
+  rejectCapstoneGroup
+);
 router.put('/capstone-group/update/:id', protect, adminOnly, updateCapstoneGroup);
 router.delete('/capstone-group/:id', protect, adminOnly, deleteCapstoneGroup);
 
 // Admin: Debug - Clear all member capstoneGroupId
-router.post('/admin/debug/clear-members', protect, adminOnly, asyncHandler(async (req, res) => {
-  const result = await User.updateMany(
-    { capstoneGroupId: { $exists: true, $ne: null } },
-    { $set: { capstoneGroupId: null } }
-  );
-  console.log('[DEBUG] Cleared capstoneGroupId from', result.modifiedCount, 'members');
-  res.success({ modifiedCount: result.modifiedCount }, 'Members cleared', 200);
-}));
+router.post(
+  '/admin/debug/clear-members',
+  protect,
+  adminOnly,
+  asyncHandler(async (req, res) => {
+    const result = await User.updateMany(
+      { capstoneGroupId: { $exists: true, $ne: null } },
+      { $set: { capstoneGroupId: null } }
+    );
+    console.log('[DEBUG] Cleared capstoneGroupId from', result.modifiedCount, 'members');
+    res.success({ modifiedCount: result.modifiedCount }, 'Members cleared', 200);
+  })
+);
 
 // Admin: Set team composition for use case
 router.put('/usecase/:usecaseId/team-composition', protect, adminOnly, setTeamComposition);
@@ -160,7 +231,14 @@ router.get('/document/:id/download', protect, downloadDocument);
 // Admin: Upload/Delete documents
 // Note: Validator middleware removed because it cannot handle FormData
 // Validation is done in DocumentService instead
-router.post('/document/add', protect, adminOnly, upload.single('file'), parseFormDataFields, addDocument);
+router.post(
+  '/document/add',
+  protect,
+  adminOnly,
+  upload.single('file'),
+  parseFormDataFields,
+  addDocument
+);
 router.put('/document/:id', protect, adminOnly, parseFormDataFields, updateDocument);
 router.delete('/document/:id', protect, adminOnly, deleteDocument);
 router.put('/document/:id/restore', protect, adminOnly, restoreDocument);
@@ -183,8 +261,20 @@ router.get('/announcements/:id', protect, getAnnouncementById);
 router.post('/announcements/:id/read', protect, markAnnouncementAsRead);
 
 // Admin: Create/Update/Delete announcements
-router.post('/announcements', protect, adminOnly, validate(announcementSchema.create), createAnnouncement);
-router.put('/announcements/:id', protect, adminOnly, validate(announcementSchema.update), updateAnnouncement);
+router.post(
+  '/announcements',
+  protect,
+  adminOnly,
+  validate(announcementSchema.create),
+  createAnnouncement
+);
+router.put(
+  '/announcements/:id',
+  protect,
+  adminOnly,
+  validate(announcementSchema.update),
+  updateAnnouncement
+);
 router.delete('/announcements/:id', protect, adminOnly, deleteAnnouncement);
 
 // ========== USE CASES ==========

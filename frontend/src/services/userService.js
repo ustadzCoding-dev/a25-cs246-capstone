@@ -44,7 +44,7 @@ export const getUserProfile = async () => {
  * @param {string} profileData.university - University name
  * @returns {Promise} Updated profile data
  */
-export const updateUserProfile = async (profileData) => {
+export const updateUserProfile = async profileData => {
   try {
     const response = await api.put('/user/profile/update', profileData)
     return response.data
@@ -60,12 +60,22 @@ export const updateUserProfile = async (profileData) => {
  * @param {string} passwordData.newPassword - New password
  * @returns {Promise} Success message
  */
-export const changePassword = async (passwordData) => {
+export const changePassword = async passwordData => {
   try {
     const response = await api.put('/user/password/change', passwordData)
-    return response.data
+    // Ensure response has success field
+    return {
+      success: response.success !== false,
+      message: response.message || 'Password changed successfully',
+      data: response.data,
+    }
   } catch (error) {
-    throw error.response?.data || error
+    const errorData = error.response?.data || error
+    throw {
+      success: false,
+      message: errorData.message || error.message || 'Failed to change password',
+      data: errorData,
+    }
   }
 }
 
@@ -74,13 +84,26 @@ export const changePassword = async (passwordData) => {
  * @param {FormData} formData - Form data with avatar file
  * @returns {Promise} Updated user data with avatar URL
  */
-export const uploadAvatar = async (formData) => {
+export const uploadAvatar = async formData => {
   try {
     const response = await api.post('/user/avatar/upload', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        'Content-Type': 'multipart/form-data',
+      },
     })
+    return response.data
+  } catch (error) {
+    throw error.response?.data || error
+  }
+}
+
+/**
+ * Get all active learning paths
+ * @returns {Promise} Array of learning paths
+ */
+export const getLearningPaths = async () => {
+  try {
+    const response = await api.get('/learning-paths')
     return response.data
   } catch (error) {
     throw error.response?.data || error
@@ -92,5 +115,6 @@ export default {
   getUserProfile,
   updateUserProfile,
   changePassword,
-  uploadAvatar
+  uploadAvatar,
+  getLearningPaths,
 }
