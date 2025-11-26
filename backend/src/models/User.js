@@ -92,16 +92,18 @@ const userSchema = new mongoose.Schema(
       select: false
     },
 
-    // Learning Path
+    // Learning Path ID (Reference to LearningPath)
+    // Contoh: ObjectId("691f2684ae3d1a30e045a853")
+    learningPathId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LearningPath',
+      default: null
+    },
+
+    // Learning Path Name (Cached for display)
     // Contoh: "Front-End Web & Back-End with AI"
-    learningPath: {
+    learningPathName: {
       type: String,
-      enum: [
-        'Front-End Web & Back-End with AI',
-        'React & Back-End with AI',
-        'Machine Learning',
-        null // Allow null for users yang belum set learning path
-      ],
       default: null
     },
 

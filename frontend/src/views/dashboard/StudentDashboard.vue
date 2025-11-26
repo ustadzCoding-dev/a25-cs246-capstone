@@ -226,7 +226,7 @@ const teamInfo = computed(() => {
 const stats = computed(() => ({
   totalDocuments: documentStore.documents.length,
   activeTimelines: timelineStore.ongoingTimelines.length,
-  newAnnouncements: 0 // TODO: Add announcement store
+  newAnnouncements: announcementStore.announcements.length
 }))
 
 const recentDocuments = computed(() =>

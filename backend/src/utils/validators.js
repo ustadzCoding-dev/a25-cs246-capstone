@@ -2,9 +2,11 @@ import Joi from 'joi';
 
 /**
  * Validation schemas untuk semua admin endpoints
+ * Updated: 2025-11-20 - Added 'critical' priority option
  */
 
 // Timeline validation
+// NOTE: Priority includes 'critical' option - updated 2025-11-20
 export const timelineSchema = {
   create: Joi.object({
     title: Joi.string().required().min(3).max(100).trim(),
@@ -12,7 +14,7 @@ export const timelineSchema = {
     type: Joi.string().required().valid('milestone', 'deadline', 'submission', 'meeting', 'event'),
     startDate: Joi.date().required().iso(),
     endDate: Joi.date().required().iso().min(Joi.ref('startDate')),
-    priority: Joi.string().valid('low', 'medium', 'high', 'critical').default('medium')
+    priority: Joi.string().required().valid('low', 'medium', 'high', 'critical')
   }),
   update: Joi.object({
     title: Joi.string().min(3).max(100).trim(),

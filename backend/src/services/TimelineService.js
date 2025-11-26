@@ -308,7 +308,7 @@ export class TimelineService {
       throw new ValidationError('Timeline type is required');
     }
 
-    const validTypes = ['milestone', 'deadline', 'review', 'submission'];
+    const validTypes = ['milestone', 'deadline', 'submission', 'meeting', 'event'];
     if (!validTypes.includes(timelineData.type)) {
       throw new ValidationError(`Type must be one of: ${validTypes.join(', ')}`);
     }
@@ -332,7 +332,7 @@ export class TimelineService {
       throw new ValidationError('Timeline priority is required');
     }
 
-    const validPriorities = ['low', 'medium', 'high'];
+    const validPriorities = ['low', 'medium', 'high', 'critical'];
     if (!validPriorities.includes(timelineData.priority)) {
       throw new ValidationError(`Priority must be one of: ${validPriorities.join(', ')}`);
     }
@@ -348,14 +348,14 @@ export class TimelineService {
     }
 
     if (updateData.type) {
-      const validTypes = ['milestone', 'deadline', 'review', 'submission'];
+      const validTypes = ['milestone', 'deadline', 'submission', 'meeting', 'event'];
       if (!validTypes.includes(updateData.type)) {
         throw new ValidationError(`Type must be one of: ${validTypes.join(', ')}`);
       }
     }
 
     if (updateData.priority) {
-      const validPriorities = ['low', 'medium', 'high'];
+      const validPriorities = ['low', 'medium', 'high', 'critical'];
       if (!validPriorities.includes(updateData.priority)) {
         throw new ValidationError(`Priority must be one of: ${validPriorities.join(', ')}`);
       }

@@ -56,12 +56,16 @@ export const useTeamStore = defineStore('team', {
         const response = await teamService.getAllTeams(params)
 
         if (response.success) {
-          this.teams = response.data.teams || response.data
+          // Backend returns: { success, data: [teams], meta: { pagination: {...} } }
+          const teamsData = response.data
+          this.teams = Array.isArray(teamsData) ? teamsData : []
 
-          // Update pagination if available
-          if (response.data.pagination) {
-            this.pagination = response.data.pagination
+          // Update pagination if available (it's in response.meta.pagination)
+          if (response.meta && response.meta.pagination) {
+            this.pagination = response.meta.pagination
           }
+        } else {
+          this.teams = []
         }
 
         return response
@@ -260,6 +264,64 @@ export const useTeamStore = defineStore('team', {
     },
 
     /**
+     * Edit team members (Student - leader only)
+     */
+    async editTeam(id, members) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.editTeam(id, members)
+
+        if (response.success) {
+          // Update current team if it's the same
+          if (this.currentTeam?.id === id || this.currentTeam?._id === id) {
+            this.currentTeam = response.data
+          }
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to edit team'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Update team (Admin)
+     */
+    async updateTeam(id, updateData) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.updateTeam(id, updateData)
+
+        if (response.success) {
+          // Update team in list
+          const index = this.teams.findIndex(team => team._id === id || team.id === id)
+          if (index !== -1) {
+            this.teams[index] = { ...this.teams[index], ...updateData }
+          }
+
+          // Update current team if it's the same
+          if (this.currentTeam?.id === id || this.currentTeam?._id === id) {
+            this.currentTeam = { ...this.currentTeam, ...updateData }
+          }
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Failed to update team'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
      * Fetch all use cases
      */
     async fetchUseCases() {
@@ -267,14 +329,20 @@ export const useTeamStore = defineStore('team', {
       this.error = null
 
       try {
+        console.log('[fetchUseCases] Starting fetch...')
         const response = await teamService.getAllUseCases()
+        console.log('[fetchUseCases] Response:', response)
 
         if (response.success) {
           this.useCases = response.data
+          console.log('[fetchUseCases] useCases set to:', this.useCases)
+        } else {
+          console.log('[fetchUseCases] Response not successful:', response)
         }
 
         return response
       } catch (error) {
+        console.error('[fetchUseCases] Error:', error)
         this.error = error.message || 'Failed to fetch use cases'
         throw error
       } finally {

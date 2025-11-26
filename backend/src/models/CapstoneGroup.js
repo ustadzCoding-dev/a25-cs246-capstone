@@ -2,24 +2,31 @@ import mongoose from 'mongoose';
 
 // MENYIMPAN DATA TIM
 const capstoneGroupSchema = new mongoose.Schema({
-  // Captone Group ID
+  // Captone Group ID (Optional - can be assigned later)
   // Contoh: "A25-CS246"
   capstoneGroupId: {
     type: String,
-    required: true,
-    unique: true
+    unique: true,
+    sparse: true,
+    default: null
   },
-  // ID Unik Usecase
+  // ID Unik UseCase
   // Contoh: "DC-09"
   useCaseId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Usecase',
+    ref: 'UseCase',
     required: true
   },
   // Nama Tim
   // Contoh: "Tim Hebat A25"
   teamName: {
     type: String,
+    required: true
+  },
+  // Leader ID (Team creator)
+  leaderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
   // Data Anggota Tim
@@ -70,7 +77,7 @@ capstoneGroupSchema.set('toJSON', {
   }
 });
 
-capstoneGroupSchema.post('findOneAndDelete', async function (doc, next) {
+capstoneGroupSchema.post('findOneAndDelete', async function (doc) {
   if (doc) {
     try {
       const User = mongoose.model('User');

@@ -57,8 +57,13 @@
             </th>
           </tr>
         </thead>
-        
+
         <tbody class="bg-white divide-y divide-gray-200">
+          <!-- DEBUG -->
+          <tr v-if="false">
+            <td>DEBUG: loading={{ loading }}, data.length={{ data?.length }}, columns.length={{ columns?.length }}</td>
+          </tr>
+
           <!-- Loading State -->
           <tr v-if="loading">
             <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="px-6 py-12 text-center">
@@ -66,7 +71,7 @@
               <p class="mt-2 text-sm text-gray-500">Loading...</p>
             </td>
           </tr>
-          
+
           <!-- Empty State -->
           <tr v-else-if="!data || data.length === 0">
             <td :colspan="columns.length + ($slots.actions ? 1 : 0)" class="px-6 py-12 text-center">
@@ -86,9 +91,9 @@
               <p class="mt-2 text-sm text-gray-500">{{ emptyMessage }}</p>
             </td>
           </tr>
-          
+
           <!-- Data Rows -->
-          <tr v-else v-for="(row, index) in data" :key="index" class="hover:bg-gray-50">
+          <tr v-for="(row, index) in data" v-else :key="index" class="hover:bg-gray-50">
             <td
               v-for="column in columns"
               :key="column.key"
@@ -105,7 +110,7 @@
         </tbody>
       </table>
     </div>
-    
+
     <!-- Pagination -->
     <div v-if="pagination && data && data.length > 0" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
       <div class="flex-1 flex justify-between sm:hidden">
@@ -179,7 +184,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import BaseSpinner from './BaseSpinner.vue'
 
 const props = defineProps({
@@ -219,31 +224,31 @@ const totalPages = computed(() => {
 
 const visiblePages = computed(() => {
   if (!props.pagination) return []
-  
+
   const current = props.pagination.page
   const total = totalPages.value
   const delta = 2
   const range = []
   const rangeWithDots = []
-  
+
   for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
     range.push(i)
   }
-  
+
   if (current - delta > 2) {
     rangeWithDots.push(1, '...')
   } else {
     rangeWithDots.push(1)
   }
-  
+
   rangeWithDots.push(...range)
-  
+
   if (current + delta < total - 1) {
     rangeWithDots.push('...', total)
   } else if (total > 1) {
     rangeWithDots.push(total)
   }
-  
+
   return rangeWithDots.filter(page => page !== '...')
 })
 
@@ -254,7 +259,7 @@ const handleSort = (key) => {
     sortKey.value = key
     sortOrder.value = 'asc'
   }
-  
+
   emit('sort', { key: sortKey.value, order: sortOrder.value })
 }
 
@@ -262,4 +267,9 @@ const handlePageChange = (page) => {
   if (page < 1 || page > totalPages.value) return
   emit('page-change', page)
 }
+
+// Debug logging
+watch(() => props.data, (newData) => {
+  console.log('[BaseTable] Data changed:', newData, 'Length:', newData?.length)
+}, { deep: true })
 </script>

@@ -33,7 +33,7 @@ export const getAllCapstoneGroups = asyncHandler(async (req, res) => {
     sortOrder
   });
 
-  res.success(result.data, 'Teams retrieved successfully', 200, result.pagination);
+  res.success(result.data, 'Teams retrieved successfully', 200, { pagination: result.pagination });
 });
 
 /**
@@ -72,7 +72,7 @@ export const deleteCapstoneGroup = asyncHandler(async (req, res) => {
 
   await TeamService.deleteTeam(id);
 
-  res.success(null, 'Team deleted successfully', 200);
+  res.success({ id }, 'Team deleted successfully', 200);
 });
 
 /**
@@ -111,6 +111,23 @@ export const getCurrentCapstoneGroup = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Update capstone team (Admin)
+ * PUT /api/capstone-group/:id/update
+ */
+export const updateCapstoneGroup = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  if (!updateData || Object.keys(updateData).length === 0) {
+    return res.error('No data to update', 400);
+  }
+
+  const team = await TeamService.updateTeam(id, updateData);
+
+  res.success(team, 'Team updated successfully', 200);
+});
+
+/**
  * Set team composition requirements for a use case (Admin)
  * PUT /api/usecase/:usecaseId/team-composition
  */
@@ -125,4 +142,18 @@ export const setTeamComposition = asyncHandler(async (req, res) => {
   const useCase = await TeamService.setTeamComposition(usecaseId, teamComposition);
 
   res.success(useCase, 'Team composition updated successfully', 200);
+});
+
+/**
+ * Edit team members (Student only - leader)
+ * PUT /api/capstone-group/:id/edit
+ */
+export const editTeam = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { members } = req.validatedBody;
+  const userId = req.user._id;
+
+  const team = await TeamService.editTeam(id, members, userId);
+
+  res.success(team, 'Team updated successfully', 200);
 });

@@ -37,15 +37,20 @@
           <div v-for="useCase in useCases" :key="useCase.id" class="p-6 hover:bg-gray-50 transition-colors">
             <div class="flex items-start justify-between">
               <div class="flex-1">
-                <h3 class="text-lg font-semibold text-gray-900">{{ useCase.title }}</h3>
+                <div class="flex items-center gap-3">
+                  <h3 class="text-lg font-semibold text-gray-900">{{ useCase.title }}</h3>
+                  <span class="inline-block bg-primary-100 text-primary-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                    {{ useCase.usecaseId }}
+                  </span>
+                </div>
                 <p class="text-sm text-gray-600 mt-1">{{ useCase.description }}</p>
 
                 <!-- Current Composition -->
                 <div class="mt-4 bg-gray-50 rounded p-3">
                   <p class="text-sm font-medium text-gray-700 mb-2">Komposisi Tim Saat Ini:</p>
                   <div v-if="useCase.teamComposition && useCase.teamComposition.length > 0" class="space-y-1">
-                    <div v-for="comp in useCase.teamComposition" :key="comp.learningPath" class="text-sm text-gray-600">
-                      • {{ comp.count }} orang dari {{ comp.learningPath }}
+                    <div v-for="comp in useCase.teamComposition" :key="comp.learningPathId || comp.learningPath" class="text-sm text-gray-600">
+                      • {{ comp.count }} orang dari {{ comp.learningPathName || comp.learningPath }}
                     </div>
                     <p class="text-sm font-semibold text-gray-700 mt-2">Total: {{ useCase.totalTeamSize }} anggota</p>
                   </div>
@@ -190,12 +195,15 @@
               <label class="block text-sm font-medium text-gray-700">
                 Learning Path {{ index + 1 }}
               </label>
-              <input
-                v-model="comp.learningPath"
-                type="text"
-                placeholder="e.g., Front-End & Back-End with AI"
+              <select
+                v-model="comp.learningPathId"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
+              >
+                <option value="" disabled>Pilih Learning Path</option>
+                <option v-for="lp in learningPaths" :key="lp._id" :value="lp._id">
+                  {{ lp.name }}
+                </option>
+              </select>
 
               <label class="block text-sm font-medium text-gray-700">
                 Jumlah Anggota
@@ -268,6 +276,7 @@ const user = computed(() => authStore.user)
 const loading = ref(false)
 const saving = ref(false)
 const useCases = ref([])
+const learningPaths = ref([])
 const showCreateModal = ref(false)
 const showCompositionModal = ref(false)
 const selectedUseCase = ref(null)
@@ -287,6 +296,21 @@ const { adminMenuItems } = useAdminMenu()
 const totalTeamSize = computed(() => {
   return compositionForm.value.reduce((sum, comp) => sum + (comp.count || 0), 0)
 })
+
+const fetchLearningPaths = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/admin/learning-paths', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    const data = await response.json()
+    learningPaths.value = data.data || []
+    console.log('Learning paths loaded:', learningPaths.value.length)
+  } catch (err) {
+    console.error('Failed to fetch learning paths:', err)
+  }
+}
 
 const fetchUseCases = async () => {
   loading.value = true
@@ -310,7 +334,7 @@ const openCompositionModal = (useCase) => {
   selectedUseCase.value = useCase
   compositionForm.value = useCase.teamComposition && useCase.teamComposition.length > 0
     ? JSON.parse(JSON.stringify(useCase.teamComposition))
-    : [{ learningPath: '', count: 1 }]
+    : [{ learningPathId: '', count: 1 }]
   showCompositionModal.value = true
 }
 
@@ -321,7 +345,7 @@ const closeCompositionModal = () => {
 }
 
 const addCompositionRow = () => {
-  compositionForm.value.push({ learningPath: '', count: 1 })
+  compositionForm.value.push({ learningPathId: '', count: 1 })
 }
 
 const removeCompositionRow = (index) => {
@@ -332,7 +356,7 @@ const saveComposition = async () => {
   if (!selectedUseCase.value) return
 
   // Validate
-  if (compositionForm.value.some(comp => !comp.learningPath || comp.count < 1)) {
+  if (compositionForm.value.some(comp => !comp.learningPathId || comp.count < 1)) {
     alert('Semua field harus diisi dengan benar')
     return
   }
@@ -461,6 +485,7 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
+  fetchLearningPaths()
   fetchUseCases()
 })
 </script>

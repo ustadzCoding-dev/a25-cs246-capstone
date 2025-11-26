@@ -1,14 +1,14 @@
 <template>
   <div class="base-select">
-    <label 
-      v-if="label" 
+    <label
+      v-if="label"
       :for="inputId"
       class="block text-sm font-medium text-gray-700 mb-1"
     >
       {{ label }}
       <span v-if="required" class="text-danger-500">*</span>
     </label>
-    
+
     <select
       :id="inputId"
       :value="modelValue"
@@ -22,20 +22,21 @@
         disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white cursor-pointer'
       ]"
     >
-      <option value="" disabled>{{ placeholder || 'Select an option' }}</option>
-      <option 
-        v-for="option in options" 
-        :key="option.value" 
+      <!-- Only show placeholder if no empty value option exists in options -->
+      <option v-if="!hasEmptyOption" value="" disabled>{{ placeholder || 'Select an option' }}</option>
+      <option
+        v-for="option in options"
+        :key="option.value"
         :value="option.value"
       >
         {{ option.label }}
       </option>
     </select>
-    
+
     <p v-if="error" class="mt-1 text-sm text-danger-500">
       {{ error }}
     </p>
-    
+
     <p v-if="hint && !error" class="mt-1 text-sm text-gray-500">
       {{ hint }}
     </p>
@@ -88,4 +89,9 @@ const props = defineProps({
 defineEmits(['update:modelValue'])
 
 const inputId = computed(() => props.id || `select-${Math.random().toString(36).substr(2, 9)}`)
+
+// Check if options array already has an empty value option
+const hasEmptyOption = computed(() => {
+  return props.options && props.options.some(option => option.value === '')
+})
 </script>

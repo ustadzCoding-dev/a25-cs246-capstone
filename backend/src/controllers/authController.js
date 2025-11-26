@@ -503,33 +503,23 @@ export const completeProfile = async (req, res) => {
       });
     }
 
-    // Validate learning path
-    const validPaths = [
-      'Front-End Web & Back-End with AI',
-      'React & Back-End with AI',
-      'Machine Learning'
-    ];
+    // Validate learning path - fetch from database
+    const LearningPath = (await import('../models/LearningPath.js')).default;
+    const learningPathRecord = await LearningPath.findOne({ name: learningPath.trim() });
 
-    // Normalize: trim whitespace and fix case issues
-    let normalizedPath = learningPath.trim();
-
-    // Fix common case issues
-    normalizedPath = normalizedPath
-      .replace(/back-end/gi, 'Back-End')
-      .replace(/front-end/gi, 'Front-End')
-      .replace(/react/gi, 'React')
-      .replace(/machine learning/gi, 'Machine Learning')
-      .replace(/web/gi, 'Web');
-
-    if (!validPaths.includes(normalizedPath)) {
-      console.error('❌ Invalid learning path:', normalizedPath, 'Valid paths:', validPaths);
+    if (!learningPathRecord) {
+      console.error('❌ Invalid learning path:', learningPath.trim());
+      const allPaths = await LearningPath.find({ isActive: true });
       return res.status(400).json({
         success: false,
         message: 'Invalid learning path',
-        received: normalizedPath,
-        valid: validPaths
+        received: learningPath.trim(),
+        valid: allPaths.map(p => p.name)
       });
     }
+
+    // Use the normalized name from database
+    const normalizedPath = learningPathRecord.name;
 
     // Validate university
     if (university.trim().length < 3) {
@@ -539,25 +529,10 @@ export const completeProfile = async (req, res) => {
       });
     }
 
-    // Generate dicodingId using the same helper function
+    // Generate dicodingId using prefix from database
     const newSeqNumber = await getNextSequence('dicodingId');
-    let generateDicodingId;
-
-    switch (normalizedPath) {
-    case 'Front-End Web & Back-End with AI':
-      generateDicodingId = `FEBE${newSeqNumber
-        .toString()
-        .padStart(5, '0')}AI`;
-      break;
-    case 'React & Back-End with AI':
-      generateDicodingId = `REBE${newSeqNumber
-        .toString()
-        .padStart(5, '0')}AI`;
-      break;
-    case 'Machine Learning':
-      generateDicodingId = `ML${newSeqNumber.toString().padStart(5, '0')}`;
-      break;
-    }
+    const prefix = learningPathRecord.dicodingIdPrefix;
+    const generateDicodingId = `${prefix}${newSeqNumber.toString().padStart(5, '0')}`;
 
     // Update user
     user.dicodingId = generateDicodingId;

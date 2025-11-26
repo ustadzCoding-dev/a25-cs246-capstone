@@ -68,120 +68,169 @@
           <h2 class="text-xl font-semibold text-gray-900">Daftar Tim</h2>
         </div>
 
-        <BaseTable
-          :columns="tableColumns"
-          :data="filteredTeams"
-          :loading="loading"
-          :pagination="pagination"
-          empty-message="Tidak ada tim ditemukan"
-          @sort="handleSort"
-          @page-change="handlePageChange"
-        >
-          <!-- Team Name Column -->
-          <template #cell-teamName="{ row }">
-            <div>
-              <p class="font-medium text-gray-900">{{ row.teamName }}</p>
-              <p class="text-sm text-gray-500">Status: {{ getStatusLabel(row.status) }}</p>
+        <!-- Teams List -->
+        <div v-if="loading" class="p-12 text-center">
+          <BaseSpinner centered size="lg" label="Memuat data..." />
+        </div>
+
+        <div v-else-if="filteredTeams.length === 0" class="p-12 text-center">
+          <svg
+            class="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+            />
+          </svg>
+          <p class="mt-2 text-sm text-gray-500">Tidak ada tim ditemukan</p>
+        </div>
+
+        <div v-else class="divide-y divide-gray-200">
+          <div v-for="team in filteredTeams" :key="team._id" class="p-6 hover:bg-gray-50 transition-colors">
+            <div class="flex items-center justify-between">
+              <div class="flex-1">
+                <h3 class="text-base font-semibold text-gray-900">{{ team.teamName }}</h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  ID Tim: {{ team.capstoneGroupId || '(Belum di-assign)' }}
+                </p>
+                <p class="text-sm text-gray-600">
+                  Anggota: {{ team.membersUserId?.length || 0 }} | Status: {{ getStatusLabel(team.status) }}
+                </p>
+              </div>
+              <div class="flex items-center space-x-2 ml-4">
+                <button
+                  @click="viewTeamDetails(team)"
+                  class="text-primary-600 hover:text-primary-700 p-2"
+                  title="Lihat Detail"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </button>
+
+                <button
+                  v-if="team.status === 'pending'"
+                  @click="approveTeam(team)"
+                  class="text-success-600 hover:text-success-700 p-2"
+                  title="Setujui"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+
+                <button
+                  v-if="team.status === 'pending'"
+                  @click="rejectTeam(team)"
+                  class="text-danger-600 hover:text-danger-700 p-2"
+                  title="Tolak"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+
+                <button
+                  @click="deleteTeam(team)"
+                  class="text-gray-400 hover:text-danger-600 p-2"
+                  title="Hapus"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
-          </template>
-
-          <!-- ID Tim Column -->
-          <template #cell-capstoneGroupId="{ row }">
-            <span class="text-sm text-gray-900 font-mono">{{ row.capstoneGroupId }}</span>
-          </template>
-
-          <!-- Jumlah Anggota Column -->
-          <template #cell-membersUserId="{ row }">
-            <span class="text-sm text-gray-900">{{ row.membersUserId?.length || 0 }} anggota</span>
-          </template>
-
-          <!-- Status Column -->
-          <template #cell-status="{ row }">
-            <BaseBadge :variant="getStatusVariant(row.status)">
-              {{ getStatusLabel(row.status) }}
-            </BaseBadge>
-          </template>
-
-          <!-- Actions Column -->
-          <template #actions="{ row }">
-            <div class="flex items-center space-x-2">
-              <button
-                @click="viewTeamDetails(row)"
-                class="text-primary-600 hover:text-primary-700"
-                title="Lihat Detail"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
-              </button>
-
-              <button
-                v-if="row.status === 'pending'"
-                @click="approveTeam(row)"
-                class="text-success-600 hover:text-success-700"
-                title="Setujui"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </button>
-
-              <button
-                v-if="row.status === 'pending'"
-                @click="rejectTeam(row)"
-                class="text-danger-600 hover:text-danger-700"
-                title="Tolak"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </button>
-
-              <button
-                @click="deleteTeam(row)"
-                class="text-gray-400 hover:text-danger-600"
-                title="Hapus"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
-            </div>
-          </template>
-        </BaseTable>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Team Details Modal -->
     <BaseModal v-model="showDetailsModal" title="Detail Tim" size="lg">
       <div v-if="selectedTeam" class="space-y-4">
-        <TeamInfoCard :team="selectedTeam" />
+        <!-- Team Info -->
+        <div class="bg-gray-100 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ selectedTeam.teamName }}</h3>
+
+          <div class="space-y-3">
+            <div>
+              <p class="text-sm font-medium text-gray-700">ID Tim</p>
+              <div v-if="selectedTeam.capstoneGroupId" class="text-sm text-gray-600">
+                {{ selectedTeam.capstoneGroupId }}
+              </div>
+              <div v-else class="flex gap-2">
+                <input
+                  v-model="newCapstoneGroupId"
+                  type="text"
+                  placeholder="Masukkan ID Tim (contoh: A25-CS246)"
+                  class="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                />
+                <button
+                  @click="assignCapstoneGroupId"
+                  class="px-4 py-2 bg-primary-600 text-white rounded text-sm hover:bg-primary-700"
+                >
+                  Assign
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-sm font-medium text-gray-700">Status</p>
+              <p class="text-sm text-gray-600">{{ selectedTeam.status }}</p>
+            </div>
+
+            <div>
+              <p class="text-sm font-medium text-gray-700">Use Case</p>
+              <p class="text-sm text-gray-600">{{ selectedTeam.useCaseId?.title || selectedTeam.useCaseId?.name || 'N/A' }}</p>
+            </div>
+
+            <div>
+              <p class="text-sm font-medium text-gray-700">Anggota ({{ selectedTeam.membersUserId?.length || 0 }})</p>
+              <ul class="text-sm text-gray-600 space-y-1 mt-2">
+                <li v-for="(member, idx) in selectedTeam.membersUserId" :key="idx">
+                  • {{ typeof member === 'object' ? member.name || member.studentId : member }}
+                </li>
+              </ul>
+            </div>
+
+            <div v-if="selectedTeam.submittedAt">
+              <p class="text-sm font-medium text-gray-700">Terdaftar</p>
+              <p class="text-sm text-gray-600">{{ new Date(selectedTeam.submittedAt).toLocaleDateString('id-ID') }}</p>
+            </div>
+          </div>
+        </div>
 
         <div v-if="selectedTeam.status === 'pending'" class="flex space-x-3 pt-4">
           <BaseButton variant="success" class="flex-1" @click="approveTeam(selectedTeam)">
@@ -191,6 +240,9 @@
             Tolak Tim
           </BaseButton>
         </div>
+      </div>
+      <div v-else class="text-center text-gray-500">
+        Tidak ada data tim yang dipilih
       </div>
 
       <template #footer>
@@ -284,6 +336,7 @@ const showRejectModal = ref(false)
 const showDeleteModal = ref(false)
 const selectedTeam = ref(null)
 const rejectReason = ref('')
+const newCapstoneGroupId = ref('')
 
 // Get data from store
 const loading = computed(() => teamStore.teamsLoading)
@@ -313,32 +366,66 @@ const statusOptions = [
   { value: 'rejected', label: 'Ditolak' },
 ]
 
-const useCaseOptions = [
-  { value: '', label: 'Semua Use Case' },
-  { value: 'DC-01', label: 'DC-01' },
-  { value: 'DC-02', label: 'DC-02' },
-  { value: 'DC-09', label: 'DC-09' },
-  { value: 'DC-10', label: 'DC-10' },
-]
-
 const { adminMenuItems } = useAdminMenu()
 
+// Generate use case options from store
+const useCaseOptions = computed(() => {
+  const options = [
+    { value: '', label: 'Semua Use Case' }
+  ]
+
+  console.log('[useCaseOptions] teamStore.useCases:', teamStore.useCases)
+
+  if (teamStore.useCases && teamStore.useCases.length > 0) {
+    teamStore.useCases.forEach(useCase => {
+      options.push({
+        value: useCase.usecaseId || useCase._id,
+        label: `${useCase.title} (${useCase.usecaseId})`
+      })
+    })
+  }
+
+  console.log('[useCaseOptions] final options:', options)
+  return options
+})
+
 const filteredTeams = computed(() => {
-  let result = teams.value
+  let result = teams.value || []
+
+  console.log('[filteredTeams] Initial teams:', result)
+  console.log('[filteredTeams] filterUseCase.value:', filterUseCase.value)
 
   // Filter by search query
-  if (searchQuery.value) {
+  if (searchQuery.value && searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(
       team =>
-        team.teamName.toLowerCase().includes(query) ||
-        team.capstoneGroupId.toLowerCase().includes(query)
+        team.teamName?.toLowerCase().includes(query) ||
+        team.capstoneGroupId?.toLowerCase().includes(query)
     )
   }
 
   // Filter by status
-  if (filterStatus.value) {
+  if (filterStatus.value && filterStatus.value.trim()) {
     result = result.filter(team => team.status === filterStatus.value)
+  }
+
+  // Filter by use case
+  if (filterUseCase.value && filterUseCase.value.trim()) {
+    console.log('[filteredTeams] Filtering by use case, before filter count:', result.length)
+    result = result.filter(team => {
+      // team.useCaseId is an object with usecaseId property
+      const teamUseCaseId = team.useCaseId?.usecaseId
+      console.log('[filteredTeams] Team:', {
+        name: team.teamName,
+        useCaseId: team.useCaseId,
+        teamUseCaseId: teamUseCaseId,
+        filterValue: filterUseCase.value,
+        match: teamUseCaseId === filterUseCase.value
+      })
+      return teamUseCaseId === filterUseCase.value
+    })
+    console.log('[filteredTeams] After filter count:', result.length)
   }
 
   return result
@@ -479,7 +566,37 @@ watch([searchQuery, filterStatus, filterUseCase], () => {
   fetchTeams()
 })
 
+const assignCapstoneGroupId = async () => {
+  if (!newCapstoneGroupId.value.trim()) {
+    alert('Masukkan ID Tim terlebih dahulu')
+    return
+  }
+
+  try {
+    // Call API to update team with capstoneGroupId
+    await teamStore.updateTeam(selectedTeam.value._id, {
+      capstoneGroupId: newCapstoneGroupId.value
+    })
+
+    // Update selectedTeam
+    selectedTeam.value.capstoneGroupId = newCapstoneGroupId.value
+    newCapstoneGroupId.value = ''
+
+    // Refresh teams list
+    await fetchTeams()
+
+    alert('ID Tim berhasil di-assign!')
+  } catch (err) {
+    console.error('Failed to assign capstoneGroupId:', err)
+    alert('Gagal assign ID Tim: ' + err.message)
+  }
+}
+
 onMounted(() => {
+  // Fetch use cases for filter dropdown
+  teamStore.fetchUseCases()
+
+  // Fetch teams
   fetchTeams()
 })
 </script>

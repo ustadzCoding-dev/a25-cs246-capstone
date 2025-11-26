@@ -5,15 +5,18 @@ import { protect } from '../middleware/auth.js';
 import { adminOnly, studentOnly } from '../middleware/authorize.js';
 import { validate, teamSchema, timelineSchema, announcementSchema } from '../utils/validators.js';
 import { parseFormDataFields } from '../middleware/parseFormData.js';
+import { asyncHandler } from '../utils/errorHandler.js';
+import User from '../models/User.js';
 
 // Controllers
 import { getAllUsers, getUserById, updateUserProfile } from '../controllers/userController.js';
-import { getAllCapstoneGroups, registerTeam, approveCapstoneGroup, rejectCapstoneGroup, deleteCapstoneGroup, getCapstoneGroupById, getCurrentCapstoneGroup, setTeamComposition } from '../controllers/capstoneGroupController.js';
+import { getAllCapstoneGroups, registerTeam, approveCapstoneGroup, rejectCapstoneGroup, deleteCapstoneGroup, getCapstoneGroupById, getCurrentCapstoneGroup, setTeamComposition, updateCapstoneGroup, editTeam } from '../controllers/capstoneGroupController.js';
 import { getAllDocuments, getDocumentById, addDocument, updateDocument, deleteDocument, restoreDocument, downloadDocument } from '../controllers/documentController.js';
 import { getAllTimelines, addTimeline, updateTimeline, deleteTimeline, getTimelineById, getTimelineStats } from '../controllers/timelineController.js';
 import { getAnnouncements, getAnnouncementById, createAnnouncement, updateAnnouncement, deleteAnnouncement, markAnnouncementAsRead } from '../controllers/announcementController.js';
 import { getDashboardStats, getStudentDashboardStats } from '../controllers/dashboardController.js';
 import { getPendingInvitations, getTeamInvitations, createInvitation, acceptInvitation, rejectInvitation, deleteInvitation } from '../controllers/invitationController.js';
+import { getAllLearningPaths, getLearningPathById, createLearningPath, updateLearningPath, deleteLearningPath, toggleLearningPathStatus } from '../controllers/learningPathController.js';
 
 const router = express.Router();
 
@@ -60,6 +63,28 @@ router.get('/users', protect, getAllUsers);
 router.get('/user/profile', protect, getUserById);
 router.put('/user/profile/update', protect, updateUserProfile);
 
+// ========== LEARNING PATHS ==========
+// Get all active learning paths (public - for student profile)
+router.get('/learning-paths', async (req, res) => {
+  try {
+    const LearningPath = (await import('../models/LearningPath.js')).default;
+    const paths = await LearningPath.find({ isActive: true }).sort({ name: 1 });
+
+    res.success(paths, 'Learning paths retrieved', 200);
+  } catch (err) {
+    console.error('Failed to fetch learning paths:', err);
+    res.error('Failed to fetch learning paths', 500);
+  }
+});
+
+// Admin: Manage learning paths
+router.get('/admin/learning-paths', protect, adminOnly, getAllLearningPaths);
+router.get('/admin/learning-paths/:id', protect, adminOnly, getLearningPathById);
+router.post('/admin/learning-paths', protect, adminOnly, createLearningPath);
+router.put('/admin/learning-paths/:id', protect, adminOnly, updateLearningPath);
+router.delete('/admin/learning-paths/:id', protect, adminOnly, deleteLearningPath);
+router.put('/admin/learning-paths/:id/toggle', protect, adminOnly, toggleLearningPathStatus);
+
 // Student lookup by ID (for team registration - public)
 router.get('/students/lookup/:studentId', async (req, res) => {
   try {
@@ -72,7 +97,7 @@ router.get('/students/lookup/:studentId', async (req, res) => {
         { studentId: studentId },
         { email: { $regex: `^${studentId}`, $options: 'i' } }
       ]
-    }).select('_id studentId name email learningPath');
+    }).select('_id studentId name email learningPathId learningPathName');
 
     if (!student) {
       return res.status(404).json({
@@ -86,7 +111,8 @@ router.get('/students/lookup/:studentId', async (req, res) => {
       studentId: student.studentId,
       name: student.name,
       email: student.email,
-      learningPath: student.learningPath
+      learningPathId: student.learningPathId,
+      learningPathName: student.learningPathName
     }, 'Student found', 200);
   } catch (err) {
     console.error('Failed to lookup student:', err);
@@ -98,6 +124,9 @@ router.get('/students/lookup/:studentId', async (req, res) => {
 // Student: Register team
 router.post('/capstone-group/register', protect, studentOnly, validate(teamSchema.create), registerTeam);
 
+// Student: Edit team (only leader, only pending teams)
+router.put('/capstone-group/:id/edit', protect, studentOnly, validate(teamSchema.create), editTeam);
+
 // All: View teams
 router.get('/capstone-groups', protect, getAllCapstoneGroups);
 router.get('/capstone-group/current', protect, getCurrentCapstoneGroup);
@@ -106,7 +135,18 @@ router.get('/capstone-group/:id', protect, getCapstoneGroupById);
 // Admin: Approve/Reject/Delete teams
 router.put('/capstone-group/:id/approve', protect, adminOnly, approveCapstoneGroup);
 router.put('/capstone-group/:id/reject', protect, adminOnly, validate(teamSchema.reject), rejectCapstoneGroup);
+router.put('/capstone-group/update/:id', protect, adminOnly, updateCapstoneGroup);
 router.delete('/capstone-group/:id', protect, adminOnly, deleteCapstoneGroup);
+
+// Admin: Debug - Clear all member capstoneGroupId
+router.post('/admin/debug/clear-members', protect, adminOnly, asyncHandler(async (req, res) => {
+  const result = await User.updateMany(
+    { capstoneGroupId: { $exists: true, $ne: null } },
+    { $set: { capstoneGroupId: null } }
+  );
+  console.log('[DEBUG] Cleared capstoneGroupId from', result.modifiedCount, 'members');
+  res.success({ modifiedCount: result.modifiedCount }, 'Members cleared', 200);
+}));
 
 // Admin: Set team composition for use case
 router.put('/usecase/:usecaseId/team-composition', protect, adminOnly, setTeamComposition);

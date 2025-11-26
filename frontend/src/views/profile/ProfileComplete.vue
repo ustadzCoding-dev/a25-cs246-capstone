@@ -137,42 +137,26 @@ const errors = reactive({
 // Fetch learning paths from backend
 const fetchLearningPaths = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/usecases');
+    const response = await fetch('http://localhost:8000/api/learning-paths');
     if (response.ok) {
       const data = await response.json();
-      const useCases = Array.isArray(data) ? data : data.data || [];
-
-      // Extract unique learning paths from use cases
-      const pathsMap = new Map(); // Use Map to ensure uniqueness by value
-      useCases.forEach(useCase => {
-        if (useCase.teamComposition && Array.isArray(useCase.teamComposition)) {
-          useCase.teamComposition.forEach(comp => {
-            if (comp.learningPath) {
-              // Use the path as both key and value to ensure uniqueness
-              pathsMap.set(comp.learningPath.trim().toLowerCase(), comp.learningPath);
-            }
-          });
-        }
-      });
-
-      // Convert to options format and sort
-      learningPathOptions.value = Array.from(pathsMap.values())
-        .map(path => ({
-          value: path,
-          label: path
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label));
-
-      console.log('Learning paths loaded:', learningPathOptions.value);
+      learningPathOptions.value = data.data.map(path => ({
+        value: path.name,
+        label: path.name
+      }));
+      console.log('✅ Learning paths loaded from API:', learningPathOptions.value);
+    } else {
+      throw new Error('Failed to fetch learning paths');
     }
   } catch (err) {
-    console.error('Failed to fetch learning paths:', err);
-    // Fallback to default options - MUST match User model enum exactly!
+    console.error('⚠️  Failed to fetch learning paths from API:', err);
+    // Fallback to hardcoded options if API fails
     learningPathOptions.value = [
       { value: "Front-End Web & Back-End with AI", label: "Front-End Web & Back-End with AI" },
       { value: "React & Back-End with AI", label: "React & Back-End with AI" },
       { value: "Machine Learning", label: "Machine Learning" },
     ];
+    console.log('✅ Using fallback learning paths');
   }
 };
 

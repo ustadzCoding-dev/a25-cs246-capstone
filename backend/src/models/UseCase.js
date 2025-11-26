@@ -63,9 +63,14 @@ const useCaseSchema = new mongoose.Schema({
     default: 'open'
   },
   // Team Composition Requirements
-  // Contoh: [{ learningPath: "Front-End & Back-End with AI", count: 3 }, { learningPath: "Machine Learning", count: 2 }]
+  // Contoh: [{ learningPathId: ObjectId, learningPathName: "Front-End & Back-End with AI", count: 3 }]
   teamComposition: [{
-    learningPath: {
+    learningPathId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LearningPath',
+      required: true
+    },
+    learningPathName: {
       type: String,
       required: true
     },

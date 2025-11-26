@@ -190,6 +190,7 @@
               { value: 'high', label: 'Tinggi' },
               { value: 'critical', label: 'Kritis' }
             ]"
+            placeholder="Pilih prioritas"
             required
           />
         </div>

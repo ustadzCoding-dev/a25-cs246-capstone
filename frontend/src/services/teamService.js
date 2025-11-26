@@ -17,7 +17,8 @@ import api from './api'
 export const getAllTeams = async (params = {}) => {
   try {
     const response = await api.get('/capstone-groups', { params })
-    return response.data
+    // API interceptor returns response.data which is: { success, data: [...teams], meta: { pagination } }
+    return response
   } catch (error) {
     throw error.response?.data || error
   }
@@ -64,8 +65,10 @@ export const getCurrentTeam = async () => {
  */
 export const createTeam = async (teamData) => {
   try {
-    const response = await api.post('/capstone-group/add', teamData)
-    return response.data
+    const response = await api.post('/capstone-group/register', teamData)
+    // API interceptor returns response.data directly
+    // response = { success, message, data, requestId, timestamp }
+    return response
   } catch (error) {
     throw error.response?.data || error
   }
@@ -123,8 +126,23 @@ export const rejectTeam = async (id, reason) => {
  */
 export const deleteTeam = async (id) => {
   try {
-    const response = await api.delete(`/capstone-group/${id}/delete`)
+    const response = await api.delete(`/capstone-group/${id}`)
     return response.data
+  } catch (error) {
+    throw error.response?.data || error
+  }
+}
+
+/**
+ * Edit team members (Student - leader only, pending teams only)
+ * @param {string} id - Team ID
+ * @param {Array} members - New list of member IDs/emails
+ * @returns {Promise} Updated team data
+ */
+export const editTeam = async (id, members) => {
+  try {
+    const response = await api.put(`/capstone-group/${id}/edit`, { members })
+    return response
   } catch (error) {
     throw error.response?.data || error
   }
@@ -137,8 +155,13 @@ export const deleteTeam = async (id) => {
 export const getAllUseCases = async () => {
   try {
     const response = await api.get('/usecases')
-    // API returns { success, data, message } format
-    return response.data
+    // API interceptor returns response.data directly
+    // If response is array, wrap it in success object
+    if (Array.isArray(response)) {
+      return { success: true, data: response }
+    }
+    // If response already has success field, return as is
+    return response
   } catch (error) {
     throw error.response?.data || error
   }
@@ -167,6 +190,7 @@ export default {
   approveTeam,
   rejectTeam,
   deleteTeam,
+  editTeam,
   getAllUseCases,
   getUseCaseById
 }

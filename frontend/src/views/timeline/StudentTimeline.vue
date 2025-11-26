@@ -201,13 +201,13 @@ const timelineItems = computed(() => timelineStore.sortedTimelines)
 const { studentMenuItems } = useStudentMenu()
 
 const currentTimeline = computed(() => {
-  return timelineItems.value.find(item => item.status === 'active')
+  return timelineItems.value.find(item => item.status === 'ongoing')
 })
 
 const stats = computed(() => {
   return {
-    completed: timelineItems.value.filter(item => item.status === 'completed').length,
-    active: timelineItems.value.filter(item => item.status === 'active').length,
+    completed: timelineItems.value.filter(item => item.status === 'overdue').length,
+    active: timelineItems.value.filter(item => item.status === 'ongoing').length,
     upcoming: timelineItems.value.filter(item => item.status === 'upcoming').length
   }
 })

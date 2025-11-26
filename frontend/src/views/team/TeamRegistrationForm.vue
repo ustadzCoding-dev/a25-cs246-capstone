@@ -90,7 +90,7 @@
                     type="email"
                     placeholder="Contoh: anggota@gmail.com"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    @change="fetchStudentLearningPath(index, form.members[index])"
+                    @blur="fetchStudentLearningPath(index, form.members[index])"
                   />
                 </div>
 
@@ -120,7 +120,7 @@
 
               <!-- Add Member Button -->
               <button
-                v-if="form.members.length < (selectedUseCaseTotalTeamSize || 4)"
+                v-if="form.members.length < Math.max(0, (selectedUseCaseTotalTeamSize || 4) - 1)"
                 type="button"
                 @click="form.members.push(''); form.learningPaths.push('')"
                 class="text-primary-600 hover:text-primary-700 font-medium text-sm"
@@ -143,8 +143,8 @@
                 <template v-if="selectedUseCaseComposition && selectedUseCaseComposition.length > 0">
                   <p class="mb-2">Use case ini memerlukan komposisi tim khusus:</p>
                   <ul class="list-disc list-inside space-y-1">
-                    <li v-for="comp in selectedUseCaseComposition" :key="comp.learningPath">
-                      {{ comp.count }} orang dari {{ comp.learningPath }}
+                    <li v-for="comp in selectedUseCaseComposition" :key="comp.learningPathId || comp.learningPath">
+                      {{ comp.count }} orang dari {{ comp.learningPathName || comp.learningPath }}
                     </li>
                   </ul>
                   <p class="mt-2 font-semibold">Total: {{ selectedUseCaseTotalTeamSize }} anggota (termasuk ketua)</p>
@@ -258,10 +258,12 @@ const selectedUseCaseTotalTeamSize = computed(() => {
 watch(() => form.useCase, (newUseCase) => {
   if (newUseCase) {
     const totalSize = selectedUseCaseTotalTeamSize.value
-    // Reset members and learning paths to match total team size
-    form.members = Array(totalSize).fill('')
-    form.learningPaths = Array(totalSize).fill('')
-    console.log(`Adjusted form for ${totalSize} members`)
+    // Subtract 1 because leader is already counted in totalSize
+    const additionalMembersNeeded = Math.max(0, totalSize - 1)
+    // Reset members and learning paths to match additional members needed
+    form.members = Array(additionalMembersNeeded).fill('')
+    form.learningPaths = Array(additionalMembersNeeded).fill('')
+    console.log(`Adjusted form for ${additionalMembersNeeded} additional members (total team size: ${totalSize})`)
   }
 })
 
@@ -287,24 +289,34 @@ const validateForm = () => {
     errors.teamName = 'Nama tim minimal 3 karakter'
     isValid = false
   }
+  console.log('Team name valid:', !errors.teamName)
 
   // Use case validation
   if (!form.useCase) {
     errors.useCase = 'Use case wajib dipilih'
     isValid = false
   }
+  console.log('Use case valid:', !errors.useCase)
 
   // Members validation
   const validMembers = form.members.filter(m => m.trim() !== '')
-  const expectedTeamSize = selectedUseCaseTotalTeamSize.value || 2
+  const totalTeamSize = selectedUseCaseTotalTeamSize.value || 2
+  const expectedAdditionalMembers = Math.max(0, totalTeamSize - 1)
+
+  console.log('Members validation:', {
+    validMembers: validMembers.length,
+    expectedAdditionalMembers,
+    totalTeamSize
+  })
 
   if (validMembers.length === 0) {
     errors.members = 'Minimal 1 anggota tim harus diisi'
     isValid = false
-  } else if (validMembers.length !== expectedTeamSize) {
-    errors.members = `Tim harus memiliki tepat ${expectedTeamSize} anggota (termasuk ketua), Anda input ${validMembers.length}`
+  } else if (validMembers.length !== expectedAdditionalMembers) {
+    errors.members = `Tim harus memiliki tepat ${totalTeamSize} anggota total (1 ketua + ${expectedAdditionalMembers} anggota), Anda input ${validMembers.length + 1}`
     isValid = false
   }
+  console.log('Members valid:', !errors.members)
 
   // Learning paths validation
   const validPaths = form.learningPaths.filter(p => p.trim() !== '')
@@ -312,35 +324,65 @@ const validateForm = () => {
     errors.learningPaths = 'Semua anggota harus memiliki learning path'
     isValid = false
   }
+  console.log('Learning paths valid:', !errors.learningPaths, {
+    validPaths: validPaths.length,
+    validMembers: validMembers.length
+  })
 
   // Validate composition requirements
   if (!errors.learningPaths && selectedUseCaseComposition.value && selectedUseCaseComposition.value.length > 0) {
+    console.log('Checking composition:', selectedUseCaseComposition.value)
+
+    // Include leader's learning path in composition validation
+    const allPaths = [user.value?.learningPath, ...validPaths]
+    console.log('All paths (including leader):', allPaths)
+
     const compositionCount = {}
-    validPaths.forEach(path => {
-      compositionCount[path] = (compositionCount[path] || 0) + 1
+    allPaths.forEach(path => {
+      if (path) { // Only count if path exists
+        compositionCount[path] = (compositionCount[path] || 0) + 1
+      }
     })
+    console.log('Composition count:', compositionCount)
 
     for (const requirement of selectedUseCaseComposition.value) {
-      const actualCount = compositionCount[requirement.learningPath] || 0
+      // Use learningPathName from backend (not learningPath)
+      const learningPathName = requirement.learningPathName || requirement.learningPath
+      const actualCount = compositionCount[learningPathName] || 0
+      console.log('Checking requirement:', {
+        learningPathName,
+        required: requirement.count,
+        actual: actualCount
+      })
+
       if (actualCount !== requirement.count) {
-        errors.learningPaths = `Komposisi tidak sesuai. Dibutuhkan ${requirement.count} dari "${requirement.learningPath}", Anda input ${actualCount}`
+        errors.learningPaths = `Komposisi tidak sesuai. Dibutuhkan ${requirement.count} dari "${learningPathName}", Anda input ${actualCount}`
         isValid = false
         break
       }
     }
   }
+  console.log('Composition valid:', !errors.learningPaths)
 
   // Terms validation
   if (!form.agreeToTerms) {
     errors.agreeToTerms = 'Anda harus menyetujui pernyataan di atas'
     isValid = false
   }
+  console.log('Terms valid:', !errors.agreeToTerms)
+
+  console.log('=== FINAL VALIDATION RESULT ===')
+  console.log('All errors:', errors)
+  console.log('Is valid:', isValid)
 
   return isValid
 }
 
 const handleSubmit = async () => {
-  if (!validateForm()) return
+  if (!validateForm()) {
+    console.log('Form validation failed')
+    return
+  }
 
   loading.value = true
   error.value = ''
@@ -351,26 +393,42 @@ const handleSubmit = async () => {
     const validMembers = form.members.filter(m => m.trim() !== '')
     const validPaths = form.learningPaths.filter(p => p.trim() !== '')
 
+    // Include leader (current user) in members list
+    const allMembers = [user.value?.email, ...validMembers]
+
     // Prepare team data
     const teamData = {
       teamName: form.teamName,
       useCaseId: form.useCase, // Backend expects useCaseId
-      membersUserId: validMembers
+      membersUserId: allMembers
     }
+
+    console.log('Submitting team data:', teamData)
 
     // Call API to create team
     const response = await teamStore.createTeam(teamData)
 
-    if (response.success) {
+    console.log('Team creation response:', response)
+    console.log('Response type:', typeof response)
+    console.log('Response.success:', response?.success)
+    console.log('Response.data:', response?.data)
+    console.log('Response.message:', response?.message)
+
+    if (response && response.success) {
       success.value = 'Tim berhasil didaftarkan! Menunggu persetujuan admin.'
+      console.log('✅ Team creation successful!')
 
       // Redirect after 2 seconds
       setTimeout(() => {
         router.push('/team')
       }, 2000)
+    } else {
+      console.log('❌ Team creation failed - response.success is false or missing')
+      error.value = response?.message || 'Gagal mendaftarkan tim'
     }
 
   } catch (err) {
+    console.error('Team creation error:', err)
     error.value = err.message || 'Gagal mendaftarkan tim. Silakan coba lagi.'
   } finally {
     loading.value = false
@@ -404,8 +462,8 @@ const fetchStudentLearningPath = async (index, studentId) => {
 
     const data = await response.json()
     if (data.success && data.data) {
-      form.learningPaths[index] = data.data.learningPath || ''
-      console.log(`Loaded learning path for ${studentId}: ${data.data.learningPath}`)
+      form.learningPaths[index] = data.data.learningPathName || ''
+      console.log(`Loaded learning path for ${studentId}: ${data.data.learningPathName}`)
     }
   } catch (err) {
     console.error(`Failed to fetch student ${studentId}:`, err)

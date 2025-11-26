@@ -56,6 +56,12 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true, title: "Kelola Tim" },
     },
     {
+      path: "/admin/learning-paths",
+      name: "admin-learning-paths",
+      component: () => import("../views/admin/AdminLearningPaths.vue"),
+      meta: { requiresAuth: true, requiresAdmin: true, title: "Learning Paths" },
+    },
+    {
       path: "/admin/documents",
       name: "admin-documents",
       component: () => import("../views/documents/AdminDocuments.vue"),
@@ -118,6 +124,18 @@ const router = createRouter({
       name: "team-register",
       component: () => import("../views/team/TeamRegistrationForm.vue"),
       meta: { requiresAuth: true, title: "Daftar Tim" },
+    },
+    {
+      path: "/invitations/:id/accept",
+      name: "invitation-accept",
+      component: () => import("../views/invitations/InvitationResponse.vue"),
+      meta: { requiresAuth: true, skipProfileCheck: true },
+    },
+    {
+      path: "/invitations/:id/reject",
+      name: "invitation-reject",
+      component: () => import("../views/invitations/InvitationResponse.vue"),
+      meta: { requiresAuth: true, skipProfileCheck: true },
     },
     {
       path: "/documents",
