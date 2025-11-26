@@ -537,6 +537,8 @@ export const completeProfile = async (req, res) => {
     // Update user
     user.dicodingId = generateDicodingId;
     user.learningPath = normalizedPath;
+    user.learningPathId = learningPathRecord._id;
+    user.learningPathName = normalizedPath;
     user.university = university.trim();
     await user.save();
 
