@@ -4,16 +4,24 @@
       <!-- Page Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Daftar Tim Capstone</h1>
-        <p class="mt-2 text-gray-600">
-          Buat tim capstone baru dengan mengisi form di bawah ini
-        </p>
+        <p class="mt-2 text-gray-600">Buat tim capstone baru dengan mengisi form di bawah ini</p>
       </div>
 
       <!-- Error Alert -->
       <div v-if="error" class="mb-6 p-4 bg-danger-50 border border-danger-200 rounded-lg">
         <div class="flex items-start">
-          <svg class="w-5 h-5 text-danger-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            class="w-5 h-5 text-danger-600 mr-2 flex-shrink-0 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <p class="text-sm text-danger-700">{{ error }}</p>
         </div>
@@ -22,8 +30,18 @@
       <!-- Success Alert -->
       <div v-if="success" class="mb-6 p-4 bg-success-50 border border-success-200 rounded-lg">
         <div class="flex items-start">
-          <svg class="w-5 h-5 text-success-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            class="w-5 h-5 text-success-600 mr-2 flex-shrink-0 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <p class="text-sm text-success-700">{{ success }}</p>
         </div>
@@ -74,11 +92,10 @@
 
           <!-- Members & Learning Paths -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Anggota Tim
-            </label>
+            <label class="block text-sm font-medium text-gray-700 mb-2"> Anggota Tim </label>
             <p class="text-sm text-gray-500 mb-3">
-              Masukkan Email anggota tim (minimal {{ selectedUseCaseTotalTeamSize || 2 }}, maksimal {{ selectedUseCaseTotalTeamSize || 4 }} anggota)
+              Masukkan Email anggota tim (minimal {{ selectedUseCaseTotalTeamSize || 2 }}, maksimal
+              {{ selectedUseCaseTotalTeamSize || 4 }} anggota)
             </p>
 
             <div class="space-y-4">
@@ -109,11 +126,16 @@
                 <button
                   v-if="form.members.length > 1"
                   type="button"
-                  @click="form.members.splice(index, 1); form.learningPaths.splice(index, 1)"
+                  @click="removeMember(index)"
                   class="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
               </div>
@@ -122,7 +144,7 @@
               <button
                 v-if="form.members.length < Math.max(0, (selectedUseCaseTotalTeamSize || 4) - 1)"
                 type="button"
-                @click="form.members.push(''); form.learningPaths.push('')"
+                @click="addMember"
                 class="text-primary-600 hover:text-primary-700 font-medium text-sm"
               >
                 + Tambah Anggota
@@ -135,19 +157,36 @@
           <!-- Team Composition Info -->
           <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
             <div class="flex items-start">
-              <svg class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <div class="text-sm text-blue-700">
                 <p class="font-semibold mb-1">Ketentuan Komposisi Tim:</p>
-                <template v-if="selectedUseCaseComposition && selectedUseCaseComposition.length > 0">
+                <template
+                  v-if="selectedUseCaseComposition && selectedUseCaseComposition.length > 0"
+                >
                   <p class="mb-2">Use case ini memerlukan komposisi tim khusus:</p>
                   <ul class="list-disc list-inside space-y-1">
-                    <li v-for="comp in selectedUseCaseComposition" :key="comp.learningPathId || comp.learningPath">
+                    <li
+                      v-for="comp in selectedUseCaseComposition"
+                      :key="comp.learningPathId || comp.learningPath"
+                    >
                       {{ comp.count }} orang dari {{ comp.learningPathName || comp.learningPath }}
                     </li>
                   </ul>
-                  <p class="mt-2 font-semibold">Total: {{ selectedUseCaseTotalTeamSize }} anggota (termasuk ketua)</p>
+                  <p class="mt-2 font-semibold">
+                    Total: {{ selectedUseCaseTotalTeamSize }} anggota (termasuk ketua)
+                  </p>
                 </template>
                 <template v-else>
                   <ul class="list-disc list-inside space-y-1">
@@ -225,7 +264,7 @@ const form = reactive({
   useCase: '',
   members: [''], // Start with one empty field
   learningPaths: [''],
-  agreeToTerms: false
+  agreeToTerms: false,
 })
 
 const errors = reactive({
@@ -233,7 +272,7 @@ const errors = reactive({
   useCase: '',
   members: '',
   learningPaths: '',
-  agreeToTerms: ''
+  agreeToTerms: '',
 })
 
 // Use case options (fetch from backend)
@@ -255,29 +294,34 @@ const selectedUseCaseTotalTeamSize = computed(() => {
 })
 
 // Auto-adjust member fields when use case changes
-watch(() => form.useCase, (newUseCase) => {
-  if (newUseCase) {
-    const totalSize = selectedUseCaseTotalTeamSize.value
-    // Subtract 1 because leader is already counted in totalSize
-    const additionalMembersNeeded = Math.max(0, totalSize - 1)
-    // Reset members and learning paths to match additional members needed
-    form.members = Array(additionalMembersNeeded).fill('')
-    form.learningPaths = Array(additionalMembersNeeded).fill('')
-    console.log(`Adjusted form for ${additionalMembersNeeded} additional members (total team size: ${totalSize})`)
+watch(
+  () => form.useCase,
+  newUseCase => {
+    if (newUseCase) {
+      const totalSize = selectedUseCaseTotalTeamSize.value
+      // Subtract 1 because leader is already counted in totalSize
+      const additionalMembersNeeded = Math.max(0, totalSize - 1)
+      // Reset members and learning paths to match additional members needed
+      form.members = Array(additionalMembersNeeded).fill('')
+      form.learningPaths = Array(additionalMembersNeeded).fill('')
+      console.log(
+        `Adjusted form for ${additionalMembersNeeded} additional members (total team size: ${totalSize})`
+      )
+    }
   }
-})
+)
 
 const studentMenuItems = [
   { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
   { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
   { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
   { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] }
+  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] },
 ]
 
 const validateForm = () => {
   // Reset errors
-  Object.keys(errors).forEach(key => errors[key] = '')
+  Object.keys(errors).forEach(key => (errors[key] = ''))
 
   let isValid = true
 
@@ -306,7 +350,7 @@ const validateForm = () => {
   console.log('Members validation:', {
     validMembers: validMembers.length,
     expectedAdditionalMembers,
-    totalTeamSize
+    totalTeamSize,
   })
 
   if (validMembers.length === 0) {
@@ -318,41 +362,64 @@ const validateForm = () => {
   }
   console.log('Members valid:', !errors.members)
 
-  // Learning paths validation
-  const validPaths = form.learningPaths.filter(p => p.trim() !== '')
-  if (validPaths.length !== validMembers.length) {
-    errors.learningPaths = 'Semua anggota harus memiliki learning path'
+  // Learning paths validation - use actual form data
+  // Get only members with learning paths already fetched
+  const membersWithPaths = form.members
+    .map((email, idx) => ({
+      email: email.trim(),
+      learningPath: form.learningPaths[idx].trim(),
+    }))
+    .filter(m => m.email !== '') // Only include non-empty emails
+
+  console.log('Members with paths:', membersWithPaths)
+
+  // Check if all members have learning paths fetched
+  const membersWithoutPaths = membersWithPaths.filter(m => m.learningPath === '')
+  if (membersWithoutPaths.length > 0) {
+    errors.learningPaths = `${membersWithoutPaths.length} anggota belum memiliki learning path. Pastikan email sudah benar dan learning path sudah ter-load.`
     isValid = false
   }
   console.log('Learning paths valid:', !errors.learningPaths, {
-    validPaths: validPaths.length,
-    validMembers: validMembers.length
+    membersWithPaths: membersWithPaths.length,
+    membersWithoutPaths: membersWithoutPaths.length,
   })
 
   // Validate composition requirements
-  if (!errors.learningPaths && selectedUseCaseComposition.value && selectedUseCaseComposition.value.length > 0) {
+  if (
+    !errors.learningPaths &&
+    selectedUseCaseComposition.value &&
+    selectedUseCaseComposition.value.length > 0
+  ) {
     console.log('Checking composition:', selectedUseCaseComposition.value)
 
-    // Include leader's learning path in composition validation
-    const allPaths = [user.value?.learningPath, ...validPaths]
-    console.log('All paths (including leader):', allPaths)
+    // Build actual paths list from form data and normalize strings
+    const normalize = s => (s || '').trim().toLowerCase()
+    const leaderPath = (user.value?.learningPathName || user.value?.learningPath || '').trim()
+    const actualPaths = [leaderPath, ...membersWithPaths.map(m => m.learningPath)]
+      .map(p => (p || '').trim())
+      .filter(p => p)
 
+    console.log('All paths (including leader):', actualPaths)
+
+    // Count normalized occurrences to avoid mismatches due to spacing/case
     const compositionCount = {}
-    allPaths.forEach(path => {
-      if (path) { // Only count if path exists
-        compositionCount[path] = (compositionCount[path] || 0) + 1
+    actualPaths.forEach(path => {
+      const key = normalize(path)
+      if (key) {
+        compositionCount[key] = (compositionCount[key] || 0) + 1
       }
     })
-    console.log('Composition count:', compositionCount)
+    console.log('Composition count (normalized):', compositionCount)
 
     for (const requirement of selectedUseCaseComposition.value) {
-      // Use learningPathName from backend (not learningPath)
+      // Use learningPathName from backend and normalize for comparison
       const learningPathName = requirement.learningPathName || requirement.learningPath
-      const actualCount = compositionCount[learningPathName] || 0
+      const key = normalize(learningPathName)
+      const actualCount = compositionCount[key] || 0
       console.log('Checking requirement:', {
         learningPathName,
         required: requirement.count,
-        actual: actualCount
+        actual: actualCount,
       })
 
       if (actualCount !== requirement.count) {
@@ -400,7 +467,7 @@ const handleSubmit = async () => {
     const teamData = {
       teamName: form.teamName,
       useCaseId: form.useCase, // Backend expects useCaseId
-      membersUserId: allMembers
+      membersUserId: allMembers,
     }
 
     console.log('Submitting team data:', teamData)
@@ -416,17 +483,16 @@ const handleSubmit = async () => {
 
     if (response && response.success) {
       success.value = 'Tim berhasil didaftarkan! Menunggu persetujuan admin.'
-      console.log('✅ Team creation successful!')
+      console.log('Team creation successful!')
 
       // Redirect after 2 seconds
       setTimeout(() => {
         router.push('/team')
       }, 2000)
     } else {
-      console.log('❌ Team creation failed - response.success is false or missing')
+      console.log('Team creation failed - response.success is false or missing')
       error.value = response?.message || 'Gagal mendaftarkan tim'
     }
-
   } catch (err) {
     console.error('Team creation error:', err)
     error.value = err.message || 'Gagal mendaftarkan tim. Silakan coba lagi.'
@@ -442,6 +508,16 @@ const handleCancel = () => {
 const handleLogout = () => {
   authStore.logout()
   router.push('/login')
+}
+
+const removeMember = index => {
+  form.members.splice(index, 1)
+  form.learningPaths.splice(index, 1)
+}
+
+const addMember = () => {
+  form.members.push('')
+  form.learningPaths.push('')
 }
 
 // Fetch student learning path by student ID
@@ -478,14 +554,14 @@ const fetchUseCases = async () => {
     console.log('Full response:', response)
 
     // Response is already the array (teamStore returns response.data which is the array)
-    const useCases = Array.isArray(response) ? response : (response.data || [])
+    const useCases = Array.isArray(response) ? response : response.data || []
     console.log('Use cases array:', useCases)
     console.log('Use cases length:', useCases.length)
 
     useCasesData.value = useCases
     useCaseOptions.value = useCases.map(uc => ({
       value: uc._id || uc.id,
-      label: `${uc.usecaseId || uc.code} - ${uc.title || uc.name}`
+      label: `${uc.usecaseId || uc.code} - ${uc.title || uc.name}`,
     }))
   } catch (err) {
     console.error('Failed to fetch use cases:', err)
@@ -495,7 +571,7 @@ const fetchUseCases = async () => {
       { value: 'DC-01', label: 'DC-01 - E-Commerce Platform' },
       { value: 'DC-02', label: 'DC-02 - Learning Management System' },
       { value: 'DC-09', label: 'DC-09 - Event Management System' },
-      { value: 'DC-10', label: 'DC-10 - Job Portal' }
+      { value: 'DC-10', label: 'DC-10 - Job Portal' },
     ]
   } finally {
     loadingUseCases.value = false
