@@ -12,7 +12,7 @@ export const useDocumentStore = defineStore('document', {
       total: 0,
       page: 1,
       limit: 10,
-      totalPages: 0
+      totalPages: 0,
     },
 
     // Loading states
@@ -27,25 +27,25 @@ export const useDocumentStore = defineStore('document', {
     errorCode: null,
     errorDetails: [],
     lastError: null,
-    successMessage: null
+    successMessage: null,
   }),
 
   getters: {
     // Get documents by category
-    getDocumentsByCategory: (state) => (category) => {
+    getDocumentsByCategory: state => category => {
       return state.documents.filter(doc => doc.category === category)
     },
 
     // Get documents by status
-    getDocumentsByStatus: (state) => (status) => {
+    getDocumentsByStatus: state => status => {
       return state.documents.filter(doc => doc.status === status)
     },
 
     // Document categories
-    categories: (state) => {
+    categories: state => {
       const cats = state.documents.map(doc => doc.category)
       return [...new Set(cats)]
-    }
+    },
   },
 
   actions: {
@@ -221,6 +221,30 @@ export const useDocumentStore = defineStore('document', {
       this.error = null
 
       try {
+        // If `id` looks like a Mongo ObjectId, fetch the document first to obtain
+        // the canonical `fileUrl`/`fileName` stored on the server. This avoids
+        // requesting an incorrect static path when the frontend has stale data.
+        const isObjectId = typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)
+
+        if (isObjectId) {
+          try {
+            const docResp = await documentService.getDocumentById(id)
+            if (docResp?.success && docResp.data) {
+              const doc = docResp.data
+              const fileUrl = doc.fileUrl || null
+              const fileName = doc.fileName || filename
+
+              if (fileUrl) {
+                await documentService.triggerDownload(fileUrl, fileName)
+                return { success: true, message: 'Document downloaded successfully' }
+              }
+            }
+          } catch (err) {
+            // If fetching document failed, fall back to direct trigger
+            console.warn('Failed to fetch document record for download fallback', err)
+          }
+        }
+
         await documentService.triggerDownload(id, filename)
         return { success: true, message: 'Document downloaded successfully' }
       } catch (error) {
@@ -241,7 +265,7 @@ export const useDocumentStore = defineStore('document', {
       this.lastError = {
         action: actionName,
         error: error,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }
     },
 
@@ -282,7 +306,7 @@ export const useDocumentStore = defineStore('document', {
         total: 0,
         page: 1,
         limit: 10,
-        totalPages: 0
+        totalPages: 0,
       }
       this.loading = false
       this.documentsLoading = false
@@ -294,6 +318,6 @@ export const useDocumentStore = defineStore('document', {
       this.errorDetails = []
       this.lastError = null
       this.successMessage = null
-    }
-  }
+    },
+  },
 })

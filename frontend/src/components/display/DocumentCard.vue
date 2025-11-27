@@ -27,6 +27,7 @@
         :href="link"
         target="_blank"
         rel="noopener noreferrer"
+        @click.stop
         class="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-700 cursor-pointer"
       >
         Buka Dokumen

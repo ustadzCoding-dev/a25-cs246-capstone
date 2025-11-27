@@ -27,7 +27,7 @@ export const getAllDocuments = async (params = {}) => {
  * @param {string} id - Document ID
  * @returns {Promise} Document data
  */
-export const getDocumentById = async (id) => {
+export const getDocumentById = async id => {
   try {
     const response = await api.get(`/document/${id}`)
     return response
@@ -41,12 +41,12 @@ export const getDocumentById = async (id) => {
  * @param {FormData} formData - Form data with file and metadata
  * @returns {Promise} Created document data
  */
-export const uploadDocument = async (formData) => {
+export const uploadDocument = async formData => {
   try {
     const response = await api.post('/document/add', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        'Content-Type': 'multipart/form-data',
+      },
     })
     return response
   } catch (error) {
@@ -74,7 +74,7 @@ export const updateDocumentAPI = async (id, updateData) => {
  * @param {string} id - Document ID
  * @returns {Promise} Success message
  */
-export const deleteDocument = async (id) => {
+export const deleteDocument = async id => {
   try {
     const response = await api.delete(`/document/${id}`)
     return response
@@ -88,7 +88,7 @@ export const deleteDocument = async (id) => {
  * @param {string} id - Document ID
  * @returns {Promise} Restored document data
  */
-export const restoreDocument = async (id) => {
+export const restoreDocument = async id => {
   try {
     const response = await api.put(`/document/${id}/restore`)
     return response
@@ -102,11 +102,29 @@ export const restoreDocument = async (id) => {
  * @param {string} id - Document ID
  * @returns {Promise} File blob
  */
-export const downloadDocument = async (id) => {
+export const downloadDocument = async id => {
   try {
+    // If `id` looks like a file URL (starts with "/uploads" or is absolute),
+    // download directly from that URL instead of calling the protected API route.
+    const looksLikeFileUrl =
+      typeof id === 'string' && (id.startsWith('/uploads') || id.startsWith('http'))
+
+    if (looksLikeFileUrl) {
+      // Build absolute URL for the static file. If `id` is absolute, use it as-is.
+      const fileUrl = id.startsWith('http')
+        ? id
+        : `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${id}`
+
+      const response = await api.get(fileUrl, {
+        responseType: 'blob',
+      })
+      return response
+    }
+
     const response = await api.get(`/document/${id}/download`, {
-      responseType: 'blob'
+      responseType: 'blob',
     })
+
     return response
   } catch (error) {
     throw error
@@ -120,6 +138,30 @@ export const downloadDocument = async (id) => {
  */
 export const triggerDownload = async (id, filename) => {
   try {
+    // If id looks like a static file URL or absolute URL, let the browser handle it
+    const looksLikeFileUrl =
+      typeof id === 'string' && (id.startsWith('/uploads') || id.startsWith('http'))
+
+    if (looksLikeFileUrl) {
+      // Build absolute URL
+      const absoluteUrl = id.startsWith('http')
+        ? id
+        : `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${id}`
+
+      // Create a temporary link and let browser navigate to it (handles download or open)
+      const link = document.createElement('a')
+      link.href = absoluteUrl
+      // Suggest filename when possible
+      if (filename) link.setAttribute('download', filename)
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      return
+    }
+
     const blob = await downloadDocument(id)
 
     // Create blob URL
@@ -148,5 +190,5 @@ export default {
   deleteDocument,
   restoreDocument,
   downloadDocument,
-  triggerDownload
+  triggerDownload,
 }
