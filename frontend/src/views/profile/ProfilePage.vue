@@ -43,8 +43,8 @@
                 <img
                   v-if="user?.profilePicture"
                   :src="user.profilePicture"
-                  :alt="user?.name"
-                  class="w-full h-full object-cover"
+                  :alt="user?.name || 'avatar'"
+                  class="w-full h-full object-cover rounded-full"
                 />
                 <div
                   v-else
@@ -464,6 +464,22 @@ const menuItems = computed(() => {
   ]
 })
 
+const profilePicture = ref(null)
+
+const fetchUser = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/me`)
+    const data = await response.json()
+    profilePicture.value = data
+  } catch (error) {
+    console.error('Gagal mengambil data user:', error)
+  }
+}
+
+// onMounted(() => {
+//   fetchUser()
+// })
+
 const validateProfileForm = () => {
   profileErrors.name = ''
 
@@ -699,6 +715,7 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
+  fetchUser()
   // Initialize form with user data
   if (user.value) {
     profileForm.name = user.value.name || ''
