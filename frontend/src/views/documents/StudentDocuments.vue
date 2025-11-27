@@ -11,14 +11,17 @@
 
       <!-- Filters -->
       <div class="bg-white rounded-lg shadow p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseSearch v-model="searchQuery" placeholder="Cari dokumen..." />
-
-          <BaseSelect
+        <div class="grid grid-cols-3 gap-4">
+          <div class="col-span-2">
+            <BaseSearch v-model="searchQuery" placeholder="Cari dokumen..." />
+          </div>
+          <div class="col-span-1">
+            <BaseSelect
             v-model="filterCategory"
             :options="categoryOptions"
             placeholder="Semua Kategori"
-          />
+            />
+          </div>
         </div>
       </div>
 
