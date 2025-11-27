@@ -2,22 +2,11 @@
   <DashboardLayout :user="user" :menu-items="studentMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900">Tim Saya</h1>
-          <p class="mt-2 text-gray-600">Kelola tim capstone Anda</p>
-        </div>
-
-        <BaseButton
-          v-if="!hasTeam && !hasPendingTeam"
-          variant="primary"
-          @click="$router.push('/team/register')"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Buat Tim Baru
-        </BaseButton>
+      <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
+        <h1 class="text-2xl font-semibold text-gray-900">Tim Saya</h1>
+        <p class="text-gray-600 text-lg">
+          Kelola informasi tim dan lihat undangan yang masuk di halaman ini.
+        </p>
       </div>
 
       <!-- Loading State -->
