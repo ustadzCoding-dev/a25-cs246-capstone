@@ -2,9 +2,11 @@
   <DashboardLayout :user="user" :menu-items="studentMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Dokumen</h1>
-        <p class="mt-2 text-gray-600">Akses dokumen panduan dan referensi capstone</p>
+      <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
+        <h1 class="text-2xl font-semibold text-gray-900">Dokumen</h1>
+        <p class="text-gray-600 text-lg">
+          Akses dokumen panduan dan referensi capstone
+        </p>
       </div>
 
       <!-- Filters -->
@@ -79,26 +81,16 @@
       <!-- Quick Links -->
       <div class="bg-primary-50 border border-primary-200 rounded-lg p-6">
         <div class="flex items-start">
-          <svg
-            class="w-6 h-6 text-primary-600 mr-3 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
+          <svg class="size-7 text-primary-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div class="flex-1">
-            <h3 class="text-base font-semibold text-primary-900 mb-2">Tips Menggunakan Dokumen</h3>
+            <h3 class="text-lg font-semibold text-blue-700 mb-2">Tips Menggunakan Dokumen</h3>
             <ul class="text-sm text-primary-700 space-y-1 list-disc list-inside">
-              <li>Download dokumen yang relevan dengan tahap project Anda saat ini</li>
-              <li>Gunakan template yang disediakan untuk memudahkan pekerjaan</li>
-              <li>Baca panduan dengan teliti sebelum memulai</li>
-              <li>Jika ada pertanyaan, hubungi mentor atau admin</li>
+              <li class="font-medium">Download dokumen yang relevan dengan tahap project Anda saat ini</li>
+              <li class="font-medium">Gunakan template yang disediakan untuk memudahkan pekerjaan</li>
+              <li class="font-medium">Baca panduan dengan teliti sebelum memulai</li>
+              <li class="font-medium">Jika ada pertanyaan, hubungi mentor atau admin</li>
             </ul>
           </div>
         </div>
