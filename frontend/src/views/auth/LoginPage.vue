@@ -3,8 +3,8 @@
     <div class="bg-white rounded-lg shadow-lg p-8">
       <!-- Header -->
       <div class="text-center mb-8">
-        <h2 class="text-3xl font-bold text-gray-900">Masuk</h2>
-        <p class="mt-2 text-sm text-gray-600">
+        <h1 class="text-2xl font-semibold text-gray-900">Masuk</h1>
+        <p class="mt-2 text-gray-500">
           Masuk ke akun Anda untuk melanjutkan
         </p>
       </div>
