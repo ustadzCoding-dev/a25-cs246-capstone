@@ -7,16 +7,11 @@
     ]"
   >
     <!-- Logo -->
-    <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        </div>
-        <span class="text-xl font-bold text-gray-900">Asah</span>
-      </div>
-      
+    <div class="flex items-center justify-center px-6 border-b border-gray-300">
+        <a href="/dashboard" class="size-20 flex items-center justify-center py-10 w-max my-5 mx-5 px-5 border-2 ">
+          <img src="../../public/img/logo-asah.png" alt="logo-asah">
+        </a>
+
       <!-- Mobile Close Button -->
       <button
         @click="$emit('toggle')"
@@ -27,7 +22,7 @@
         </svg>
       </button>
     </div>
-    
+
     <!-- Navigation Menu -->
     <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
       <router-link
@@ -41,9 +36,9 @@
           :href="item.path"
           @click.prevent="$router.push(item.path)"
           :class="[
-            'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200',
+            'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200',
             isActive
-              ? 'bg-primary-50 text-primary-700'
+              ? 'bg-primary-100 text-primary-700'
               : 'text-gray-700 hover:bg-gray-100'
           ]"
         >
@@ -52,33 +47,35 @@
         </a>
       </router-link>
     </nav>
-    
+
     <!-- User Info & Logout -->
-    <div class="border-t border-gray-200 p-4">
-      <div class="flex items-center space-x-3 mb-3">
-        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-          <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="border-t border-gray-300 p-4">
+      <div class="flex flex-col items-center">
+        <div class="size-20 bg-gray-300 rounded-full flex items-center justify-center ">
+          <svg class="size-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-900 truncate">
+        <div class="flex flex-col items-center mt-3">
+          <p class="text-medium font-medium text-gray-900 truncate">
             {{ user?.name || 'User' }}
           </p>
-          <p class="text-xs text-gray-500 truncate">
+          <p class="uppercase text-sm text-gray-500 truncate">
             {{ user?.role === 'admin' ? 'Administrator' : 'Siswa' }}
           </p>
         </div>
       </div>
-      
+
       <button
         @click="handleLogout"
-        class="w-full flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+        class="mt-5 w-full flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-red-100 transition-colors duration-200"
       >
-        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="w-full flex items-center justify-center">
+        <svg class="w-5 h-5 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
         </svg>
-        <span>Logout</span>
+        <span class="text-red-500">Logout</span>
+      </div>
       </button>
     </div>
   </aside>
@@ -111,7 +108,7 @@ const router = useRouter()
 
 const visibleMenuItems = computed(() => {
   if (!props.user) return []
-  return props.menuItems.filter(item => 
+  return props.menuItems.filter(item =>
     !item.roles || item.roles.includes(props.user.role)
   )
 })
