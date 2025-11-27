@@ -223,9 +223,18 @@ export const googleCallback = async (req, res) => {
       // Update existing Google user
       user.lastLogin = new Date();
 
-      // Update profile picture if changed
-      if (profilePicture && user.profilePicture !== profilePicture) {
-        user.profilePicture = profilePicture;
+      // Update profile picture if changed, but DO NOT overwrite a custom uploaded picture.
+      // Only overwrite when the user has no profilePicture yet or their existing picture is clearly from Google.
+      if (profilePicture) {
+        const existingPic = user.profilePicture || '';
+        const existingIsGoogle = /googleusercontent|gstatic|googleusercontent\.com/.test(
+          existingPic
+        );
+        // If no existing picture, or existing picture is from Google, update it.
+        if (!existingPic || existingIsGoogle) {
+          user.profilePicture = profilePicture;
+        }
+        // Otherwise user has a custom uploaded picture (e.g., Cloudinary) — keep it.
       }
 
       await user.save();

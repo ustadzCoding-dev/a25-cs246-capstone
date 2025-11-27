@@ -1,21 +1,21 @@
-import { defineStore } from "pinia";
-import { ref, computed } from "vue";
-import authService from "../services/authService";
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import authService from '../services/authService'
 
-export const useAuthStore = defineStore("auth", () => {
+export const useAuthStore = defineStore('auth', () => {
   // State
-  const user = ref(null);
-  const token = ref(null);
-  const loading = ref(false);
-  const error = ref(null);
+  const user = ref(null)
+  const token = ref(null)
+  const loading = ref(false)
+  const error = ref(null)
 
   // Getters
-  const isAuthenticated = computed(() => !!token.value);
-  const isAdmin = computed(() => user.value?.role === "admin");
-  const isStudent = computed(() => user.value?.role === "student");
-  const userRole = computed(() => user.value?.role || null);
-  const userName = computed(() => user.value?.name || "");
-  const userEmail = computed(() => user.value?.email || "");
+  const isAuthenticated = computed(() => !!token.value)
+  const isAdmin = computed(() => user.value?.role === 'admin')
+  const isStudent = computed(() => user.value?.role === 'student')
+  const userRole = computed(() => user.value?.role || null)
+  const userName = computed(() => user.value?.name || '')
+  const userEmail = computed(() => user.value?.email || '')
 
   // Actions
 
@@ -23,12 +23,12 @@ export const useAuthStore = defineStore("auth", () => {
    * Initialize auth state from localStorage
    */
   function initAuth() {
-    const storedUser = authService.getCurrentUser();
-    const storedToken = authService.getToken();
+    const storedUser = authService.getCurrentUser()
+    const storedToken = authService.getToken()
 
     if (storedUser && storedToken) {
-      user.value = storedUser;
-      token.value = storedToken;
+      user.value = storedUser
+      token.value = storedToken
     }
   }
 
@@ -37,21 +37,21 @@ export const useAuthStore = defineStore("auth", () => {
    * @param {Object} credentials - { email, password }
    */
   async function login(credentials) {
-    loading.value = true;
-    error.value = null;
+    loading.value = true
+    error.value = null
 
     try {
-      const data = await authService.login(credentials);
+      const data = await authService.login(credentials)
 
-      user.value = data.user;
-      token.value = data.token;
+      user.value = data.user
+      token.value = data.token
 
-      return data;
+      return data
     } catch (err) {
-      error.value = err.message || "Login failed";
-      throw err;
+      error.value = err.message || 'Login failed'
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 
@@ -62,16 +62,16 @@ export const useAuthStore = defineStore("auth", () => {
    * Redirects to backend Google OAuth endpoint
    */
   function loginWithGoogle() {
-    loading.value = true;
-    error.value = null;
+    loading.value = true
+    error.value = null
 
     try {
       // Redirect to backend Google OAuth
-      authService.initiateGoogleLogin();
+      authService.initiateGoogleLogin()
     } catch (err) {
-      loading.value = false;
-      error.value = err.message || "Google login failed";
-      throw err;
+      loading.value = false
+      error.value = err.message || 'Google login failed'
+      throw err
     }
   }
 
@@ -81,39 +81,39 @@ export const useAuthStore = defineStore("auth", () => {
    * @param {string} accessToken - Access token from URL
    */
   async function handleGoogleCallback(accessToken) {
-    loading.value = true;
-    error.value = null;
+    loading.value = true
+    error.value = null
 
     try {
-      const data = await authService.handleGoogleCallback(accessToken);
+      const data = await authService.handleGoogleCallback(accessToken)
 
-      user.value = data.user;
-      token.value = data.token;
+      user.value = data.user
+      token.value = data.token
 
       // Fetch fresh user data to ensure dicodingId is populated
       // This is important for users logging in again after profile completion
-      console.log('📥 Fetching fresh user data after Google login...');
+      console.log('📥 Fetching fresh user data after Google login...')
       try {
-        const freshUserData = await authService.getProfile();
+        const freshUserData = await authService.getProfile()
         if (freshUserData) {
-          user.value = freshUserData;
+          user.value = freshUserData
           console.log('✅ User data refreshed:', {
             email: user.value.email,
             dicodingId: user.value.dicodingId,
-            learningPath: user.value.learningPath
-          });
+            learningPath: user.value.learningPath,
+          })
         }
       } catch (err) {
-        console.warn('⚠️ Failed to refresh user data:', err.message);
+        console.warn('⚠️ Failed to refresh user data:', err.message)
         // Continue anyway - user data from callback is still valid
       }
 
-      return data;
+      return data
     } catch (err) {
-      error.value = err.message || "Failed to complete Google login";
-      throw err;
+      error.value = err.message || 'Failed to complete Google login'
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 
@@ -124,37 +124,37 @@ export const useAuthStore = defineStore("auth", () => {
    * @param {Object} profileData - { learningPath, university }
    */
   async function completeProfile(profileData) {
-    loading.value = true;
-    error.value = null;
+    loading.value = true
+    error.value = null
 
     try {
-      console.log("🔄 Calling completeProfile API with:", profileData);
+      console.log('🔄 Calling completeProfile API with:', profileData)
 
-      const response = await authService.completeProfile(profileData);
+      const response = await authService.completeProfile(profileData)
 
-      console.log("✅ Profile completion response:", response);
+      console.log('✅ Profile completion response:', response)
 
       // Update user data in store and localStorage
       // authService returns { user: userData }
       if (response?.user) {
-        user.value = response.user;
-        localStorage.setItem("user", JSON.stringify(response.user));
+        user.value = response.user
+        localStorage.setItem('user', JSON.stringify(response.user))
 
-        console.log("✅ User data updated in store:", {
+        console.log('✅ User data updated in store:', {
           email: user.value.email,
           dicodingId: user.value.dicodingId,
           learningPath: user.value.learningPath,
-          university: user.value.university
-        });
+          university: user.value.university,
+        })
       }
 
-      return response;
+      return response
     } catch (err) {
-      console.error("❌ Complete profile error:", err);
-      error.value = err.message || "Failed to complete profile";
-      throw err;
+      console.error('❌ Complete profile error:', err)
+      error.value = err.message || 'Failed to complete profile'
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 
@@ -165,21 +165,21 @@ export const useAuthStore = defineStore("auth", () => {
    * @param {Object} userData - { name, email, password, learningPath, university }
    */
   async function register(userData) {
-    loading.value = true;
-    error.value = null;
+    loading.value = true
+    error.value = null
 
     try {
-      const data = await authService.register(userData);
+      const data = await authService.register(userData)
 
-      user.value = data.user;
-      token.value = data.token;
+      user.value = data.user
+      token.value = data.token
 
-      return data;
+      return data
     } catch (err) {
-      error.value = err.message || "Registration failed";
-      throw err;
+      error.value = err.message || 'Registration failed'
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 
@@ -187,28 +187,31 @@ export const useAuthStore = defineStore("auth", () => {
    * Logout user
    */
   function logout() {
-    authService.logout();
-    user.value = null;
-    token.value = null;
-    error.value = null;
+    authService.logout()
+    user.value = null
+    token.value = null
+    error.value = null
   }
 
   /**
    * Get user profile
    */
   async function fetchProfile() {
-    loading.value = true;
-    error.value = null;
+    loading.value = true
+    error.value = null
 
     try {
-      const data = await authService.getProfile();
-      user.value = data;
-      return data;
+      const data = await authService.getProfile()
+      // authService.getProfile now returns a flat user object
+      user.value = data
+      // Ensure token in store is still consistent with localStorage
+      token.value = token.value || localStorage.getItem('token')
+      return data
     } catch (err) {
-      error.value = err.message || "Failed to fetch profile";
-      throw err;
+      error.value = err.message || 'Failed to fetch profile'
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 
@@ -217,18 +220,18 @@ export const useAuthStore = defineStore("auth", () => {
    * @param {Object} userData - Updated user data
    */
   async function updateProfile(userData) {
-    loading.value = true;
-    error.value = null;
+    loading.value = true
+    error.value = null
 
     try {
-      const data = await authService.updateProfile(userData);
-      user.value = data;
-      return data;
+      const data = await authService.updateProfile(userData)
+      user.value = data
+      return data
     } catch (err) {
-      error.value = err.message || "Failed to update profile";
-      throw err;
+      error.value = err.message || 'Failed to update profile'
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 
@@ -236,11 +239,11 @@ export const useAuthStore = defineStore("auth", () => {
    * Clear error
    */
   function clearError() {
-    error.value = null;
+    error.value = null
   }
 
   // Initialize on store creation
-  initAuth();
+  initAuth()
 
   // ========== CRITICAL: RETURN ALL FUNCTIONS ==========
   return {
@@ -269,5 +272,5 @@ export const useAuthStore = defineStore("auth", () => {
     updateProfile,
     clearError,
     initAuth,
-  };
-});
+  }
+})

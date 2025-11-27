@@ -1,4 +1,4 @@
-import api from "./api";
+import api from './api'
 
 const authService = {
   /**
@@ -8,30 +8,30 @@ const authService = {
    */
   async login(credentials) {
     try {
-      const response = await api.post("/auth/login", credentials);
+      const response = await api.post('/auth/login', credentials)
 
       if (response.success && response.data) {
         // ⭐ UBAH: Backend sekarang return 'accessToken' bukan 'token'
-        const token = response.data.accessToken || response.data.token;
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        const token = response.data.accessToken || response.data.token
+        localStorage.setItem('token', token)
+        localStorage.setItem('user', JSON.stringify(response.data.user))
 
         console.log('[AUTH] Login successful:', {
           email: response.data.user.email,
           name: response.data.user.name,
           role: response.data.user.role,
-          provider: response.data.user.provider
-        });
+          provider: response.data.user.provider,
+        })
 
         return {
           user: response.data.user,
           token: token,
-        };
+        }
       }
 
-      throw new Error("Login failed");
+      throw new Error('Login failed')
     } catch (error) {
-      throw error.response?.data || error;
+      throw error.response?.data || error
     }
   },
 
@@ -42,19 +42,19 @@ const authService = {
    */
   async register(userData) {
     try {
-      const response = await api.post("/auth/register", userData);
+      const response = await api.post('/auth/register', userData)
 
       if (response.success && response.data) {
         // Store token in localStorage
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem('token', response.data.token)
+        localStorage.setItem('user', JSON.stringify(response.data.user))
 
-        return response.data;
+        return response.data
       }
 
-      throw new Error("Registration failed");
+      throw new Error('Registration failed')
     } catch (error) {
-      throw error.response?.data || error;
+      throw error.response?.data || error
     }
   },
 
@@ -66,9 +66,8 @@ const authService = {
    */
   initiateGoogleLogin() {
     const googleAuthUrl =
-      import.meta.env.VITE_GOOGLE_AUTH_URL ||
-      "http://localhost:8000/api/auth/google";
-    window.location.href = googleAuthUrl;
+      import.meta.env.VITE_GOOGLE_AUTH_URL || 'http://localhost:8000/api/auth/google'
+    window.location.href = googleAuthUrl
   },
 
   /**
@@ -80,33 +79,33 @@ const authService = {
   async handleGoogleCallback(token) {
     try {
       // Store token
-      localStorage.setItem("token", token);
+      localStorage.setItem('token', token)
 
       // Fetch user profile using the token
-      const response = await api.get("/auth/me", {
+      const response = await api.get('/auth/me', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
+      })
 
       if (response.success && response.data) {
-        const userData = response.data.user || response.data;
+        const userData = response.data.user || response.data
 
         // Store user data
-        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(userData))
 
         return {
           user: userData,
           token: token,
-        };
+        }
       }
 
-      throw new Error("Failed to fetch user profile");
+      throw new Error('Failed to fetch user profile')
     } catch (error) {
       // Clear invalid token
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      throw error.response?.data || error;
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      throw error.response?.data || error
     }
   },
 
@@ -119,35 +118,33 @@ const authService = {
    */
   async completeProfile(profileData) {
     try {
-      console.log("📤 Sending complete profile request:", profileData);
+      console.log('📤 Sending complete profile request:', profileData)
 
-      const response = await api.post("/auth/complete-profile", profileData);
+      const response = await api.post('/auth/complete-profile', profileData)
 
-      console.log("📥 Complete profile response:", response);
+      console.log('📥 Complete profile response:', response)
 
       if (response.success && response.data) {
-        const userData = response.data.user;
+        const userData = response.data.user
 
         // Update user in localStorage
-        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(userData))
 
         return {
           user: userData,
-        };
+        }
       }
 
-      throw new Error(response.message || "Failed to complete profile");
+      throw new Error(response.message || 'Failed to complete profile')
     } catch (error) {
-      console.error("❌ Complete profile service error:", error);
+      console.error('❌ Complete profile service error:', error)
 
       // Better error handling
       if (error.response?.data) {
-        throw new Error(
-          error.response.data.message || "Failed to complete profile"
-        );
+        throw new Error(error.response.data.message || 'Failed to complete profile')
       }
 
-      throw error;
+      throw error
     }
   },
 
@@ -155,8 +152,8 @@ const authService = {
    * Logout user
    */
   logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
   },
 
   /**
@@ -164,16 +161,16 @@ const authService = {
    * @returns {Object|null} - User object or null
    */
   getCurrentUser() {
-    const userStr = localStorage.getItem("user");
+    const userStr = localStorage.getItem('user')
     if (userStr) {
       try {
-        return JSON.parse(userStr);
+        return JSON.parse(userStr)
       } catch (error) {
-        console.error("Error parsing user data:", error);
-        return null;
+        console.error('Error parsing user data:', error)
+        return null
       }
     }
-    return null;
+    return null
   },
 
   /**
@@ -181,7 +178,7 @@ const authService = {
    * @returns {string|null} - Token or null
    */
   getToken() {
-    return localStorage.getItem("token");
+    return localStorage.getItem('token')
   },
 
   /**
@@ -189,7 +186,7 @@ const authService = {
    * @returns {boolean}
    */
   isAuthenticated() {
-    return !!this.getToken();
+    return !!this.getToken()
   },
 
   /**
@@ -197,8 +194,8 @@ const authService = {
    * @returns {boolean}
    */
   isAdmin() {
-    const user = this.getCurrentUser();
-    return user?.role === "admin";
+    const user = this.getCurrentUser()
+    return user?.role === 'admin'
   },
 
   /**
@@ -206,8 +203,8 @@ const authService = {
    * @returns {boolean}
    */
   isStudent() {
-    const user = this.getCurrentUser();
-    return user?.role === "student";
+    const user = this.getCurrentUser()
+    return user?.role === 'student'
   },
 
   /**
@@ -216,17 +213,19 @@ const authService = {
    */
   async getProfile() {
     try {
-      const response = await api.get("/user/profile");
+      const response = await api.get('/user/profile')
 
       if (response.success && response.data) {
-        // Update localStorage with fresh data
-        localStorage.setItem("user", JSON.stringify(response.data));
-        return response.data;
+        // Normalize response: some endpoints return { user: { ... } }
+        const userData = response.data.user || response.data
+        // Update localStorage with flat user object
+        localStorage.setItem('user', JSON.stringify(userData))
+        return userData
       }
 
-      throw new Error("Failed to fetch profile");
+      throw new Error('Failed to fetch profile')
     } catch (error) {
-      throw error.response?.data || error;
+      throw error.response?.data || error
     }
   },
 
@@ -237,19 +236,20 @@ const authService = {
    */
   async updateProfile(userData) {
     try {
-      const response = await api.put("/user/profile/update", userData);
+      const response = await api.put('/user/profile/update', userData)
 
       if (response.success && response.data) {
-        // Update localStorage
-        localStorage.setItem("user", JSON.stringify(response.data));
-        return response.data;
+        // Normalize and update localStorage with flat user object
+        const updated = response.data.user || response.data
+        localStorage.setItem('user', JSON.stringify(updated))
+        return updated
       }
 
-      throw new Error("Failed to update profile");
+      throw new Error('Failed to update profile')
     } catch (error) {
-      throw error.response?.data || error;
+      throw error.response?.data || error
     }
   },
-};
+}
 
-export default authService;
+export default authService

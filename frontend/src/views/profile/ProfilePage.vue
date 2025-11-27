@@ -35,25 +35,27 @@
 
         <form @submit.prevent="handleUpdateProfile" class="p-6 space-y-6">
           <!-- Profile Picture -->
-          <div class="flex items-center space-x-6">
+          <div class="flex items-start space-x-6">
             <div class="flex-shrink-0">
-              <div class="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
-                <svg
-                  class="w-12 h-12 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div
+                class="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden"
+              >
+                <img
+                  v-if="user?.profilePicture"
+                  :src="user.profilePicture"
+                  :alt="user?.name"
+                  class="w-full h-full object-cover"
+                />
+                <div
+                  v-else
+                  class="w-full h-full flex items-center justify-center text-white text-xl font-semibold"
+                  :class="user?.role === 'admin' ? 'bg-primary-500' : 'bg-gray-500'"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+                  {{ initials }}
+                </div>
               </div>
             </div>
-            <div>
+            <div class="flex-1">
               <h3 class="text-lg font-medium text-gray-900">
                 {{ profileForm.name }}
               </h3>
@@ -62,6 +64,44 @@
                 <BaseBadge :variant="user?.role === 'admin' ? 'primary' : 'success'">
                   {{ user?.role === 'admin' ? 'Administrator' : 'Siswa' }}
                 </BaseBadge>
+              </p>
+              <div class="mt-4 flex space-x-2">
+                <div class="relative">
+                  <input
+                    ref="fileInput"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    @change="handleProfilePictureSelect"
+                  />
+                  <BaseButton
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    @click="$refs.fileInput?.click()"
+                    :loading="uploadingProfilePicture"
+                    :disabled="uploadingProfilePicture"
+                  >
+                    Pilih Foto
+                  </BaseButton>
+                </div>
+                <BaseButton
+                  v-if="user?.profilePicture"
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  @click="handleDeleteProfilePicture"
+                  :loading="deletingProfilePicture"
+                  :disabled="deletingProfilePicture"
+                >
+                  Hapus Foto
+                </BaseButton>
+              </div>
+              <p v-if="profilePictureError" class="text-sm text-danger-600 mt-2">
+                {{ profilePictureError }}
+              </p>
+              <p v-if="profilePictureSuccess" class="text-sm text-success-600 mt-2">
+                {{ profilePictureSuccess }}
               </p>
             </div>
           </div>
@@ -299,6 +339,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import * as userService from '../../services/userService'
+import * as profilePictureService from '../../services/profilePictureService'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import BaseInput from '../../components/base/BaseInput.vue'
 import BasePasswordInput from '../../components/base/BasePasswordInput.vue'
@@ -316,6 +357,11 @@ const updatingProfile = ref(false)
 const changingPassword = ref(false)
 const deletingAccount = ref(false)
 const showDeleteModal = ref(false)
+const uploadingProfilePicture = ref(false)
+const deletingProfilePicture = ref(false)
+const profilePictureError = ref('')
+const profilePictureSuccess = ref('')
+const fileInput = ref(null)
 
 const profileForm = reactive({
   name: '',
@@ -328,6 +374,16 @@ const profileErrors = reactive({
 })
 
 const profileError = ref('')
+
+const initials = computed(() => {
+  const name = user.value?.name || ''
+  if (!name) return ''
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  const first = parts[0].charAt(0)
+  const last = parts[parts.length - 1].charAt(0)
+  return (first + last).toUpperCase()
+})
 
 const passwordForm = reactive({
   currentPassword: '',
@@ -538,6 +594,93 @@ const handleDeleteAccount = async () => {
     console.error('Failed to delete account:', err)
   } finally {
     deletingAccount.value = false
+  }
+}
+
+const handleProfilePictureSelect = async event => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  // Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024
+  if (file.size > maxSize) {
+    profilePictureError.value = 'Ukuran file maksimal 5MB'
+    profilePictureSuccess.value = ''
+    return
+  }
+
+  // Validate file type
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    profilePictureError.value = 'Hanya file gambar (JPEG, PNG, GIF, WebP) yang diperbolehkan'
+    profilePictureSuccess.value = ''
+    return
+  }
+
+  uploadingProfilePicture.value = true
+  profilePictureError.value = ''
+  profilePictureSuccess.value = ''
+
+  try {
+    const response = await profilePictureService.uploadProfilePicture(file)
+
+    if (response.success) {
+      profilePictureSuccess.value = 'Foto profil berhasil diperbarui!'
+
+      // If API returned updated user object, persist it immediately so it survives logout/login
+      const returnedUser = response.data?.user || response.user || null
+      if (returnedUser) {
+        // Update auth store and localStorage
+        authStore.user = returnedUser
+        localStorage.setItem('user', JSON.stringify(returnedUser))
+      } else {
+        // Fallback: refresh from server
+        await authStore.fetchProfile()
+      }
+    } else {
+      profilePictureError.value = response.message || 'Gagal mengunggah foto'
+    }
+  } catch (err) {
+    profilePictureError.value = err.message || 'Gagal mengunggah foto'
+    console.error('Error uploading profile picture:', err)
+  } finally {
+    uploadingProfilePicture.value = false
+    // Reset file input
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+  }
+}
+
+const handleDeleteProfilePicture = async () => {
+  if (!confirm('Apakah Anda yakin ingin menghapus foto profil?')) {
+    return
+  }
+
+  deletingProfilePicture.value = true
+  profilePictureError.value = ''
+  profilePictureSuccess.value = ''
+
+  try {
+    const response = await profilePictureService.deleteProfilePicture()
+    if (response.success) {
+      profilePictureSuccess.value = 'Foto profil berhasil dihapus!'
+
+      const returnedUser = response.data?.user || response.user || null
+      if (returnedUser) {
+        authStore.user = returnedUser
+        localStorage.setItem('user', JSON.stringify(returnedUser))
+      } else {
+        await authStore.fetchProfile()
+      }
+    } else {
+      profilePictureError.value = response.message || 'Gagal menghapus foto'
+    }
+  } catch (err) {
+    profilePictureError.value = err.message || 'Gagal menghapus foto'
+    console.error('Error deleting profile picture:', err)
+  } finally {
+    deletingProfilePicture.value = false
   }
 }
 

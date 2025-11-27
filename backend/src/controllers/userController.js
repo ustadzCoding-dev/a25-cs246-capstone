@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import { uploadProfilePicture, deleteProfilePicture } from '../services/CloudinaryService.js';
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -186,5 +187,67 @@ export const changePassword = async (req, res) => {
     }
     console.log('Error in changePassword:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+export const uploadProfilePictureController = async (req, res) => {
+  try {
+    // req.user sudah diisi oleh middleware protect
+    const userId = req.user.id || req.user._id;
+
+    // Cek apakah file ada
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file provided'
+      });
+    }
+
+    // Upload file ke Cloudinary
+    const profilePictureUrl = await uploadProfilePicture(
+      req.file.buffer,
+      req.file.originalname,
+      userId
+    );
+
+    // Update user dengan URL profile picture
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { profilePicture: profilePictureUrl },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile picture uploaded successfully',
+      data: {
+        profilePicture: profilePictureUrl,
+        user
+      }
+    });
+  } catch (error) {
+    console.error('Error in uploadProfilePictureController:', error);
+    res.status(500).json({ success: false, message: error.message || 'Internal Server Error' });
+  }
+};
+
+export const deleteProfilePictureController = async (req, res) => {
+  try {
+    const userId = req.user.id || req.user._id;
+
+    // Hapus foto dari Cloudinary
+    await deleteProfilePicture(userId);
+
+    // Update user, set profilePicture ke null
+    const user = await User.findByIdAndUpdate(userId, { profilePicture: null }, { new: true });
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile picture deleted successfully',
+      data: user
+    });
+  } catch (error) {
+    console.error('Error in deleteProfilePictureController:', error);
+    res.status(500).json({ success: false, message: error.message || 'Internal Server Error' });
   }
 };

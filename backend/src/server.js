@@ -1,6 +1,6 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
@@ -13,15 +13,9 @@ import { responseFormatter } from './middleware/responseFormatter.js';
 import { auditLogger } from './middleware/auditLogger.js';
 import { handleError } from './utils/errorHandler.js';
 import { multerErrorHandler } from './middleware/multerErrorHandler.js';
-import {
-  helmetMiddleware,
-  limiter,
-  preventHPP,
-  customHeaders
-} from './middleware/security.js';
+import { helmetMiddleware, limiter, preventHPP, customHeaders } from './middleware/security.js';
 
-// Load environment variables
-dotenv.config();
+// Environment variables are loaded via `import 'dotenv/config'` above
 
 // Initialize Express app
 const app = express();
@@ -101,9 +95,7 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     services: {
       database: 'connected',
-      googleOAuth: process.env.GOOGLE_CLIENT_ID
-        ? 'configured'
-        : 'not configured'
+      googleOAuth: process.env.GOOGLE_CLIENT_ID ? 'configured' : 'not configured'
     }
   });
 });
@@ -137,13 +129,8 @@ app.listen(PORT, () => {
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`Health check: http://localhost:${PORT}/health`);
   logger.info(`API Docs: http://localhost:${PORT}/api-docs`);
-  logger.info(
-    `Google OAuth: ${process.env.GOOGLE_CLIENT_ID ? 'Configured' : 'Not Configured'
-    }`
-  );
-  logger.info(
-    `Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`
-  );
+  logger.info(`Google OAuth: ${process.env.GOOGLE_CLIENT_ID ? 'Configured' : 'Not Configured'}`);
+  logger.info(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
 });
 
 export default app;

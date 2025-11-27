@@ -1,6 +1,7 @@
 import express from 'express';
 import authRoutes from './auth.js';
 import upload from '../middleware/multer.js';
+import uploadProfilePicture from '../middleware/multerProfilePicture.js';
 import { protect } from '../middleware/auth.js';
 import { adminOnly, studentOnly } from '../middleware/authorize.js';
 import { validate, teamSchema, timelineSchema, announcementSchema } from '../utils/validators.js';
@@ -13,7 +14,9 @@ import {
   getAllUsers,
   getUserById,
   updateUserProfile,
-  changePassword
+  changePassword,
+  uploadProfilePictureController,
+  deleteProfilePictureController
 } from '../controllers/userController.js';
 import {
   getAllCapstoneGroups,
@@ -115,6 +118,13 @@ router.get('/users', protect, getAllUsers);
 router.get('/user/profile', protect, getUserById);
 router.put('/user/profile/update', protect, updateUserProfile);
 router.put('/user/password/change', protect, changePassword);
+router.post(
+  '/user/profile-picture/upload',
+  protect,
+  uploadProfilePicture.single('profilePicture'),
+  uploadProfilePictureController
+);
+router.delete('/user/profile-picture/delete', protect, deleteProfilePictureController);
 
 // ========== LEARNING PATHS ==========
 // Get all active learning paths (public - for student profile)
