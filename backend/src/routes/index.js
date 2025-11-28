@@ -195,7 +195,7 @@ router.post(
 );
 
 // Student: Edit pending team (Leader only)
-router.put('/capstone-group/:id/edit', protect, studentOnly, validate(teamSchema.create), editTeam);
+router.put('/capstone-group/:id/edit', protect, studentOnly, validate(teamSchema.edit), editTeam);
 
 // All: View teams
 router.get('/capstone-groups', protect, getAllCapstoneGroups);

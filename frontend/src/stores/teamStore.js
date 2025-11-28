@@ -14,7 +14,7 @@ export const useTeamStore = defineStore('team', {
       total: 0,
       page: 1,
       limit: 10,
-      totalPages: 0
+      totalPages: 0,
     },
 
     // Loading states
@@ -28,20 +28,20 @@ export const useTeamStore = defineStore('team', {
     errorCode: null,
     errorDetails: [],
     lastError: null, // Store last error for debugging
-    successMessage: null
+    successMessage: null,
   }),
 
   getters: {
     // Get teams by status
-    pendingTeams: (state) => state.teams.filter(team => team.status === 'pending'),
-    approvedTeams: (state) => state.teams.filter(team => team.status === 'approved'),
-    rejectedTeams: (state) => state.teams.filter(team => team.status === 'rejected'),
+    pendingTeams: state => state.teams.filter(team => team.status === 'pending'),
+    approvedTeams: state => state.teams.filter(team => team.status === 'approved'),
+    rejectedTeams: state => state.teams.filter(team => team.status === 'rejected'),
 
     // Check if user has a team
-    hasTeam: (state) => state.currentTeam !== null,
+    hasTeam: state => state.currentTeam !== null,
 
     // Get team status
-    teamStatus: (state) => state.currentTeam?.status || null
+    teamStatus: state => state.currentTeam?.status || null,
   },
 
   actions: {
@@ -303,27 +303,66 @@ export const useTeamStore = defineStore('team', {
       this.error = null
 
       try {
-        const response = await teamService.editTeam(id, teamData)
+        console.log('[teamStore.editTeam] Starting edit for team:', id)
+        console.log('[teamStore.editTeam] Team data:', JSON.stringify(teamData, null, 2))
 
-        if (response.success) {
+        if (!id) {
+          console.error('[teamStore.editTeam] No team ID provided')
+          throw new Error('Team ID is required')
+        }
+
+        if (!teamData || !teamData.membersUserId) {
+          console.error('[teamStore.editTeam] Invalid team data:', teamData)
+          throw new Error('Team data and members are required')
+        }
+
+        console.log('[teamStore.editTeam] Calling teamService.editTeam...')
+        const response = await teamService.editTeam(id, teamData)
+        console.log('[teamStore.editTeam] Raw response:', response)
+        console.log('[teamStore.editTeam] Response type:', typeof response)
+        console.log('[teamStore.editTeam] Response success:', response?.success)
+
+        if (response && response.success !== false) {
+          console.log('[teamStore.editTeam] Updating local state...')
           // Update current team with new data
           if (this.currentTeam?.id === id || this.currentTeam?._id === id) {
-            this.currentTeam = response.data.team
+            const updatedTeam = response.data?.team || response.team || response
+            this.currentTeam = updatedTeam
+            console.log('[teamStore.editTeam] Updated current team:', this.currentTeam)
           }
 
           // Update team in list
           const index = this.teams.findIndex(team => team._id === id || team.id === id)
           if (index !== -1) {
-            this.teams[index] = response.data.team
+            const updatedTeam = response.data?.team || response.team || response
+            this.teams[index] = updatedTeam
+            console.log('[teamStore.editTeam] Updated team in list at index:', index)
           }
         }
 
+        console.log('[teamStore.editTeam] Edit completed successfully')
         return response
       } catch (error) {
-        this.error = error.message || 'Failed to edit team'
+        console.error('[teamStore.editTeam] Error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          stack: error.stack,
+        })
+
+        let errorMessage = 'Failed to edit team'
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message
+        } else if (error.message) {
+          errorMessage = error.message
+        }
+
+        this.error = errorMessage
+        console.error('[teamStore.editTeam] Setting error:', errorMessage)
         throw error
       } finally {
         this.loading = false
+        console.log('[teamStore.editTeam] Loading state cleared')
       }
     },
 
@@ -360,14 +399,27 @@ export const useTeamStore = defineStore('team', {
      * Handle error with detailed tracking
      */
     setError(error, actionName = 'unknown') {
-      this.error = error.message || 'An error occurred'
-      this.errorCode = error.code || 'UNKNOWN_ERROR'
-      this.errorDetails = error.details || []
+      // Handle both string and error object inputs
+      if (typeof error === 'string') {
+        this.error = error
+        this.errorCode = 'UNKNOWN_ERROR'
+        this.errorDetails = []
+      } else {
+        this.error = error?.message || 'An error occurred'
+        this.errorCode = error?.code || 'UNKNOWN_ERROR'
+        this.errorDetails = error?.details || []
+      }
+
       this.lastError = {
         action: actionName,
         error: error,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }
+
+      // Auto-clear error message after 8 seconds
+      setTimeout(() => {
+        this.error = null
+      }, 8000)
     },
 
     /**
@@ -408,7 +460,7 @@ export const useTeamStore = defineStore('team', {
         total: 0,
         page: 1,
         limit: 10,
-        totalPages: 0
+        totalPages: 0,
       }
       this.loading = false
       this.teamsLoading = false
@@ -419,6 +471,6 @@ export const useTeamStore = defineStore('team', {
       this.errorDetails = []
       this.lastError = null
       this.successMessage = null
-    }
-  }
+    },
+  },
 })

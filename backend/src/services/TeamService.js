@@ -192,10 +192,12 @@ export class TeamService {
   async editTeam(teamId, leaderId, editData) {
     console.log('[editTeam] Starting edit for team:', teamId);
     console.log('[editTeam] New members:', editData.membersUserId);
+    console.log('[editTeam] Edit data received:', editData);
 
     // 1. Find team
     const team = await this.findTeamById(teamId);
     console.log('[editTeam] Team found:', team.teamName);
+    console.log('[editTeam] Current team members:', team.membersUserId);
 
     // 2. Verify leader owns this team
     const isLeader = team.membersUserId.some((m) => m._id.toString() === leaderId.toString());
@@ -212,13 +214,24 @@ export class TeamService {
 
     // 4. Validate new members and convert emails to ObjectIds
     console.log('[editTeam] Validating new members...');
+    console.log('[editTeam] Members to validate:', editData.membersUserId);
     const newMembers = await this.validateMembers(editData.membersUserId);
     const newMemberIds = newMembers.map((m) => m._id);
     console.log('[editTeam] New members converted to IDs:', newMemberIds);
+    console.log(
+      '[editTeam] New members details:',
+      newMembers.map((m) => ({ id: m._id, email: m.email, name: m.name }))
+    );
 
     // 5. Validate team composition
     console.log('[editTeam] Validating team composition...');
-    const useCase = await this.validateUseCase(team.useCaseId);
+    const useCaseIdToUse = editData.useCaseId || team.useCaseId;
+    const useCase = await this.validateUseCase(useCaseIdToUse);
+    console.log('[editTeam] Use case requirements:', {
+      totalTeamSize: useCase.totalTeamSize,
+      teamComposition: useCase.teamComposition,
+      availableSlots: useCase.availableSlots
+    });
     await this.validateTeamComposition(newMemberIds, useCase);
     console.log('[editTeam] Team composition validated!');
 
@@ -280,11 +293,14 @@ export class TeamService {
       console.log('[editTeam] Use case slots reduced!');
     }
 
-    // 10. Update team members
-    console.log('[editTeam] Updating team members...');
+    // 10. Update team members and other fields
+    console.log('[editTeam] Updating team...');
     team.membersUserId = newMemberIds;
     if (editData.teamName) {
-      team.teamName = editData.teamName.trim();
+      team.teamName = editData.teamName;
+    }
+    if (editData.useCaseId && editData.useCaseId !== team.useCaseId.toString()) {
+      team.useCaseId = editData.useCaseId;
     }
     await team.save();
     console.log('[editTeam] Team updated!');
@@ -781,8 +797,15 @@ export class TeamService {
     // Check for duplicates
     const uniqueIds = new Set(memberIds);
     if (uniqueIds.size !== memberIds.length) {
+      console.log('[validateTeamComposition] Duplicate members detected:', memberIds);
       throw new ValidationError('Duplicate members not allowed');
     }
+
+    console.log(
+      '[validateTeamComposition] Validating composition for:',
+      memberIds.length,
+      'members'
+    );
 
     // If use case has custom composition requirements
     if (useCase.teamComposition && useCase.teamComposition.length > 0) {
@@ -827,6 +850,10 @@ export class TeamService {
           }
         }
 
+        console.log(
+          `[validateTeamComposition] Requirement "${requirement.learningPathName}": expected ${requirement.count}, got ${actualCount}`
+        );
+
         if (actualCount !== requirement.count) {
           throw new ValidationError(
             `Team composition mismatch. Expected ${requirement.count} member(s) from "${requirement.learningPathName}", got ${actualCount}`
@@ -835,6 +862,9 @@ export class TeamService {
       }
 
       // Check total team size matches
+      console.log(
+        `[validateTeamComposition] Total size check: expected ${useCase.totalTeamSize}, got ${memberIds.length}`
+      );
       if (memberIds.length !== useCase.totalTeamSize) {
         throw new ValidationError(
           `Team must have exactly ${useCase.totalTeamSize} members, got ${memberIds.length}`
@@ -842,6 +872,7 @@ export class TeamService {
       }
     } else {
       // Default validation: 2-4 members with same learning path
+      console.log(`[validateTeamComposition] Default validation: ${memberIds.length} members`);
       if (memberIds.length < 2 || memberIds.length > 4) {
         throw new ValidationError('Team must have 2-4 members');
       }

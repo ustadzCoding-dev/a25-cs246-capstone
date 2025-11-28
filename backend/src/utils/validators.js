@@ -59,6 +59,11 @@ export const teamSchema = {
     membersUserId: Joi.array().items(Joi.string()).required().min(2).max(4),
     useCaseId: Joi.string().required()
   }),
+  edit: Joi.object({
+    teamName: Joi.string().optional().min(3).max(100).trim(),
+    membersUserId: Joi.array().items(Joi.string()).required().min(1).max(6),
+    useCaseId: Joi.string().optional()
+  }),
   reject: Joi.object({
     reason: Joi.string().required().min(5).max(500).trim()
   })
@@ -78,11 +83,9 @@ export const usecaseSchema = {
 // Learning Group validation
 export const learningGroupSchema = {
   create: Joi.object({
-    cohort: Joi.string().required().valid(
-      'Front-End Web & Back-End with AI',
-      'React & Back-End with AI',
-      'Machine Learning'
-    ),
+    cohort: Joi.string()
+      .required()
+      .valid('Front-End Web & Back-End with AI', 'React & Back-End with AI', 'Machine Learning'),
     mentorName: Joi.string().required().min(3).max(100).trim(),
     maxMembers: Joi.number().required().min(1).max(50)
   }),

@@ -9,10 +9,7 @@ export const registerTeam = asyncHandler(async (req, res) => {
   const { teamName, membersUserId, useCaseId } = req.validatedBody;
   const userId = req.user._id;
 
-  const team = await TeamService.createTeam(
-    { teamName, membersUserId, useCaseId },
-    userId
-  );
+  const team = await TeamService.createTeam({ teamName, membersUserId, useCaseId }, userId);
 
   res.success(team, 'Team registered successfully', 201);
 });
@@ -23,13 +20,20 @@ export const registerTeam = asyncHandler(async (req, res) => {
  */
 export const editTeam = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { teamName, membersUserId } = req.validatedBody;
+  const { teamName, membersUserId, useCaseId } = req.validatedBody;
   const leaderId = req.user._id;
 
-  const result = await TeamService.editTeam(id, leaderId, {
+  const editData = {
     teamName,
     membersUserId
-  });
+  };
+
+  // Only include useCaseId if provided
+  if (useCaseId) {
+    editData.useCaseId = useCaseId;
+  }
+
+  const result = await TeamService.editTeam(id, leaderId, editData);
 
   res.success(result, 'Team edited successfully', 200);
 });

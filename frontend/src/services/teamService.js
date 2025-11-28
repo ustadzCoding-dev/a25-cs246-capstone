@@ -29,7 +29,7 @@ export const getAllTeams = async (params = {}) => {
  * @param {string} id - Team ID
  * @returns {Promise} Team data
  */
-export const getTeamById = async (id) => {
+export const getTeamById = async id => {
   try {
     const response = await api.get(`/capstone-group/${id}`)
     return response.data
@@ -63,7 +63,7 @@ export const getCurrentTeam = async () => {
  * @param {Array} teamData.members - Array of team members
  * @returns {Promise} Created team data
  */
-export const createTeam = async (teamData) => {
+export const createTeam = async teamData => {
   try {
     const response = await api.post('/capstone-group/register', teamData)
     // API interceptor returns response.data directly
@@ -129,10 +129,30 @@ export const rejectTeam = async (id, reason) => {
  */
 export const editTeam = async (id, teamData) => {
   try {
+    console.log('[teamService.editTeam] Sending request:', { id, teamData })
     const response = await api.put(`/capstone-group/${id}/edit`, teamData)
+    console.log('[teamService.editTeam] Response:', response.data)
     return response.data
   } catch (error) {
-    throw error.response?.data || error
+    console.error('[teamService.editTeam] Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      responseData: error.response?.data,
+      requestData: teamData,
+    })
+
+    // Extract meaningful error message
+    const errorData = error.response?.data
+    if (errorData) {
+      const errorMessage = errorData.error?.message || errorData.message || 'Failed to edit team'
+      const err = new Error(errorMessage)
+      err.code = errorData.error?.code || 'EDIT_TEAM_ERROR'
+      err.details = errorData.error?.details || []
+      err.status = error.response?.status
+      throw err
+    }
+    throw error
   }
 }
 
@@ -141,7 +161,7 @@ export const editTeam = async (id, teamData) => {
  * @param {string} id - Team ID
  * @returns {Promise} Success message
  */
-export const deleteTeam = async (id) => {
+export const deleteTeam = async id => {
   try {
     const response = await api.delete(`/capstone-group/${id}`)
     return response.data
@@ -174,7 +194,7 @@ export const getAllUseCases = async () => {
  * @param {string} id - Use case ID
  * @returns {Promise} Use case data
  */
-export const getUseCaseById = async (id) => {
+export const getUseCaseById = async id => {
   try {
     const response = await api.get(`/usecase/${id}`)
     return response.data
@@ -194,5 +214,5 @@ export default {
   editTeam,
   deleteTeam,
   getAllUseCases,
-  getUseCaseById
+  getUseCaseById,
 }

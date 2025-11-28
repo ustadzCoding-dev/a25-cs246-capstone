@@ -127,12 +127,100 @@
           </div>
         </div>
 
+        <!-- Error/Success Messages -->
+        <div v-if="teamStore.error" class="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <div class="flex items-start justify-between">
+            <div class="flex">
+              <svg
+                class="h-5 w-5 text-red-400 flex-shrink-0"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-red-800">
+                  {{ teamStore.error }}
+                </p>
+              </div>
+            </div>
+            <button @click="teamStore.clearError()" class="ml-4 text-red-500 hover:text-red-700">
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fill-rule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div
+          v-if="teamStore.successMessage"
+          class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4"
+        >
+          <div class="flex items-start justify-between">
+            <div class="flex">
+              <svg
+                class="h-5 w-5 text-green-400 flex-shrink-0"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              <div class="ml-3">
+                <p class="text-sm font-medium text-green-800">
+                  {{ teamStore.successMessage }}
+                </p>
+              </div>
+            </div>
+            <button
+              @click="teamStore.successMessage = null"
+              class="ml-4 text-green-500 hover:text-green-700"
+            >
+              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fill-rule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Debug Info (remove in production) -->
+        <div class="bg-gray-100 border border-gray-300 rounded-lg p-4 mt-6 text-xs">
+          <p><strong>Debug Info:</strong></p>
+          <p>isLeader: {{ isLeader }}</p>
+          <p>hasPendingTeam: {{ hasPendingTeam }}</p>
+          <p>activeTeam._id: {{ activeTeam?._id }}</p>
+          <p>activeTeam.id: {{ activeTeam?.id }}</p>
+          <p>activeTeam.teamName: {{ activeTeam?.teamName }}</p>
+          <p>activeTeam.status: {{ activeTeam?.status }}</p>
+          <p>user.email: {{ user?.email }}</p>
+          <p>activeTeam.leader?.email: {{ activeTeam?.leader?.email }}</p>
+          <p>membersUserId count: {{ activeTeam?.membersUserId?.length }}</p>
+          <p>vacancies: {{ vacancies }}</p>
+          <p>totalTeamSize: {{ totalTeamSize }}</p>
+        </div>
+
         <!-- Pending Team Info -->
         <div class="bg-white rounded-lg shadow p-6 mt-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Informasi Tim (Pending)</h2>
           <TeamInfoCard :team="pendingTeam" />
           <!-- Replacement slots for leader to fill rejected/invited seats -->
-          <div v-if="isLeader" class="mt-6">
+          <!-- Show for leader OR if team has vacancies (temporary fix) -->
+          <div v-if="isLeader || vacancies > 0" class="mt-6">
             <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
               <h3 class="text-sm font-semibold text-yellow-900 mb-2">Isi Slot Kosong</h3>
               <p class="text-sm text-yellow-700 mb-3">
@@ -181,11 +269,34 @@
                       class="flex-1 px-3 py-2 border rounded"
                     />
                     <button
-                      class="px-3 py-2 bg-primary-600 text-white rounded"
+                      class="px-3 py-2 bg-primary-600 text-white rounded disabled:bg-gray-400"
                       @click="addReplacement(n - 1)"
-                      :disabled="!replacementInputs[n - 1]"
+                      :disabled="!replacementInputs[n - 1] || addingReplacement[n - 1]"
                     >
-                      Tambah
+                      <span v-if="addingReplacement[n - 1]">
+                        <svg
+                          class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Menambahkan...
+                      </span>
+                      <span v-else> Tambah </span>
                     </button>
                   </div>
                 </div>
@@ -393,7 +504,35 @@ const hasPendingTeam = computed(() => teamStore.hasTeam && activeTeam.value?.sta
 const { studentMenuItems } = useStudentMenu()
 
 const isLeader = computed(() => {
-  return activeTeam.value?.leader?.email === user.value?.email
+  // Check multiple ways to determine if current user is the leader
+  const team = activeTeam.value
+  const currentUser = user.value
+
+  if (!team || !currentUser) return false
+
+  // Method 1: Check leader object email
+  if (team.leader?.email === currentUser.email) return true
+
+  // Method 2: Check if current user is first member in membersUserId
+  const members = team.membersUserId || []
+  if (members.length > 0) {
+    const firstMember = members[0]
+    if (typeof firstMember === 'object' && firstMember !== null) {
+      if (firstMember._id === currentUser._id || firstMember.email === currentUser.email) {
+        return true
+      }
+    }
+  }
+
+  // Method 3: Check leaderId field
+  if (team.leaderId) {
+    if (typeof team.leaderId === 'object') {
+      return team.leaderId._id === currentUser._id || team.leaderId.email === currentUser.email
+    }
+    return team.leaderId === currentUser._id
+  }
+
+  return false
 })
 
 const statusVariant = computed(() => {
@@ -433,6 +572,7 @@ const vacancies = computed(() => {
 })
 
 const replacementInputs = ref([])
+const addingReplacement = ref({})
 
 // Helper to normalize useCaseId to string if component holds full object
 const normalizeUseCaseId = uc => {
@@ -504,63 +644,227 @@ const removePlaceholder = async index => {
 }
 
 const addReplacement = async idx => {
+  console.log(`[addReplacement] ===== FUNCTION CALLED =====`)
+  console.log(`[addReplacement] Index: ${idx}`)
+  console.log(`[addReplacement] Raw input value:`, replacementInputs.value[idx])
+
   const value = (replacementInputs.value[idx] || '').trim()
-  if (!value) return
+  console.log(`[addReplacement] Trimmed value: "${value}"`)
+  console.log(`[addReplacement] Value length: ${value.length}`)
+
+  if (!value) {
+    console.log(`[addReplacement] Empty value - showing error`)
+    teamStore.setError('Masukkan email atau student ID anggota pengganti', 'addReplacement')
+    return
+  }
+
+  // Set loading state for this specific input
+  console.log(`[addReplacement] Setting loading state for index ${idx}`)
+  // Ensure addingReplacement is reactive
+  if (!addingReplacement.value) {
+    addingReplacement.value = {}
+  }
+  addingReplacement.value = { ...addingReplacement.value, [idx]: true }
 
   try {
-    const members = Array.from(activeTeam.value.membersUserId || [])
-    // Try to resolve studentId/email to a valid identifier (prefer user _id or email)
+    // Debug: Log activeTeam to understand its structure
+    console.log('[addReplacement] activeTeam.value:', activeTeam.value)
+    console.log('[addReplacement] teamStore.currentTeam:', teamStore.currentTeam)
+
+    // Validate team data exists - check both _id and id
+    const teamId = activeTeam.value?._id || activeTeam.value?.id
+    if (!activeTeam.value || !teamId) {
+      console.error('[addReplacement] Invalid team data:', {
+        activeTeam: activeTeam.value,
+        _id: activeTeam.value?._id,
+        id: activeTeam.value?.id,
+      })
+      teamStore.setError('Data tim tidak valid. Silakan refresh halaman.', 'addReplacement')
+      addingReplacement.value = { ...addingReplacement.value, [idx]: false }
+      return
+    }
+
+    // Get current members list
+    const currentMembers = Array.from(activeTeam.value.membersUserId || [])
+    console.log('[addReplacement] Current members:', currentMembers)
+    console.log('[addReplacement] Active team data:', {
+      teamId: teamId,
+      _id: activeTeam.value?._id,
+      id: activeTeam.value?.id,
+      teamName: activeTeam.value?.teamName,
+      useCaseId: activeTeam.value?.useCaseId,
+      membersUserId: activeTeam.value?.membersUserId,
+    })
+    console.log('[addReplacement] Total team size:', totalTeamSize.value)
+    console.log('[addReplacement] Accepted members:', acceptedMembers.value)
+    console.log('[addReplacement] Vacancies:', vacancies.value)
+
+    // Check if team is at maximum capacity (4 members)
+    if (currentMembers.length >= 4) {
+      teamStore.setError('Tim sudah mencapai kapasitas maksimum (4 anggota)', 'addReplacement')
+      addingReplacement.value = { ...addingReplacement.value, [idx]: false }
+      return
+    }
+
+    // Try to resolve studentId/email to a valid identifier
     const resolveIdentifier = async val => {
+      console.log('[resolveIdentifier] Looking up:', val)
       try {
-        const lookup = await fetch(
-          `http://localhost:8000/api/students/lookup/${encodeURIComponent(val)}`
-        )
-        if (lookup.ok) {
-          const d = await lookup.json()
-          // backend returns { id, studentId, name, email, ... }
-          return d.data.id || d.data.email || val
+        const lookupUrl = `${import.meta.env.VITE_API_BASE_URL}/students/lookup/${encodeURIComponent(val)}`
+        console.log('[resolveIdentifier] URL:', lookupUrl)
+
+        const lookup = await fetch(lookupUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+
+        console.log('[resolveIdentifier] Response status:', lookup.status)
+
+        const responseData = await lookup.json()
+        console.log('[resolveIdentifier] Response data:', responseData)
+
+        if (lookup.ok && responseData.success && responseData.data) {
+          const resolvedData = {
+            id: responseData.data.id || responseData.data._id,
+            email: responseData.data.email,
+            name: responseData.data.name,
+            studentId: responseData.data.studentId,
+          }
+          console.log('[resolveIdentifier] Resolved data:', resolvedData)
+          return resolvedData
+        } else {
+          const errorMsg = responseData.message || 'Student tidak ditemukan'
+          console.log('[resolveIdentifier] Lookup failed:', errorMsg)
+          throw new Error(errorMsg)
         }
       } catch (err) {
-        console.error('Lookup failed for', val, err)
+        console.error('[resolveIdentifier] Error:', err)
+        if (err.name === 'TypeError' && err.message.includes('fetch')) {
+          throw new Error('Tidak dapat terhubung ke server')
+        }
+        throw new Error(err.message || `Tidak dapat menemukan student dengan ID/email: ${val}`)
       }
-      // fallback to using the raw value (email or id) and let backend validate
-      return val
     }
 
-    const identifier = await resolveIdentifier(value)
-    // Prefer to remove one placeholder if exists, otherwise just push
-    const phIndex = members.findIndex(m => !(typeof m === 'object' && (m.name || m.learningPath)))
-    if (phIndex !== -1) {
-      members.splice(phIndex, 1, identifier)
-    } else {
-      members.push(identifier)
+    console.log('[addReplacement] Calling resolveIdentifier with:', value)
+    const resolvedMember = await resolveIdentifier(value)
+    if (!resolvedMember) {
+      console.log('[addReplacement] No member resolved')
+      teamStore.setError(`Student dengan ID/email "${value}" tidak ditemukan`, 'addReplacement')
+      addingReplacement.value = { ...addingReplacement.value, [idx]: false }
+      return
     }
 
-    // Normalize members to strings (prefer _id, then id, then email, then studentId)
-    const normalizedMembers = members
+    console.log('[addReplacement] Resolved member:', resolvedMember)
+
+    // Check if member already exists in team
+    const memberExists = currentMembers.some(m => {
+      if (typeof m === 'object' && m !== null) {
+        return (
+          m._id === resolvedMember.id ||
+          m.id === resolvedMember.id ||
+          m.email === resolvedMember.email
+        )
+      }
+      return m === resolvedMember.id || m === resolvedMember.email
+    })
+
+    if (memberExists) {
+      teamStore.setError('Anggota sudah ada dalam tim', 'addReplacement')
+      addingReplacement.value = { ...addingReplacement.value, [idx]: false }
+      return
+    }
+
+    // Add the new member to the existing list
+    console.log('[addReplacement] Adding member with id:', resolvedMember.id)
+    const updatedMembers = [...currentMembers, resolvedMember.id]
+    console.log('[addReplacement] Updated members before normalization:', updatedMembers)
+
+    // Normalize members to strings (prefer _id, then id, then email)
+    const normalizedMembers = updatedMembers
       .map(m => {
         if (typeof m === 'object' && m !== null) {
-          return m._id || m.id || m.email || m.studentId || null
+          const normalized = m._id || m.id || m.email || null
+          console.log('[addReplacement] Normalizing object member:', m, '-> ', normalized)
+          return normalized
         }
+        console.log('[addReplacement] Member is already string:', m)
         return m
       })
       .filter(Boolean)
 
-    // Remove duplicates (keep first occurrence)
-    const uniqueMembers = Array.from(new Set(normalizedMembers))
+    console.log('[addReplacement] Normalized members (final):', normalizedMembers)
+    console.log('[addReplacement] Normalized members count:', normalizedMembers.length)
 
-    // Include required fields for validation
-    await teamStore.editTeam(activeTeam.value._id || activeTeam.value.id, {
-      teamName: activeTeam.value.teamName,
-      useCaseId: activeTeam.value.useCaseId?._id || activeTeam.value.useCaseId || null,
-      membersUserId: uniqueMembers,
-    })
+    // Validate we have the required team data
+    if (!activeTeam.value.teamName) {
+      teamStore.setError('Nama tim tidak valid', 'addReplacement')
+      addingReplacement.value = { ...addingReplacement.value, [idx]: false }
+      return
+    }
+
+    // Send edit request - only send what we're changing
+    const finalTeamId = activeTeam.value?._id || activeTeam.value?.id
+    const editPayload = {
+      teamName: activeTeam.value?.teamName,
+      membersUserId: normalizedMembers,
+    }
+    console.log('[addReplacement] Sending edit request with:', { teamId: finalTeamId, editPayload })
+
+    if (!finalTeamId) {
+      throw new Error('Team ID tidak ditemukan')
+    }
+
+    const editResult = await teamStore.editTeam(finalTeamId, editPayload)
+    console.log('[addReplacement] Edit team result:', editResult)
+
+    console.log(`[addReplacement] About to call fetchTeamData...`)
     await fetchTeamData()
-    teamStore.setSuccess('Pengganti berhasil ditambahkan')
+    console.log(`[addReplacement] fetchTeamData completed`)
+
+    console.log(`[addReplacement] Setting success message...`)
+    teamStore.setSuccess(`${resolvedMember.name} berhasil ditambahkan sebagai anggota pengganti`)
+
+    console.log(`[addReplacement] Clearing input...`)
     replacementInputs.value[idx] = ''
+
+    console.log(`[addReplacement] ===== SUCCESS COMPLETED =====`)
   } catch (err) {
-    console.error('Failed to add replacement:', err)
-    teamStore.setError(err, 'addReplacement')
+    console.error(`[addReplacement] ===== ERROR OCCURRED =====`)
+    console.error(`[addReplacement] Full error object:`, err)
+    console.error(`[addReplacement] Error for index ${idx}:`, err)
+    console.error(`[addReplacement] Error type:`, typeof err)
+    console.error(`[addReplacement] Error name:`, err?.name)
+    console.error(`[addReplacement] Error message:`, err?.message)
+    console.error(`[addReplacement] Error response:`, err?.response)
+    console.error(`[addReplacement] Error response data:`, err?.response?.data)
+    console.error(`[addReplacement] Error stack:`, err?.stack)
+
+    let errorMessage = 'Gagal menambahkan anggota pengganti'
+
+    if (typeof err === 'string') {
+      errorMessage = err
+      console.log(`[addReplacement] Error is string:`, errorMessage)
+    } else if (err?.response?.data?.error?.message) {
+      errorMessage = err.response.data.error.message
+      console.log(`[addReplacement] Using nested error message:`, errorMessage)
+    } else if (err?.response?.data?.message) {
+      errorMessage = err.response.data.message
+      console.log(`[addReplacement] Using response error message:`, errorMessage)
+    } else if (err?.message) {
+      errorMessage = err.message
+      console.log(`[addReplacement] Using error message:`, errorMessage)
+    }
+
+    console.log(`[addReplacement] Final error message:`, errorMessage)
+    teamStore.setError(errorMessage, 'addReplacement')
+  } finally {
+    // Clear loading state
+    console.log(`[addReplacement] Clearing loading state for index ${idx}`)
+    addingReplacement.value = { ...addingReplacement.value, [idx]: false }
+    console.log(`[addReplacement] ===== FUNCTION COMPLETED =====`)
   }
 }
 
@@ -625,36 +929,60 @@ const handleRejectInvitation = async invitationId => {
 
 const fetchTeamData = async () => {
   try {
-    console.log('Fetching team data...')
+    console.log('[fetchTeamData] Starting fetch...')
 
-    const response = await fetch('http://localhost:8000/api/capstone-group/current', {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.error('[fetchTeamData] No auth token found')
+      return
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/capstone-group/current`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
     })
 
+    console.log('[fetchTeamData] Response status:', response.status)
+
     if (response.ok) {
       const data = await response.json()
-      console.log('Team data loaded:', data.data)
-      // Update teamStore if needed
+      console.log('[fetchTeamData] Raw response data:', data)
+      console.log('[fetchTeamData] Team data from response:', data.data)
+
       if (data.data) {
         // Transform backend response to match component expectations
+        // Ensure _id is preserved for edit operations
         const transformedTeam = {
           ...data.data,
+          _id: data.data._id || data.data.id, // Ensure _id is set
+          id: data.data._id || data.data.id, // Also set id for compatibility
           // keep useCaseId as full object for modals that rely on it
           useCaseId: data.data.useCaseId || null,
           // backend field is membersUserId; ensure modal sees the same
           membersUserId: data.data.membersUserId || [],
           leader: user.value, // Current user is the leader
         }
+
+        console.log('[fetchTeamData] Transformed team:', transformedTeam)
+        console.log('[fetchTeamData] Team _id:', transformedTeam._id)
+        console.log('[fetchTeamData] Team id:', transformedTeam.id)
+
         // Store team data in teamStore (use consistent fields expected by other components)
         teamStore.currentTeam = transformedTeam
+
+        console.log('[fetchTeamData] teamStore.currentTeam updated:', teamStore.currentTeam)
+      } else {
+        console.log('[fetchTeamData] No team data in response')
+        teamStore.currentTeam = null
       }
     } else {
-      console.log('No team found (404 or error)')
+      console.log('[fetchTeamData] No team found, status:', response.status)
+      teamStore.currentTeam = null
     }
   } catch (err) {
-    console.error('Failed to fetch team data:', err)
+    console.error('[fetchTeamData] Failed to fetch team data:', err)
   }
 }
 

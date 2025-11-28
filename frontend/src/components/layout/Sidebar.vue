@@ -79,7 +79,7 @@
             {{ user?.role === 'admin' ? 'Administrator' : 'Siswa' }}
           </p>
         </div>
-      </div >
+      </div>
 
       <button
         @click="handleLogout"
@@ -152,7 +152,28 @@ const profilePicture = ref(null)
 
 const fetchUser = async () => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/me`)
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.log('No auth token found')
+      return
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        console.log('Token expired or invalid')
+        localStorage.removeItem('token')
+        return
+      }
+      throw new Error(`HTTP ${response.status}`)
+    }
+
     const data = await response.json()
     profilePicture.value = data
   } catch (error) {
@@ -163,5 +184,4 @@ const fetchUser = async () => {
 onMounted(() => {
   fetchUser()
 })
-
 </script>
