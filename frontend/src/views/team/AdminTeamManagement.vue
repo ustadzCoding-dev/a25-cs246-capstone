@@ -36,7 +36,10 @@
       </div>
 
       <!-- Success Alert -->
-      <div v-if="teamStore.successMessage" class="bg-success-50 border border-success-200 rounded-lg p-4">
+      <div
+        v-if="teamStore.successMessage"
+        class="bg-success-50 border border-success-200 rounded-lg p-4"
+      >
         <div class="flex items-start">
           <div class="flex-1">
             <p class="text-sm text-success-700">{{ teamStore.successMessage }}</p>
@@ -91,7 +94,11 @@
         </div>
 
         <div v-else class="divide-y divide-gray-200">
-          <div v-for="team in filteredTeams" :key="team._id" class="p-6 hover:bg-gray-50 transition-colors">
+          <div
+            v-for="team in filteredTeams"
+            :key="team._id"
+            class="p-6 hover:bg-gray-50 transition-colors"
+          >
             <div class="flex items-center justify-between">
               <div class="flex-1">
                 <h3 class="text-base font-semibold text-gray-900">{{ team.teamName }}</h3>
@@ -99,7 +106,8 @@
                   ID Tim: {{ team.capstoneGroupId || '(Belum di-assign)' }}
                 </p>
                 <p class="text-sm text-gray-600">
-                  Anggota: {{ team.membersUserId?.length || 0 }} | Status: {{ getStatusLabel(team.status) }}
+                  Anggota: {{ team.membersUserId?.length || 0 }} | Status:
+                  {{ getStatusLabel(team.status) }}
                 </p>
               </div>
               <div class="flex items-center space-x-2 ml-4">
@@ -213,21 +221,64 @@
 
             <div>
               <p class="text-sm font-medium text-gray-700">Use Case</p>
-              <p class="text-sm text-gray-600">{{ selectedTeam.useCaseId?.title || selectedTeam.useCaseId?.name || 'N/A' }}</p>
+              <p class="text-sm text-gray-600">
+                <span class="font-medium">{{
+                  selectedTeam.useCaseId?.title || selectedTeam.useCaseId?.name || 'N/A'
+                }}</span>
+                <span
+                  v-if="selectedUseCase?.usecaseId || selectedTeam.useCaseId?.usecaseId"
+                  class="ml-2 text-xs text-gray-500"
+                  >(
+                  {{ selectedUseCase?.usecaseId || selectedTeam.useCaseId?.usecaseId }}
+                  )</span
+                >
+              </p>
             </div>
 
             <div>
-              <p class="text-sm font-medium text-gray-700">Anggota ({{ selectedTeam.membersUserId?.length || 0 }})</p>
+              <p class="text-sm font-medium text-gray-700">
+                Anggota ({{ selectedTeam.membersUserId?.length || 0 }})
+              </p>
               <ul class="text-sm text-gray-600 space-y-1 mt-2">
                 <li v-for="(member, idx) in selectedTeam.membersUserId" :key="idx">
-                  • {{ typeof member === 'object' ? member.name || member.studentId : member }}
+                  •
+                  <span class="font-medium">{{
+                    typeof member === 'object' ? member.name || member.studentId : member
+                  }}</span>
+                  <span
+                    v-if="
+                      typeof member === 'object' && (member.learningPathName || member.learningPath)
+                    "
+                    class="ml-2 text-xs text-gray-500"
+                    >— {{ member.learningPathName || member.learningPath }}</span
+                  >
+                </li>
+              </ul>
+            </div>
+
+            <!-- Show use case composition requirements and actual composition -->
+            <div
+              v-if="
+                selectedUseCase &&
+                selectedUseCase.teamComposition &&
+                selectedUseCase.teamComposition.length > 0
+              "
+            >
+              <p class="text-sm font-medium text-gray-700">Komposisi Tim (Diperlukan)</p>
+              <ul class="text-sm text-gray-600 space-y-1 mt-2">
+                <li v-for="(req, idx) in selectedUseCase.teamComposition" :key="idx">
+                  • <span class="font-medium">{{ req.learningPathName }}</span
+                  >: diperlukan {{ req.count }} — terdapat
+                  {{ actualCompositionCounts[req.learningPathName] || 0 }}
                 </li>
               </ul>
             </div>
 
             <div v-if="selectedTeam.submittedAt">
               <p class="text-sm font-medium text-gray-700">Terdaftar</p>
-              <p class="text-sm text-gray-600">{{ new Date(selectedTeam.submittedAt).toLocaleDateString('id-ID') }}</p>
+              <p class="text-sm text-gray-600">
+                {{ new Date(selectedTeam.submittedAt).toLocaleDateString('id-ID') }}
+              </p>
             </div>
           </div>
         </div>
@@ -241,9 +292,7 @@
           </BaseButton>
         </div>
       </div>
-      <div v-else class="text-center text-gray-500">
-        Tidak ada data tim yang dipilih
-      </div>
+      <div v-else class="text-center text-gray-500">Tidak ada data tim yang dipilih</div>
 
       <template #footer>
         <div class="flex justify-end">
@@ -305,6 +354,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import Swal from 'sweetalert2'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTeamStore } from '../../stores/teamStore'
@@ -338,6 +388,62 @@ const selectedTeam = ref(null)
 const rejectReason = ref('')
 const newCapstoneGroupId = ref('')
 
+// Default generation settings (ubah jika perlu)
+const defaultBatch = ref(25) // Angkatan (contoh: 25 -> A25)
+const defaultProgram = ref('CS') // Program/Prodi (contoh: CS -> Computer Science)
+
+/**
+ * Try to infer batch (two-digit) from team members' studentId, fallback to default
+ */
+const inferBatchFromMembers = team => {
+  if (!team || !team.membersUserId) return null
+  for (const m of team.membersUserId) {
+    if (typeof m === 'object' && m.studentId) {
+      const sid = String(m.studentId)
+      // match patterns like 'A25', '25', or starting with two digits
+      const aMatch = sid.match(/A(\d{2})/i)
+      if (aMatch) return Number(aMatch[1])
+      const numMatch = sid.match(/^(\d{2})/) // e.g. '25xxxx'
+      if (numMatch) return Number(numMatch[1])
+    }
+  }
+  return null
+}
+
+/**
+ * Try to infer program code from members' learningPath or learningPathName
+ */
+const inferProgramFromMembers = team => {
+  if (!team || !team.membersUserId) return null
+  for (const m of team.membersUserId) {
+    if (typeof m === 'object') {
+      const lp = (m.learningPathName || m.learningPath || '').toString().toLowerCase()
+      if (!lp) continue
+      if (lp.includes('computer') || lp.includes('cs') || lp.includes('computer science'))
+        return 'CS'
+      if (lp.includes('information') && lp.includes('systems')) return 'IS'
+    }
+  }
+  return null
+}
+
+const generateCapstoneGroupId = (batch, program) => {
+  const b = String(batch)
+  const p = String(program).toUpperCase()
+  const pattern = new RegExp(`^A${b}-${p}(\\d+)$`, 'i')
+  let max = 0
+  ;(teamStore.teams || []).forEach(t => {
+    if (!t.capstoneGroupId) return
+    const m = String(t.capstoneGroupId).toUpperCase().match(pattern)
+    if (m && m[1]) {
+      const num = parseInt(m[1], 10)
+      if (!Number.isNaN(num) && num > max) max = num
+    }
+  })
+  const next = String(max + 1).padStart(3, '0')
+  return `A${b}-${p}${next}`
+}
+
 // Get data from store
 const loading = computed(() => teamStore.teamsLoading)
 const teams = computed(() => teamStore.teams)
@@ -370,9 +476,7 @@ const { adminMenuItems } = useAdminMenu()
 
 // Generate use case options from store
 const useCaseOptions = computed(() => {
-  const options = [
-    { value: '', label: 'Semua Use Case' }
-  ]
+  const options = [{ value: '', label: 'Semua Use Case' }]
 
   console.log('[useCaseOptions] teamStore.useCases:', teamStore.useCases)
 
@@ -380,7 +484,7 @@ const useCaseOptions = computed(() => {
     teamStore.useCases.forEach(useCase => {
       options.push({
         value: useCase.usecaseId || useCase._id,
-        label: `${useCase.title} (${useCase.usecaseId})`
+        label: `${useCase.title} (${useCase.usecaseId})`,
       })
     })
   }
@@ -421,7 +525,7 @@ const filteredTeams = computed(() => {
         useCaseId: team.useCaseId,
         teamUseCaseId: teamUseCaseId,
         filterValue: filterUseCase.value,
-        match: teamUseCaseId === filterUseCase.value
+        match: teamUseCaseId === filterUseCase.value,
       })
       return teamUseCaseId === filterUseCase.value
     })
@@ -452,7 +556,50 @@ const getStatusLabel = status => {
 const viewTeamDetails = team => {
   selectedTeam.value = team
   showDetailsModal.value = true
+
+  // If team belum punya capstoneGroupId, prefill input dengan ID yang digenerate
+  if (!team.capstoneGroupId) {
+    const inferredBatch = inferBatchFromMembers(team) || defaultBatch.value
+    const inferredProgram = inferProgramFromMembers(team) || defaultProgram.value
+    try {
+      newCapstoneGroupId.value = generateCapstoneGroupId(inferredBatch, inferredProgram)
+    } catch (e) {
+      // fallback ke format dasar jika error
+      newCapstoneGroupId.value = `A${inferredBatch}-${inferredProgram}001`
+    }
+  } else {
+    newCapstoneGroupId.value = ''
+  }
 }
+
+// Compute selected use case details from store (full object with composition)
+const selectedUseCase = computed(() => {
+  if (!selectedTeam.value) return null
+  const ucId =
+    selectedTeam.value.useCaseId?._id ||
+    selectedTeam.value.useCaseId?.id ||
+    selectedTeam.value.useCaseId
+  if (!ucId) return null
+  // Try to find in store by _id or id or usecaseId code
+  const found = teamStore.useCases.find(
+    uc =>
+      uc._id === ucId || uc.id === ucId || uc.usecaseId === selectedTeam.value.useCaseId?.usecaseId
+  )
+  return found || selectedTeam.value.useCaseId || null
+})
+
+// Compute actual composition counts by learningPathName
+const actualCompositionCounts = computed(() => {
+  const counts = {}
+  if (!selectedTeam.value || !selectedTeam.value.membersUserId) return counts
+  selectedTeam.value.membersUserId.forEach(member => {
+    if (typeof member === 'object') {
+      const name = member.learningPathName || member.learningPath || 'Unknown'
+      counts[name] = (counts[name] || 0) + 1
+    }
+  })
+  return counts
+})
 
 const approveTeam = async team => {
   processing.value = true
@@ -481,10 +628,7 @@ const rejectTeam = team => {
 
 const confirmReject = async () => {
   if (!rejectReason.value.trim()) {
-    teamStore.setError(
-      { message: 'Alasan penolakan tidak boleh kosong' },
-      'confirmReject'
-    )
+    teamStore.setError({ message: 'Alasan penolakan tidak boleh kosong' }, 'confirmReject')
     return
   }
 
@@ -568,14 +712,14 @@ watch([searchQuery, filterStatus, filterUseCase], () => {
 
 const assignCapstoneGroupId = async () => {
   if (!newCapstoneGroupId.value.trim()) {
-    alert('Masukkan ID Tim terlebih dahulu')
+    Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Masukkan ID Tim terlebih dahulu' })
     return
   }
 
   try {
     // Call API to update team with capstoneGroupId
     await teamStore.updateTeam(selectedTeam.value._id, {
-      capstoneGroupId: newCapstoneGroupId.value
+      capstoneGroupId: newCapstoneGroupId.value,
     })
 
     // Update selectedTeam
@@ -585,10 +729,10 @@ const assignCapstoneGroupId = async () => {
     // Refresh teams list
     await fetchTeams()
 
-    alert('ID Tim berhasil di-assign!')
+    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'ID Tim berhasil di-assign!' })
   } catch (err) {
     console.error('Failed to assign capstoneGroupId:', err)
-    alert('Gagal assign ID Tim: ' + err.message)
+    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal assign ID Tim: ' + err.message })
   }
 }
 

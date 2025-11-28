@@ -38,7 +38,7 @@ export class TeamService {
     // 3. Validate members and convert emails to ObjectIds
     console.log('[createTeam] Validating members...');
     const members = await this.validateMembers(teamData.membersUserId);
-    const memberIds = members.map(m => m._id);
+    const memberIds = members.map((m) => m._id);
     console.log('[createTeam] Members converted to IDs:', memberIds);
 
     // 4. Validate use case first (to get composition requirements)
@@ -90,7 +90,7 @@ export class TeamService {
     // 10. Create invitations for team members (except leader)
     console.log('[createTeam] Creating invitations...');
     const Invitation = (await import('../models/Invitation.js')).default;
-    const otherMembers = memberIds.filter(memberId => memberId.toString() !== userId.toString());
+    const otherMembers = memberIds.filter((memberId) => memberId.toString() !== userId.toString());
     console.log('[createTeam] Other members for invitations:', otherMembers.length);
 
     const leader = await User.findById(userId);
@@ -158,8 +158,8 @@ export class TeamService {
 
         if (populatedTeam.membersUserId && populatedTeam.membersUserId.length > 0) {
           const memberEmails = populatedTeam.membersUserId
-            .map(member => member.email)
-            .filter(email => email);
+            .map((member) => member.email)
+            .filter((email) => email);
 
           if (memberEmails.length > 0) {
             await EmailService.sendTeamIdAssignmentNotification(
@@ -198,7 +198,7 @@ export class TeamService {
     console.log('[editTeam] Team found:', team.teamName);
 
     // 2. Verify leader owns this team
-    const isLeader = team.membersUserId.some(m => m._id.toString() === leaderId.toString());
+    const isLeader = team.membersUserId.some((m) => m._id.toString() === leaderId.toString());
     if (!isLeader) {
       throw new ValidationError('Only team leader can edit team');
     }
@@ -213,7 +213,7 @@ export class TeamService {
     // 4. Validate new members and convert emails to ObjectIds
     console.log('[editTeam] Validating new members...');
     const newMembers = await this.validateMembers(editData.membersUserId);
-    const newMemberIds = newMembers.map(m => m._id);
+    const newMemberIds = newMembers.map((m) => m._id);
     console.log('[editTeam] New members converted to IDs:', newMemberIds);
 
     // 5. Validate team composition
@@ -223,15 +223,15 @@ export class TeamService {
     console.log('[editTeam] Team composition validated!');
 
     // 6. Identify changes
-    const oldMemberIds = team.membersUserId.map(m => m._id || m);
+    const oldMemberIds = team.membersUserId.map((m) => m._id || m);
     const addedMemberIds = newMemberIds.filter(
-      id => !oldMemberIds.some(oldId => oldId.toString() === id.toString())
+      (id) => !oldMemberIds.some((oldId) => oldId.toString() === id.toString())
     );
     const removedMemberIds = oldMemberIds.filter(
-      id => !newMemberIds.some(newId => newId.toString() === id.toString())
+      (id) => !newMemberIds.some((newId) => newId.toString() === id.toString())
     );
-    const keptMemberIds = newMemberIds.filter(
-      id => oldMemberIds.some(oldId => oldId.toString() === id.toString())
+    const keptMemberIds = newMemberIds.filter((id) =>
+      oldMemberIds.some((oldId) => oldId.toString() === id.toString())
     );
 
     console.log('[editTeam] Changes identified:');
@@ -257,10 +257,9 @@ export class TeamService {
 
       // Restore use case slots for removed members
       console.log('[editTeam] Restoring use case slots for removed members...');
-      await UseCase.findByIdAndUpdate(
-        team.useCaseId,
-        { $inc: { availableSlots: removedMemberIds.length } }
-      );
+      await UseCase.findByIdAndUpdate(team.useCaseId, {
+        $inc: { availableSlots: removedMemberIds.length }
+      });
       console.log('[editTeam] Use case slots restored!');
     }
 
@@ -275,10 +274,9 @@ export class TeamService {
 
       // Reduce use case slots for added members
       console.log('[editTeam] Reducing use case slots for added members...');
-      await UseCase.findByIdAndUpdate(
-        team.useCaseId,
-        { $inc: { availableSlots: -addedMemberIds.length } }
-      );
+      await UseCase.findByIdAndUpdate(team.useCaseId, {
+        $inc: { availableSlots: -addedMemberIds.length }
+      });
       console.log('[editTeam] Use case slots reduced!');
     }
 
@@ -381,8 +379,8 @@ export class TeamService {
 
       if (populatedTeam.membersUserId && populatedTeam.membersUserId.length > 0) {
         const memberEmails = populatedTeam.membersUserId
-          .map(member => member.email)
-          .filter(email => email);
+          .map((member) => member.email)
+          .filter((email) => email);
 
         if (memberEmails.length > 0) {
           await EmailService.sendTeamApprovalNotification(
@@ -427,13 +425,10 @@ export class TeamService {
 
     // Restore use case slots
     console.log('[rejectTeam] Restoring use case slots');
-    await UseCase.findByIdAndUpdate(
-      team.useCaseId,
-      {
-        $inc: { availableSlots: 1 },
-        $pull: { capstoneGroup: team._id }
-      }
-    );
+    await UseCase.findByIdAndUpdate(team.useCaseId, {
+      $inc: { availableSlots: 1 },
+      $pull: { capstoneGroup: team._id }
+    });
 
     // Send rejection notification to all team members BEFORE deleting
     try {
@@ -441,11 +436,15 @@ export class TeamService {
 
       if (team.membersUserId && team.membersUserId.length > 0) {
         const memberEmails = team.membersUserId
-          .map(member => member.email)
-          .filter(email => email);
+          .map((member) => member.email)
+          .filter((email) => email);
 
         if (memberEmails.length > 0) {
-          console.log('[rejectTeam] Sending rejection notification to', memberEmails.length, 'members');
+          console.log(
+            '[rejectTeam] Sending rejection notification to',
+            memberEmails.length,
+            'members'
+          );
           // Send individual rejection emails to each member
           for (const memberEmail of memberEmails) {
             try {
@@ -455,7 +454,12 @@ export class TeamService {
                 reason || 'Tim Anda tidak memenuhi kriteria yang diperlukan'
               );
             } catch (emailErr) {
-              console.error('[rejectTeam] Failed to send rejection email to', memberEmail, ':', emailErr.message);
+              console.error(
+                '[rejectTeam] Failed to send rejection email to',
+                memberEmail,
+                ':',
+                emailErr.message
+              );
             }
           }
           console.log('[rejectTeam] Rejection notifications sent');
@@ -513,13 +517,10 @@ export class TeamService {
 
     // Restore use case slots for all statuses
     console.log('[deleteTeam] Restoring use case slots for:', team.useCaseId);
-    await UseCase.findByIdAndUpdate(
-      team.useCaseId,
-      {
-        $inc: { availableSlots: 1 },
-        $pull: { capstoneGroup: team._id }
-      }
-    );
+    await UseCase.findByIdAndUpdate(team.useCaseId, {
+      $inc: { availableSlots: 1 },
+      $pull: { capstoneGroup: team._id }
+    });
 
     // Delete all invitations for this team
     try {
@@ -742,10 +743,7 @@ export class TeamService {
     // Try to find users by email or _id
     try {
       const members = await User.find({
-        $or: [
-          { _id: { $in: memberIds } },
-          { email: { $in: memberIds } }
-        ]
+        $or: [{ _id: { $in: memberIds } }, { email: { $in: memberIds } }]
       });
 
       console.log('[validateMembers] Found members:', members.length);
@@ -791,18 +789,44 @@ export class TeamService {
       // Fetch members with their learning paths
       const members = await User.find({ _id: { $in: memberIds } });
 
-      // Count members by learning path ID
-      const compositionCount = {};
-      members.forEach(member => {
-        const pathId = member.learningPathId?.toString(); // Convert ObjectId to string for comparison
-        if (pathId) {
-          compositionCount[pathId] = (compositionCount[pathId] || 0) + 1;
-        }
-      });
+      // Debug: log members learning path fields
+      console.log(
+        '[validateTeamComposition] Members fetched for composition check:',
+        members.map((m) => ({
+          id: m._id,
+          learningPathId: m.learningPathId,
+          learningPathName: m.learningPathName
+        }))
+      );
 
-      // Validate against required composition
+      // Helper to normalize learning path names for robust matching
+      const normalizeName = (s) => (s || '').toString().toLowerCase().replace(/\s+/g, ' ').trim();
+
+      // For each requirement, count members that match by ID OR (missing ID and matching normalized name)
       for (const requirement of useCase.teamComposition) {
-        const actualCount = compositionCount[requirement.learningPathId.toString()] || 0;
+        const reqId = requirement.learningPathId?.toString();
+        const reqName = requirement.learningPathName || requirement.learningPath;
+        const normalizedReqName = normalizeName(reqName);
+
+        let actualCount = 0;
+
+        for (const member of members) {
+          const memberPathId = member.learningPathId?.toString();
+          const memberPathName = normalizeName(member.learningPathName || member.learningPath);
+
+          // Count if member has matching learningPathId
+          if (reqId && memberPathId && memberPathId === reqId) {
+            actualCount += 1;
+            continue;
+          }
+
+          // Otherwise, if member lacks an ID but name matches, count as fallback
+          if (!memberPathId && normalizedReqName && memberPathName === normalizedReqName) {
+            actualCount += 1;
+            continue;
+          }
+        }
+
         if (actualCount !== requirement.count) {
           throw new ValidationError(
             `Team composition mismatch. Expected ${requirement.count} member(s) from "${requirement.learningPathName}", got ${actualCount}`
@@ -824,7 +848,7 @@ export class TeamService {
 
       // Fetch members and check learning path consistency
       const members = await User.find({ _id: { $in: memberIds } });
-      const learningPathIds = members.map(m => m.learningPathId?.toString()).filter(Boolean);
+      const learningPathIds = members.map((m) => m.learningPathId?.toString()).filter(Boolean);
       const uniquePaths = new Set(learningPathIds);
 
       if (uniquePaths.size > 1) {
@@ -843,11 +867,14 @@ export class TeamService {
       capstoneGroupId: { $exists: true, $ne: null }
     });
 
-    console.log('[checkMembersAvailability] Members with capstoneGroupId:', membersInTeam.map(m => ({
-      id: m._id,
-      email: m.email,
-      capstoneGroupId: m.capstoneGroupId
-    })));
+    console.log(
+      '[checkMembersAvailability] Members with capstoneGroupId:',
+      membersInTeam.map((m) => ({
+        id: m._id,
+        email: m.email,
+        capstoneGroupId: m.capstoneGroupId
+      }))
+    );
 
     if (membersInTeam.length > 0) {
       throw new ValidationError('One or more members already in another team');
@@ -884,10 +911,7 @@ export class TeamService {
    * @private
    */
   async updateMembersTeamId(memberIds, teamId) {
-    await User.updateMany(
-      { _id: { $in: memberIds } },
-      { capstoneGroupId: teamId }
-    );
+    await User.updateMany({ _id: { $in: memberIds } }, { capstoneGroupId: teamId });
   }
 
   /**

@@ -39,14 +39,7 @@ class EmailService {
    */
   async sendInvitationEmail(options) {
     try {
-      const {
-        memberEmail,
-        memberName,
-        teamName,
-        useCaseName,
-        leaderName,
-        invitationId
-      } = options;
+      const { memberEmail, memberName, teamName, useCaseName, leaderName, invitationId } = options;
 
       console.log('[sendInvitationEmail] Starting email send...');
       console.log('[sendInvitationEmail] To:', memberEmail);
@@ -89,15 +82,15 @@ class EmailService {
 
                 <div class="team-details">
                   <div class="detail-row">
-                    <span class="label">Nama Tim:</span>
+                    <span class="label">Nama Tim: </span>
                     <span>${teamName}</span>
                   </div>
                   <div class="detail-row">
-                    <span class="label">Use Case:</span>
+                    <span class="label">Use Case: </span>
                     <span>${useCaseName}</span>
                   </div>
                   <div class="detail-row">
-                    <span class="label">Leader:</span>
+                    <span class="label">Leader: </span>
                     <span>${leaderName}</span>
                   </div>
                 </div>
@@ -488,7 +481,11 @@ export default {
   },
 
   async sendTeamIdAssignmentNotification(memberEmails, teamName, capstoneGroupId) {
-    return this.getInstance().sendTeamIdAssignmentNotification(memberEmails, teamName, capstoneGroupId);
+    return this.getInstance().sendTeamIdAssignmentNotification(
+      memberEmails,
+      teamName,
+      capstoneGroupId
+    );
   },
 
   async verifyConnection() {

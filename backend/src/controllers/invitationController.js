@@ -195,86 +195,96 @@ export const rejectInvitation = asyncHandler(async (req, res) => {
   console.log('[rejectInvitation] Invitation ID:', id);
   console.log('[rejectInvitation] User ID:', userId);
 
-  const invitation = await Invitation.findById(id);
-
-  if (!invitation) {
-    console.log('[rejectInvitation] Invitation not found');
-    return res.error('Invitation not found', 404);
-  }
-
-  // Verify this is for the current user
-  if (invitation.memberId.toString() !== userId.toString()) {
-    console.log('[rejectInvitation] Unauthorized - memberId mismatch');
-    return res.error('Unauthorized', 403);
-  }
-
-  // Check if already accepted/rejected
-  if (invitation.status !== 'pending') {
-    console.log('[rejectInvitation] Invitation already', invitation.status);
-    return res.error(`Invitation already ${invitation.status}`, 400);
-  }
-
-  // Update invitation status
-  invitation.status = 'rejected';
-  if (reason) {
-    invitation.rejectionReason = reason;
-  }
-  await invitation.save();
-  console.log('[rejectInvitation] Invitation status updated to rejected');
-
-  // Remove member from team
   try {
-    const team = await CapstoneGroup.findById(invitation.teamId);
-    if (team) {
-      console.log('[rejectInvitation] Team found:', team.teamName);
-      // Remove member from team.membersUserId array (correct field name)
-      team.membersUserId = team.membersUserId.filter(memberId => memberId.toString() !== userId.toString());
-      await team.save();
-      console.log('[rejectInvitation] Member removed from team');
+    const invitation = await Invitation.findById(id);
 
-      // Clear capstoneGroupId from user
-      await User.findByIdAndUpdate(userId, { capstoneGroupId: null });
-      console.log('[rejectInvitation] Cleared capstoneGroupId from user');
+    if (!invitation) {
+      console.log('[rejectInvitation] Invitation not found');
+      return res.error('Invitation not found', 404);
+    }
 
-      // Restore use case slot
-      await UseCase.findByIdAndUpdate(
-        team.useCaseId,
-        {
+    // Verify this is for the current user
+    if (invitation.memberId.toString() !== userId.toString()) {
+      console.log('[rejectInvitation] Unauthorized - memberId mismatch');
+      return res.error('Unauthorized', 403);
+    }
+
+    // Check if already accepted/rejected
+    if (invitation.status !== 'pending') {
+      console.log('[rejectInvitation] Invitation already', invitation.status);
+      return res.error(`Invitation already ${invitation.status}`, 400);
+    }
+
+    // Update invitation status
+    invitation.status = 'rejected';
+    if (reason) {
+      invitation.rejectionReason = reason;
+    }
+    await invitation.save();
+    console.log('[rejectInvitation] Invitation status updated to rejected');
+
+    // Remove member from team
+    try {
+      const team = await CapstoneGroup.findById(invitation.teamId);
+      if (team) {
+        console.log('[rejectInvitation] Team found:', team.teamName);
+        // Remove member from team.membersUserId array (correct field name)
+        team.membersUserId = team.membersUserId.filter(
+          (memberId) => memberId.toString() !== userId.toString()
+        );
+        await team.save();
+        console.log('[rejectInvitation] Member removed from team');
+
+        // Clear capstoneGroupId from user
+        await User.findByIdAndUpdate(userId, { capstoneGroupId: null });
+        console.log('[rejectInvitation] Cleared capstoneGroupId from user');
+
+        // Restore use case slot
+        await UseCase.findByIdAndUpdate(team.useCaseId, {
           $inc: { availableSlots: 1 },
           $pull: { capstoneGroup: team._id }
-        }
+        });
+        console.log('[rejectInvitation] Use case slot restored');
+      }
+    } catch (teamErr) {
+      console.error('[rejectInvitation] Error removing member from team:', teamErr.message);
+    }
+
+    // Send rejection notification to leader (non-blocking)
+    try {
+      const leader = await User.findById(invitation.leaderId);
+      const member = await User.findById(userId);
+      const team = await CapstoneGroup.findById(invitation.teamId);
+
+      if (leader && member && team) {
+        console.log('[rejectInvitation] Sending rejection notification to leader...');
+        // Email service is best-effort; don't let it break the flow
+        EmailService.sendRejectionNotificationEmail({
+          memberName: member.name,
+          teamName: team.teamName,
+          leaderName: leader.name,
+          leaderEmail: leader.email
+        }).catch((e) =>
+          console.error('[rejectInvitation] Email send failed (async):', e && e.message)
+        );
+        console.log('[rejectInvitation] Rejection notification queued');
+      }
+    } catch (emailErr) {
+      console.error(
+        '[rejectInvitation] Error preparing rejection notification:',
+        emailErr && emailErr.message
       );
-      console.log('[rejectInvitation] Use case slot restored');
     }
-  } catch (teamErr) {
-    console.error('[rejectInvitation] Error removing member from team:', teamErr.message);
+
+    await invitation.populate('leaderId', 'name email');
+    await invitation.populate('teamId', 'teamName useCase');
+
+    console.log('[rejectInvitation] Success!');
+    return res.success(invitation, 'Invitation rejected successfully', 200);
+  } catch (err) {
+    console.error('[rejectInvitation] Unexpected error:', err && err.stack ? err.stack : err);
+    return res.error('Failed to reject invitation', 500);
   }
-
-  // Send rejection notification to leader
-  try {
-    const leader = await User.findById(invitation.leaderId);
-    const member = await User.findById(userId);
-    const team = await CapstoneGroup.findById(invitation.teamId);
-
-    if (leader && member && team) {
-      console.log('[rejectInvitation] Sending rejection notification to leader...');
-      await EmailService.sendRejectionNotificationEmail({
-        memberName: member.name,
-        teamName: team.teamName,
-        leaderName: leader.name,
-        leaderEmail: leader.email
-      });
-      console.log('[rejectInvitation] Rejection notification sent');
-    }
-  } catch (emailErr) {
-    console.error('[rejectInvitation] Error sending rejection notification:', emailErr.message);
-  }
-
-  await invitation.populate('leaderId', 'name email');
-  await invitation.populate('teamId', 'teamName useCase');
-
-  console.log('[rejectInvitation] Success!');
-  res.success(invitation, 'Invitation rejected successfully', 200);
 });
 
 /**

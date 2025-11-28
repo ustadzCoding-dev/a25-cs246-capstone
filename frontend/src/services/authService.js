@@ -14,6 +14,10 @@ const authService = {
         // ⭐ UBAH: Backend sekarang return 'accessToken' bukan 'token'
         const token = response.data.accessToken || response.data.token
         localStorage.setItem('token', token)
+        // Store refreshToken if backend returns it (some flows return refresh token)
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken)
+        }
         localStorage.setItem('user', JSON.stringify(response.data.user))
 
         console.log('[AUTH] Login successful:', {

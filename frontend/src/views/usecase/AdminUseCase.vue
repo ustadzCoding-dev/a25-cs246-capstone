@@ -34,12 +34,18 @@
         </div>
 
         <div v-else class="divide-y divide-gray-200">
-          <div v-for="useCase in useCases" :key="useCase.id" class="p-6 hover:bg-gray-50 transition-colors">
+          <div
+            v-for="useCase in useCases"
+            :key="useCase.id"
+            class="p-6 hover:bg-gray-50 transition-colors"
+          >
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3">
                   <h3 class="text-lg font-semibold text-gray-900">{{ useCase.title }}</h3>
-                  <span class="inline-block bg-primary-100 text-primary-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                  <span
+                    class="inline-block bg-primary-100 text-primary-800 text-xs font-semibold px-2.5 py-0.5 rounded"
+                  >
                     {{ useCase.usecaseId }}
                   </span>
                 </div>
@@ -48,11 +54,20 @@
                 <!-- Current Composition -->
                 <div class="mt-4 bg-gray-50 rounded p-3">
                   <p class="text-sm font-medium text-gray-700 mb-2">Komposisi Tim Saat Ini:</p>
-                  <div v-if="useCase.teamComposition && useCase.teamComposition.length > 0" class="space-y-1">
-                    <div v-for="comp in useCase.teamComposition" :key="comp.learningPathId || comp.learningPath" class="text-sm text-gray-600">
+                  <div
+                    v-if="useCase.teamComposition && useCase.teamComposition.length > 0"
+                    class="space-y-1"
+                  >
+                    <div
+                      v-for="comp in useCase.teamComposition"
+                      :key="comp.learningPathId || comp.learningPath"
+                      class="text-sm text-gray-600"
+                    >
                       • {{ comp.count }} orang dari {{ comp.learningPathName || comp.learningPath }}
                     </div>
-                    <p class="text-sm font-semibold text-gray-700 mt-2">Total: {{ useCase.totalTeamSize }} anggota</p>
+                    <p class="text-sm font-semibold text-gray-700 mt-2">
+                      Total: {{ useCase.totalTeamSize }} anggota
+                    </p>
                   </div>
                   <p v-else class="text-sm text-gray-500 italic">Belum ada komposisi yang di-set</p>
                 </div>
@@ -78,7 +93,10 @@
       </div>
 
       <!-- Create Use Case Modal -->
-      <div v-if="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div
+        v-if="showCreateModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
         <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
           <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Tambah Use Case Baru</h3>
@@ -122,9 +140,7 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Partner
-              </label>
+              <label class="block text-sm font-medium text-gray-700 mb-1"> Partner </label>
               <input
                 v-model="createForm.partner"
                 type="text"
@@ -148,9 +164,7 @@
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                  Difficulty
-                </label>
+                <label class="block text-sm font-medium text-gray-700 mb-1"> Difficulty </label>
                 <select
                   v-model="createForm.difficulty"
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -182,7 +196,10 @@
       </div>
 
       <!-- Composition Modal -->
-      <div v-if="showCompositionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div
+        v-if="showCompositionModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
           <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Set Team Composition</h3>
@@ -205,9 +222,7 @@
                 </option>
               </select>
 
-              <label class="block text-sm font-medium text-gray-700">
-                Jumlah Anggota
-              </label>
+              <label class="block text-sm font-medium text-gray-700"> Jumlah Anggota </label>
               <input
                 v-model.number="comp.count"
                 type="number"
@@ -264,6 +279,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import Swal from 'sweetalert2'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useAdminMenu } from '../../composables/useAdminMenu'
@@ -288,7 +304,7 @@ const createForm = reactive({
   description: '',
   partner: '',
   totalSlots: 10,
-  difficulty: 'medium'
+  difficulty: 'medium',
 })
 
 const { adminMenuItems } = useAdminMenu()
@@ -301,8 +317,8 @@ const fetchLearningPaths = async () => {
   try {
     const response = await fetch('http://localhost:8000/api/admin/learning-paths', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
     })
     const data = await response.json()
     learningPaths.value = data.data || []
@@ -318,8 +334,8 @@ const fetchUseCases = async () => {
     // Fetch use cases from API
     const response = await fetch('http://localhost:8000/api/usecases', {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
     })
     const data = await response.json()
     useCases.value = data.data || []
@@ -330,11 +346,12 @@ const fetchUseCases = async () => {
   }
 }
 
-const openCompositionModal = (useCase) => {
+const openCompositionModal = useCase => {
   selectedUseCase.value = useCase
-  compositionForm.value = useCase.teamComposition && useCase.teamComposition.length > 0
-    ? JSON.parse(JSON.stringify(useCase.teamComposition))
-    : [{ learningPathId: '', count: 1 }]
+  compositionForm.value =
+    useCase.teamComposition && useCase.teamComposition.length > 0
+      ? JSON.parse(JSON.stringify(useCase.teamComposition))
+      : [{ learningPathId: '', count: 1 }]
   showCompositionModal.value = true
 }
 
@@ -348,7 +365,7 @@ const addCompositionRow = () => {
   compositionForm.value.push({ learningPathId: '', count: 1 })
 }
 
-const removeCompositionRow = (index) => {
+const removeCompositionRow = index => {
   compositionForm.value.splice(index, 1)
 }
 
@@ -357,7 +374,11 @@ const saveComposition = async () => {
 
   // Validate
   if (compositionForm.value.some(comp => !comp.learningPathId || comp.count < 1)) {
-    alert('Semua field harus diisi dengan benar')
+    Swal.fire({
+      icon: 'warning',
+      title: 'Perhatian',
+      text: 'Semua field harus diisi dengan benar',
+    })
     return
   }
 
@@ -369,31 +390,41 @@ const saveComposition = async () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
-          teamComposition: compositionForm.value
-        })
+          teamComposition: compositionForm.value,
+        }),
       }
     )
 
     if (response.ok) {
       const data = await response.json()
       // Update local state
-      const index = useCases.value.findIndex(uc => (uc.id || uc._id) === (selectedUseCase.value.id || selectedUseCase.value._id))
+      const index = useCases.value.findIndex(
+        uc => (uc.id || uc._id) === (selectedUseCase.value.id || selectedUseCase.value._id)
+      )
       if (index !== -1) {
         useCases.value[index] = data.data
       }
       closeCompositionModal()
-      console.log('Komposisi tim berhasil disimpan!')
+      Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Komposisi tim berhasil disimpan!' })
     } else {
       const errorData = await response.json()
       console.error('Error response:', errorData)
-      alert(`Gagal menyimpan komposisi tim: ${errorData.message || response.statusText}`)
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: `Gagal menyimpan komposisi tim: ${errorData.message || response.statusText}`,
+      })
     }
   } catch (err) {
     console.error('Failed to save composition:', err)
-    alert(`Gagal menyimpan komposisi tim: ${err.message}`)
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: `Gagal menyimpan komposisi tim: ${err.message}`,
+    })
   } finally {
     saving.value = false
   }
@@ -411,8 +442,13 @@ const closeCreateModal = () => {
 
 const saveUseCase = async () => {
   // Validate
-  if (!createForm.usecaseId || !createForm.title || !createForm.description || !createForm.totalSlots) {
-    alert('Semua field wajib diisi')
+  if (
+    !createForm.usecaseId ||
+    !createForm.title ||
+    !createForm.description ||
+    !createForm.totalSlots
+  ) {
+    Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Semua field wajib diisi' })
     return
   }
 
@@ -422,7 +458,7 @@ const saveUseCase = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
       body: JSON.stringify({
         usecaseId: createForm.usecaseId,
@@ -430,31 +466,44 @@ const saveUseCase = async () => {
         description: createForm.description,
         partner: createForm.partner,
         totalSlots: createForm.totalSlots,
-        difficulty: createForm.difficulty
-      })
+        difficulty: createForm.difficulty,
+      }),
     })
 
     if (response.ok) {
       const data = await response.json()
       useCases.value.push(data.data)
       closeCreateModal()
-      // Show success message tanpa blocking
-      console.log('Use case berhasil ditambahkan!')
+      Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Use case berhasil ditambahkan!' })
     } else {
       const errorData = await response.json()
       console.error('Error response:', errorData)
-      alert(`Gagal menambahkan use case: ${errorData.message || response.statusText}`)
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: `Gagal menambahkan use case: ${errorData.message || response.statusText}`,
+      })
     }
   } catch (err) {
     console.error('Failed to create use case:', err)
-    alert(`Gagal menambahkan use case: ${err.message}`)
+    Swal.fire({ icon: 'error', title: 'Gagal', text: `Gagal menambahkan use case: ${err.message}` })
   } finally {
     saving.value = false
   }
 }
 
-const deleteUseCase = async (useCase) => {
-  if (!confirm(`Yakin hapus use case "${useCase.title}"?`)) return
+const deleteUseCase = async useCase => {
+  const result = await Swal.fire({
+    title: `Yakin hapus use case "${useCase.title}"?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, hapus',
+    cancelButtonText: 'Batal',
+    confirmButtonColor: '#dc2626' /* red-600 */,
+    cancelButtonColor: '#6b7280' /* gray-500 */,
+  })
+
+  if (!result.isConfirmed) return
 
   try {
     const response = await fetch(
@@ -462,20 +511,22 @@ const deleteUseCase = async (useCase) => {
       {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       }
     )
 
     if (response.ok) {
-      useCases.value = useCases.value.filter(uc => (uc.id || uc._id) !== (useCase.id || useCase._id))
-      alert('Use case berhasil dihapus!')
+      useCases.value = useCases.value.filter(
+        uc => (uc.id || uc._id) !== (useCase.id || useCase._id)
+      )
+      Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Use case berhasil dihapus!' })
     } else {
-      alert('Gagal menghapus use case')
+      Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal menghapus use case' })
     }
   } catch (err) {
     console.error('Failed to delete use case:', err)
-    alert('Gagal menghapus use case')
+    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal menghapus use case' })
   }
 }
 
