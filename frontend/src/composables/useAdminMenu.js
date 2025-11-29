@@ -8,10 +8,11 @@ export const useAdminMenu = () => {
     { name: 'Dokumen', icon: 'document', path: '/admin/documents', roles: ['admin'] },
     { name: 'Timeline', icon: 'timeline', path: '/admin/timeline', roles: ['admin'] },
     { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] },
-    { name: 'Use Case', icon: 'settings', path: '/admin/usecase', roles: ['admin'] }
+    { name: 'Use Case', icon: 'settings', path: '/admin/usecase', roles: ['admin'] },
+    { name: 'Worksheet', icon: 'document', path: '/admin/worksheet', roles: ['admin'] },
   ])
 
   return {
-    adminMenuItems
+    adminMenuItems,
   }
 }

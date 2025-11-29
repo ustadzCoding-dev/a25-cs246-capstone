@@ -13,7 +13,13 @@ export const protect = async (req, res, next) => {
     // Ambil token dari header Authorization
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'No token provided'
+        }
+      });
     }
     const token = authHeader.split(' ')[1];
 
@@ -24,15 +30,27 @@ export const protect = async (req, res, next) => {
     // Ambil data user dari database
     const user = await User.findById(userId).select('-password');
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found'
+        }
+      });
     }
 
     // Tambahkan data user ke request object
     req.user = user;
     next();
   } catch (error) {
-    console.error('Auth error:', error);
-    res.status(401).json({ message: 'Unauthorized' });
+    console.error('Auth error:', error.message);
+    return res.status(401).json({
+      success: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or expired token'
+      }
+    });
   }
 };
 
@@ -45,7 +63,10 @@ export const authorize = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Access denied'
+        }
       });
     }
     next();

@@ -96,6 +96,46 @@ export const learningGroupSchema = {
   }).min(1)
 };
 
+// Worksheet Period validation
+export const worksheetPeriodSchema = {
+  create: Joi.object({
+    periodNumber: Joi.number().required().min(1).max(10),
+    title: Joi.string().required().min(3).max(200).trim(),
+    description: Joi.string().max(1000).trim().allow('', null),
+    startDate: Joi.date().required().iso(),
+    deadline: Joi.date().required().iso().greater(Joi.ref('startDate')),
+    autoValidationDate: Joi.date().required().iso().min(Joi.ref('deadline')),
+    reminderSettings: Joi.object({
+      reminderDaysBefore: Joi.number().min(1).max(14).default(3)
+    }).optional()
+  }),
+  update: Joi.object({
+    title: Joi.string().min(3).max(200).trim(),
+    description: Joi.string().max(1000).trim().allow('', null),
+    startDate: Joi.date().iso(),
+    deadline: Joi.date().iso(),
+    autoValidationDate: Joi.date().iso(),
+    status: Joi.string().valid('draft', 'active', 'closed', 'validated'),
+    reminderSettings: Joi.object({
+      reminderDaysBefore: Joi.number().min(1).max(14)
+    })
+  }).min(1)
+};
+
+// Worksheet validation
+export const worksheetSchema = {
+  saveDraft: Joi.object({
+    activityDescription: Joi.string().max(5000).trim().allow('', null)
+  }),
+  submit: Joi.object({
+    activityDescription: Joi.string().required().min(50).max(5000).trim()
+  }),
+  validate: Joi.object({
+    status: Joi.string().required().valid('completed', 'completed_late', 'incomplete'),
+    notes: Joi.string().max(1000).trim().allow('', null)
+  })
+};
+
 /**
  * Validation middleware factory
  */

@@ -2,9 +2,17 @@ import express from 'express';
 import authRoutes from './auth.js';
 import upload from '../middleware/multer.js';
 import uploadProfilePicture from '../middleware/multerProfilePicture.js';
+import { uploadEvidence } from '../middleware/multerWorksheet.js';
 import { protect } from '../middleware/auth.js';
 import { adminOnly, studentOnly } from '../middleware/authorize.js';
-import { validate, teamSchema, timelineSchema, announcementSchema } from '../utils/validators.js';
+import {
+  validate,
+  teamSchema,
+  timelineSchema,
+  announcementSchema,
+  worksheetPeriodSchema,
+  worksheetSchema
+} from '../utils/validators.js';
 import { parseFormDataFields } from '../middleware/parseFormData.js';
 import { asyncHandler } from '../utils/errorHandler.js';
 import User from '../models/User.js';
@@ -72,6 +80,29 @@ import {
   deleteLearningPath,
   toggleLearningPathStatus
 } from '../controllers/learningPathController.js';
+import {
+  getAllPeriods,
+  getPeriodById,
+  createPeriod,
+  updatePeriod,
+  deletePeriod,
+  activatePeriod,
+  closePeriod,
+  getMyWorksheets,
+  getMyWorksheetByPeriod,
+  saveWorksheetDraft,
+  submitWorksheet,
+  uploadEvidence as uploadEvidenceController,
+  removeEvidence,
+  getWorksheetsByPeriod,
+  getValidationStats,
+  validateWorksheet,
+  runAutoValidation,
+  exportWorksheetData,
+  exportWorksheetCSV,
+  sendReminderNotifications,
+  getWorksheetDetail
+} from '../controllers/worksheetController.js';
 
 const router = express.Router();
 
@@ -374,5 +405,110 @@ router.get('/dashboard/stats', protect, adminOnly, getDashboardStats);
 
 // Student: Student dashboard stats
 router.get('/dashboard/student-stats', protect, studentOnly, getStudentDashboardStats);
+
+// ========== WORKSHEET / CHECK-IN PROGRESS ==========
+// All: Get all periods
+router.get('/worksheet/periods', protect, getAllPeriods);
+router.get('/worksheet/periods/:id', protect, getPeriodById);
+
+// Student: Worksheet management
+router.get('/worksheet/my-worksheets', protect, studentOnly, getMyWorksheets);
+router.get('/worksheet/my-worksheets/:periodId', protect, studentOnly, getMyWorksheetByPeriod);
+router.post(
+  '/worksheet/save-draft/:periodId',
+  protect,
+  studentOnly,
+  validate(worksheetSchema.saveDraft),
+  saveWorksheetDraft
+);
+router.post(
+  '/worksheet/submit/:periodId',
+  protect,
+  studentOnly,
+  validate(worksheetSchema.submit),
+  submitWorksheet
+);
+router.post(
+  '/worksheet/upload-evidence/:periodId',
+  protect,
+  studentOnly,
+  (req, res, next) => {
+    uploadEvidence(req, res, (err) => {
+      if (err) {
+        console.error('[uploadEvidence middleware] Error:', err.message);
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+            success: false,
+            error: { code: 'FILE_TOO_LARGE', message: 'File size exceeds 5MB limit' }
+          });
+        }
+        if (err.code === 'LIMIT_FILE_COUNT') {
+          return res.status(400).json({
+            success: false,
+            error: { code: 'TOO_MANY_FILES', message: 'Maximum 5 files allowed' }
+          });
+        }
+        if (err.message && err.message.includes('File type')) {
+          return res.status(400).json({
+            success: false,
+            error: { code: 'INVALID_FILE_TYPE', message: err.message }
+          });
+        }
+        return res.status(400).json({
+          success: false,
+          error: { code: 'UPLOAD_ERROR', message: err.message || 'File upload failed' }
+        });
+      }
+      next();
+    });
+  },
+  uploadEvidenceController
+);
+router.delete('/worksheet/evidence/:periodId/:evidenceId', protect, studentOnly, removeEvidence);
+
+// Admin: Period management
+router.post(
+  '/worksheet/periods',
+  protect,
+  adminOnly,
+  validate(worksheetPeriodSchema.create),
+  createPeriod
+);
+router.put(
+  '/worksheet/periods/:id',
+  protect,
+  adminOnly,
+  validate(worksheetPeriodSchema.update),
+  updatePeriod
+);
+router.delete('/worksheet/periods/:id', protect, adminOnly, deletePeriod);
+router.put('/worksheet/periods/:id/activate', protect, adminOnly, activatePeriod);
+router.put('/worksheet/periods/:id/close', protect, adminOnly, closePeriod);
+
+// Admin: Worksheet validation and management
+router.get('/worksheet/admin/period/:periodId', protect, adminOnly, getWorksheetsByPeriod);
+router.get('/worksheet/admin/period/:periodId/stats', protect, adminOnly, getValidationStats);
+router.get('/worksheet/admin/detail/:worksheetId', protect, adminOnly, getWorksheetDetail);
+router.put(
+  '/worksheet/admin/validate/:worksheetId',
+  protect,
+  adminOnly,
+  validate(worksheetSchema.validate),
+  validateWorksheet
+);
+router.post(
+  '/worksheet/admin/period/:periodId/auto-validate',
+  protect,
+  adminOnly,
+  runAutoValidation
+);
+router.get('/worksheet/admin/period/:periodId/export', protect, adminOnly, exportWorksheetData);
+router.get('/worksheet/admin/period/:periodId/export-csv', protect, adminOnly, exportWorksheetCSV);
+router.post(
+  '/worksheet/admin/period/:periodId/send-reminders',
+  protect,
+  adminOnly,
+  sendReminderNotifications
+);
 
 export default router;

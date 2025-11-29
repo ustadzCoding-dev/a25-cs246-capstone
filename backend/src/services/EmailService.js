@@ -438,6 +438,194 @@ class EmailService {
   }
 
   /**
+   * Send worksheet reminder email
+   * @param {Object} options - Email options
+   * @param {string} options.recipientEmail - Recipient email address
+   * @param {string} options.recipientName - Recipient name
+   * @param {string} options.periodTitle - Period title
+   * @param {Date} options.deadline - Deadline date
+   * @param {number} options.daysRemaining - Days remaining until deadline
+   */
+  async sendWorksheetReminderEmail(options) {
+    try {
+      const { recipientEmail, recipientName, periodTitle, deadline, daysRemaining } = options;
+
+      const deadlineStr = new Date(deadline).toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const worksheetUrl = `${this.frontendUrl}/worksheet`;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #F59E0B; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+              .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+              .footer { background-color: #374151; color: white; padding: 15px; border-radius: 0 0 8px 8px; text-align: center; font-size: 12px; }
+              .btn { display: inline-block; padding: 12px 24px; margin: 10px 5px; text-decoration: none; border-radius: 6px; font-weight: bold; }
+              .btn-primary { background-color: #4F46E5; color: white; }
+              .warning-box { background-color: #FEF3C7; border: 1px solid #F59E0B; border-radius: 6px; padding: 15px; margin: 15px 0; }
+              .deadline { font-size: 18px; font-weight: bold; color: #DC2626; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>⏰ Pengingat Worksheet</h1>
+              </div>
+              <div class="content">
+                <p>Halo <strong>${recipientName}</strong>,</p>
+
+                <div class="warning-box">
+                  <p>⚠️ Anda belum mengisi worksheet untuk periode:</p>
+                  <p style="font-size: 18px; font-weight: bold; color: #4F46E5;">${periodTitle}</p>
+                </div>
+
+                <p>Deadline pengisian worksheet:</p>
+                <p class="deadline">${deadlineStr}</p>
+                <p>Sisa waktu: <strong>${daysRemaining} hari lagi</strong></p>
+
+                <p>Segera isi worksheet Anda untuk melaporkan progress capstone project. Pastikan untuk:</p>
+                <ul>
+                  <li>Menjelaskan aktivitas yang telah dilakukan selama periode ini</li>
+                  <li>Melampirkan bukti berupa screenshot atau dokumen PDF</li>
+                  <li>Submit sebelum deadline agar tidak terlambat</li>
+                </ul>
+
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="${worksheetUrl}" class="btn btn-primary">Isi Worksheet Sekarang</a>
+                </div>
+
+                <p style="color: #6B7280; font-size: 14px;">
+                  Jika Anda mengalami kesulitan, silakan hubungi tim Dicoding.
+                </p>
+              </div>
+              <div class="footer">
+                <p>© ${new Date().getFullYear()} Dicoding Indonesia. All rights reserved.</p>
+                <p>Email ini dikirim secara otomatis, mohon tidak membalas email ini.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const mailOptions = {
+        from: this.fromEmail,
+        to: recipientEmail,
+        subject: `⏰ Pengingat: Isi Worksheet ${periodTitle} - ${daysRemaining} Hari Lagi!`,
+        html: htmlContent
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      logger.info(`Worksheet reminder sent to ${recipientEmail}`);
+      return true;
+    } catch (error) {
+      logger.error(`Failed to send worksheet reminder: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Send worksheet validation notification email
+   * @param {Object} options - Email options
+   * @param {string} options.recipientEmail - Recipient email address
+   * @param {string} options.recipientName - Recipient name
+   * @param {string} options.periodTitle - Period title
+   * @param {string} options.status - Validation status
+   * @param {string} options.adminNotes - Admin notes (optional)
+   */
+  async sendWorksheetValidationEmail(options) {
+    try {
+      const { recipientEmail, recipientName, periodTitle, status, adminNotes } = options;
+
+      const statusLabels = {
+        completed: { label: 'Selesai ✅', color: '#10B981', icon: '✅' },
+        completed_late: { label: 'Selesai, Terlambat ⚠️', color: '#F59E0B', icon: '⚠️' },
+        incomplete: { label: 'Tidak Selesai ❌', color: '#EF4444', icon: '❌' }
+      };
+
+      const statusInfo = statusLabels[status] || statusLabels.incomplete;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: ${statusInfo.color}; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+              .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+              .footer { background-color: #374151; color: white; padding: 15px; border-radius: 0 0 8px 8px; text-align: center; font-size: 12px; }
+              .status-box { background-color: white; border: 2px solid ${statusInfo.color}; border-radius: 8px; padding: 20px; margin: 15px 0; text-align: center; }
+              .status-label { font-size: 24px; font-weight: bold; color: ${statusInfo.color}; }
+              .notes-box { background-color: #EFF6FF; border: 1px solid #3B82F6; border-radius: 6px; padding: 15px; margin: 15px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>${statusInfo.icon} Hasil Validasi Worksheet</h1>
+              </div>
+              <div class="content">
+                <p>Halo <strong>${recipientName}</strong>,</p>
+
+                <p>Worksheet Anda untuk periode <strong>${periodTitle}</strong> telah divalidasi.</p>
+
+                <div class="status-box">
+                  <p style="margin: 0; color: #6B7280;">Status Validasi:</p>
+                  <p class="status-label">${statusInfo.label}</p>
+                </div>
+
+                ${
+                  adminNotes
+                    ? `
+                <div class="notes-box">
+                  <p style="margin: 0 0 5px 0; font-weight: bold;">📝 Catatan dari Admin:</p>
+                  <p style="margin: 0;">${adminNotes}</p>
+                </div>
+                `
+                    : ''
+                }
+
+                <p>Terima kasih telah berpartisipasi dalam program Dicoding Capstone!</p>
+              </div>
+              <div class="footer">
+                <p>© ${new Date().getFullYear()} Dicoding Indonesia. All rights reserved.</p>
+                <p>Email ini dikirim secara otomatis, mohon tidak membalas email ini.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const mailOptions = {
+        from: this.fromEmail,
+        to: recipientEmail,
+        subject: `${statusInfo.icon} Hasil Validasi Worksheet: ${periodTitle}`,
+        html: htmlContent
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      logger.info(`Worksheet validation notification sent to ${recipientEmail}`);
+      return true;
+    } catch (error) {
+      logger.error(`Failed to send worksheet validation notification: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Verify email configuration
    */
   async verifyConnection() {
@@ -490,5 +678,14 @@ export default {
 
   async verifyConnection() {
     return this.getInstance().verifyConnection();
+  },
+
+  // Worksheet email methods
+  async sendWorksheetReminderEmail(options) {
+    return this.getInstance().sendWorksheetReminderEmail(options);
+  },
+
+  async sendWorksheetValidationEmail(options) {
+    return this.getInstance().sendWorksheetValidationEmail(options);
   }
 };

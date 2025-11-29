@@ -7,6 +7,8 @@ import Document from './Document.js';
 import Timeline from './Timeline.js';
 import LearningGroup from './LearningGroup.js';
 import Announcement from './Announcement.js';
+import Worksheet from './Worksheet.js';
+import WorksheetPeriod from './WorksheetPeriod.js';
 
 export {
   User,
@@ -15,7 +17,9 @@ export {
   Document,
   Timeline,
   LearningGroup,
-  Announcement
+  Announcement,
+  Worksheet,
+  WorksheetPeriod
 };
 
 export default {
@@ -25,5 +29,7 @@ export default {
   Document,
   Timeline,
   LearningGroup,
-  Announcement
+  Announcement,
+  Worksheet,
+  WorksheetPeriod
 };
