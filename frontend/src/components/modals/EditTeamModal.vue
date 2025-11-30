@@ -153,6 +153,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import BaseModal from '../base/BaseModal.vue'
 import BaseButton from '../base/BaseButton.vue'
+import api from '../../services/api'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -252,11 +253,11 @@ const fetchStudentInfo = async index => {
   if (!studentId) return
 
   try {
-    const response = await fetch(`http://localhost:8000/api/students/lookup/${studentId}`)
-    if (response.ok) {
-      const data = await response.json()
-      form.newMembers[index].name = data.data.name
-      form.newMembers[index].learningPath = data.data.learningPathName || 'Unknown'
+    // Use the properly configured API service instead of raw fetch
+    const response = await api.get(`/students/lookup/${studentId}`)
+    if (response.success && response.data) {
+      form.newMembers[index].name = response.data.name
+      form.newMembers[index].learningPath = response.data.learningPathName || 'Unknown'
     }
   } catch (err) {
     console.error('Failed to fetch student info:', err)

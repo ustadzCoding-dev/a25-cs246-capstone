@@ -109,6 +109,7 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '../../services/api'
 
 const props = defineProps({
   isOpen: {
@@ -152,32 +153,21 @@ const profilePicture = ref(null)
 
 const fetchUser = async () => {
   try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      console.log('No auth token found')
-      return
+    // Use the properly configured API service instead of raw fetch
+    const response = await api.get('/auth/me')
+
+    if (response.success && response.data) {
+      profilePicture.value = response.data
     }
-
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.log('Token expired or invalid')
-        localStorage.removeItem('token')
-        return
-      }
-      throw new Error(`HTTP ${response.status}`)
-    }
-
-    const data = await response.json()
-    profilePicture.value = data
   } catch (error) {
     console.error('Gagal mengambil data user:', error)
+
+    // Handle token expiration
+    if (error.status === 401) {
+      console.log('Token expired or invalid')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+    }
   }
 }
 

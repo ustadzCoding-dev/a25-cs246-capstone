@@ -49,7 +49,7 @@
           >
             <div class="flex-1">
               <h4 class="font-semibold text-gray-900">{{ invitation.teamId.teamName }}</h4>
-              <p class="text-sm text-gray-600">Use Case: {{ invitation.teamId.useCase }}</p>
+              <p class="text-sm text-gray-600">Use Case: {{ invitation.teamId.useCaseId?.title || 'Unknown' }}</p>
               <p class="text-sm text-gray-500">Dari: {{ invitation.leaderId.name }}</p>
             </div>
             <div class="flex gap-2">
@@ -196,22 +196,6 @@
               </svg>
             </button>
           </div>
-        </div>
-
-        <!-- Debug Info (remove in production) -->
-        <div class="bg-gray-100 border border-gray-300 rounded-lg p-4 mt-6 text-xs">
-          <p><strong>Debug Info:</strong></p>
-          <p>isLeader: {{ isLeader }}</p>
-          <p>hasPendingTeam: {{ hasPendingTeam }}</p>
-          <p>activeTeam._id: {{ activeTeam?._id }}</p>
-          <p>activeTeam.id: {{ activeTeam?.id }}</p>
-          <p>activeTeam.teamName: {{ activeTeam?.teamName }}</p>
-          <p>activeTeam.status: {{ activeTeam?.status }}</p>
-          <p>user.email: {{ user?.email }}</p>
-          <p>activeTeam.leader?.email: {{ activeTeam?.leader?.email }}</p>
-          <p>membersUserId count: {{ activeTeam?.membersUserId?.length }}</p>
-          <p>vacancies: {{ vacancies }}</p>
-          <p>totalTeamSize: {{ totalTeamSize }}</p>
         </div>
 
         <!-- Pending Team Info -->
@@ -479,6 +463,8 @@ import BaseButton from '../../components/base/BaseButton.vue'
 import BaseSpinner from '../../components/base/BaseSpinner.vue'
 import BaseBadge from '../../components/base/BaseBadge.vue'
 import BaseModal from '../../components/base/BaseModal.vue'
+import api from '../../services/api'
+import { apiCallWithRetry } from '../../utils/apiRetry'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -710,32 +696,22 @@ const addReplacement = async idx => {
     const resolveIdentifier = async val => {
       console.log('[resolveIdentifier] Looking up:', val)
       try {
-        const lookupUrl = `${import.meta.env.VITE_API_BASE_URL}/students/lookup/${encodeURIComponent(val)}`
-        console.log('[resolveIdentifier] URL:', lookupUrl)
+        // Use the properly configured API service instead of raw fetch
+        const response = await apiCallWithRetry(api.get, [`/students/lookup/${encodeURIComponent(val)}`])
 
-        const lookup = await fetch(lookupUrl, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
+        console.log('[resolveIdentifier] Response data:', response)
 
-        console.log('[resolveIdentifier] Response status:', lookup.status)
-
-        const responseData = await lookup.json()
-        console.log('[resolveIdentifier] Response data:', responseData)
-
-        if (lookup.ok && responseData.success && responseData.data) {
+        if (response.success && response.data) {
           const resolvedData = {
-            id: responseData.data.id || responseData.data._id,
-            email: responseData.data.email,
-            name: responseData.data.name,
-            studentId: responseData.data.studentId,
+            id: response.data.id || response.data._id,
+            email: response.data.email,
+            name: response.data.name,
+            studentId: response.data.studentId,
           }
           console.log('[resolveIdentifier] Resolved data:', resolvedData)
           return resolvedData
         } else {
-          const errorMsg = responseData.message || 'Student tidak ditemukan'
+          const errorMsg = response.message || 'Student tidak ditemukan'
           console.log('[resolveIdentifier] Lookup failed:', errorMsg)
           throw new Error(errorMsg)
         }
@@ -929,92 +905,100 @@ const handleRejectInvitation = async invitationId => {
 
 const fetchTeamData = async () => {
   try {
-    console.log('[fetchTeamData] Starting fetch...')
+    console.log('[fetchTeamData] Starting fetch...');
 
-    const token = localStorage.getItem('token')
+    // Ensure we have a valid token before making the request
+    const token = localStorage.getItem('token');
     if (!token) {
-      console.error('[fetchTeamData] No auth token found')
-      return
+      console.log('[fetchTeamData] No token found, redirecting to login');
+      router.push('/login');
+      return;
     }
 
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/capstone-group/current`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
+    // Use the properly configured API service with retry mechanism
+    const response = await apiCallWithRetry(api.get, ['/capstone-group/current']);
 
-    console.log('[fetchTeamData] Response status:', response.status)
+    console.log('[fetchTeamData] Response:', response);
 
-    if (response.ok) {
-      const data = await response.json()
-      console.log('[fetchTeamData] Raw response data:', data)
-      console.log('[fetchTeamData] Team data from response:', data.data)
+    if (response.success && response.data) {
+      // Transform backend response to match component expectations
+      // Ensure _id is preserved for edit operations
+      const transformedTeam = {
+        ...response.data,
+        _id: response.data._id || response.data.id, // Ensure _id is set
+        id: response.data._id || response.data.id, // Also set id for compatibility
+        // keep useCaseId as full object for modals that rely on it
+        useCaseId: response.data.useCaseId || null,
+        // backend field is membersUserId; ensure modal sees the same
+        membersUserId: response.data.membersUserId || [],
+        leader: user.value, // Current user is the leader
+      };
 
-      if (data.data) {
-        // Transform backend response to match component expectations
-        // Ensure _id is preserved for edit operations
-        const transformedTeam = {
-          ...data.data,
-          _id: data.data._id || data.data.id, // Ensure _id is set
-          id: data.data._id || data.data.id, // Also set id for compatibility
-          // keep useCaseId as full object for modals that rely on it
-          useCaseId: data.data.useCaseId || null,
-          // backend field is membersUserId; ensure modal sees the same
-          membersUserId: data.data.membersUserId || [],
-          leader: user.value, // Current user is the leader
-        }
+      console.log('[fetchTeamData] Transformed team:', transformedTeam);
+      console.log('[fetchTeamData] Team _id:', transformedTeam._id);
+      console.log('[fetchTeamData] Team id:', transformedTeam.id);
 
-        console.log('[fetchTeamData] Transformed team:', transformedTeam)
-        console.log('[fetchTeamData] Team _id:', transformedTeam._id)
-        console.log('[fetchTeamData] Team id:', transformedTeam.id)
+      // Store team data in teamStore (use consistent fields expected by other components)
+      teamStore.currentTeam = transformedTeam;
 
-        // Store team data in teamStore (use consistent fields expected by other components)
-        teamStore.currentTeam = transformedTeam
-
-        console.log('[fetchTeamData] teamStore.currentTeam updated:', teamStore.currentTeam)
-      } else {
-        console.log('[fetchTeamData] No team data in response')
-        teamStore.currentTeam = null
-      }
+      console.log('[fetchTeamData] teamStore.currentTeam updated:', teamStore.currentTeam);
     } else {
-      console.log('[fetchTeamData] No team found, status:', response.status)
-      teamStore.currentTeam = null
+      console.log('[fetchTeamData] No team data in response');
+      teamStore.currentTeam = null;
     }
   } catch (err) {
-    console.error('[fetchTeamData] Failed to fetch team data:', err)
+    console.error('[fetchTeamData] Failed to fetch team data:', err);
+
+    // Handle token expiration specifically
+    if (err.status === 401) {
+      console.log('[fetchTeamData] Token expired, clearing auth and redirecting to login');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      router.push('/login');
+      return;
+    }
+
+    // Set currentTeam to null on error to ensure consistent state
+    teamStore.currentTeam = null;
   }
-}
+};
 
 const fetchPendingInvitations = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/invitations', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    })
+    // Ensure we have a valid token before making the request
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('[fetchPendingInvitations] No token found');
+      return;
+    }
 
-    if (response.ok) {
-      const data = await response.json()
-      pendingInvitations.value = data.data || []
+    // Use the properly configured API service with retry mechanism
+    const response = await apiCallWithRetry(api.get, ['/invitations'])
+
+    if (response.success) {
+      pendingInvitations.value = response.data || []
       console.log('Pending invitations loaded:', pendingInvitations.value.length)
     }
   } catch (err) {
     console.error('Failed to fetch pending invitations:', err)
+
+    // Handle token expiration specifically
+    if (err.status === 401) {
+      console.log('[fetchPendingInvitations] Token expired, clearing auth and redirecting to login');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      router.push('/login');
+    }
   }
 }
 
 const acceptInvitation = async invitationId => {
   acceptingInvitation.value = invitationId
   try {
-    const response = await fetch(`http://localhost:8000/api/invitations/${invitationId}/accept`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    })
+    // Use the properly configured API service with retry mechanism
+    const response = await apiCallWithRetry(api.put, [`/invitations/${invitationId}/accept`])
 
-    if (response.ok) {
+    if (response.success) {
       // Remove from list
       pendingInvitations.value = pendingInvitations.value.filter(inv => inv._id !== invitationId)
       // Refresh team data
@@ -1036,22 +1020,15 @@ const promptRejectInvitation = invitationId => {
 const rejectInvitation = async invitationId => {
   rejectingInvitation.value = invitationId
   try {
-    const response = await fetch(`http://localhost:8000/api/invitations/${invitationId}/reject`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}),
-    })
+    // Use the properly configured API service with retry mechanism
+    const response = await apiCallWithRetry(api.put, [`/invitations/${invitationId}/reject`, {}])
 
-    if (response.ok) {
+    if (response.success) {
       // Remove from list
       pendingInvitations.value = pendingInvitations.value.filter(inv => inv._id !== invitationId)
       console.log('Invitation rejected')
     } else {
-      const err = await response.json().catch(() => null)
-      console.error('Reject API responded with error:', err || response.status)
+      console.error('Reject API responded with error:', response)
     }
   } catch (err) {
     console.error('Failed to reject invitation:', err)

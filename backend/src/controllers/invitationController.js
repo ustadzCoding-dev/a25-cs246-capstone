@@ -19,7 +19,13 @@ export const getPendingInvitations = asyncHandler(async (req, res) => {
       status: 'pending'
     })
       .populate('leaderId', 'name email')
-      .populate('teamId', 'teamName useCase')
+      .populate({
+        path: 'teamId',
+        populate: {
+          path: 'useCaseId',
+          select: 'title usecaseId'
+        }
+      })
       .sort({ createdAt: -1 });
 
     console.log('[getPendingInvitations] found:', invitations.length);
@@ -93,7 +99,13 @@ export const createInvitation = asyncHandler(async (req, res) => {
 
   // Populate references
   await invitation.populate('leaderId', 'name email');
-  await invitation.populate('teamId', 'teamName useCase');
+  await invitation.populate({
+    path: 'teamId',
+    populate: {
+      path: 'useCaseId',
+      select: 'title usecaseId'
+    }
+  });
 
   // Send invitation email
   const leader = await User.findById(leaderId);
@@ -127,59 +139,73 @@ export const acceptInvitation = asyncHandler(async (req, res) => {
   console.log('[acceptInvitation] Invitation ID:', id);
   console.log('[acceptInvitation] User ID:', userId);
 
-  const invitation = await Invitation.findById(id);
-
-  if (!invitation) {
-    console.log('[acceptInvitation] Invitation not found');
-    return res.error('Invitation not found', 404);
-  }
-
-  console.log('[acceptInvitation] Invitation found:', invitation);
-  console.log('[acceptInvitation] Invitation memberId:', invitation.memberId);
-  console.log('[acceptInvitation] Current userId:', userId);
-
-  // Verify this is for the current user
-  if (invitation.memberId.toString() !== userId.toString()) {
-    console.log('[acceptInvitation] Unauthorized - memberId mismatch');
-    return res.error('Unauthorized', 403);
-  }
-
-  // Check if already accepted/rejected
-  if (invitation.status !== 'pending') {
-    console.log('[acceptInvitation] Invitation already', invitation.status);
-    return res.error(`Invitation already ${invitation.status}`, 400);
-  }
-
-  // Update invitation status
-  invitation.status = 'accepted';
-  await invitation.save();
-  console.log('[acceptInvitation] Invitation status updated to accepted');
-
-  // Add member to team
   try {
-    const team = await CapstoneGroup.findById(invitation.teamId);
-    console.log('[acceptInvitation] Team found:', team ? 'yes' : 'no');
-    if (team && !team.members.includes(userId)) {
-      team.members.push(userId);
-      await team.save();
-      console.log('[acceptInvitation] Member added to team');
+    const invitation = await Invitation.findById(id);
+
+    if (!invitation) {
+      console.log('[acceptInvitation] Invitation not found');
+      return res.error('Invitation not found', 404);
     }
-  } catch (teamErr) {
-    console.error('[acceptInvitation] Error adding member to team:', teamErr.message);
-  }
 
-  try {
-    await invitation.populate('leaderId', 'name email');
-    console.log('[acceptInvitation] Populated leaderId');
-    await invitation.populate('teamId', 'teamName useCase');
-    console.log('[acceptInvitation] Populated teamId');
-  } catch (popErr) {
-    console.error('[acceptInvitation] Error populating:', popErr.message);
-  }
+    console.log('[acceptInvitation] Invitation found:', invitation);
+    console.log('[acceptInvitation] Invitation memberId:', invitation.memberId);
+    console.log('[acceptInvitation] Current userId:', userId);
 
-  console.log('[acceptInvitation] Success!');
-  console.log('[acceptInvitation] Final invitation:', invitation);
-  res.success(invitation, 'Invitation accepted successfully', 200);
+    // Verify this is for the current user
+    if (invitation.memberId.toString() !== userId.toString()) {
+      console.log('[acceptInvitation] Unauthorized - memberId mismatch');
+      return res.error('Unauthorized', 403);
+    }
+
+    // Check if already accepted/rejected
+    if (invitation.status !== 'pending') {
+      console.log('[acceptInvitation] Invitation already', invitation.status);
+      return res.error(`Invitation already ${invitation.status}`, 400);
+    }
+
+    // Update invitation status
+    invitation.status = 'accepted';
+    await invitation.save();
+    console.log('[acceptInvitation] Invitation status updated to accepted');
+
+    // Add member to team
+    try {
+      const team = await CapstoneGroup.findById(invitation.teamId);
+      console.log('[acceptInvitation] Team found:', team ? 'yes' : 'no');
+      if (team && !team.members.includes(userId)) {
+        team.members.push(userId);
+        await team.save();
+        console.log('[acceptInvitation] Member added to team');
+      }
+    } catch (teamErr) {
+      console.error('[acceptInvitation] Error adding member to team:', teamErr.message);
+    }
+
+    try {
+      await invitation.populate('leaderId', 'name email');
+      console.log('[acceptInvitation] Populated leaderId');
+      await invitation.populate({
+        path: 'teamId',
+        populate: {
+          path: 'useCaseId',
+          select: 'title usecaseId'
+        }
+      });
+      console.log('[acceptInvitation] Populated teamId');
+    } catch (popErr) {
+      console.error('[acceptInvitation] Error populating:', popErr.message);
+    }
+
+    console.log('[acceptInvitation] Success!');
+    console.log('[acceptInvitation] Final invitation:', invitation);
+    res.success(invitation, 'Invitation accepted successfully', 200);
+  } catch (err) {
+    console.error('[acceptInvitation] Error:', err);
+    if (err.name === 'CastError') {
+      return res.error('Invalid invitation ID format', 400);
+    }
+    return res.error('Failed to accept invitation', 500);
+  }
 });
 
 /**
@@ -277,12 +303,21 @@ export const rejectInvitation = asyncHandler(async (req, res) => {
     }
 
     await invitation.populate('leaderId', 'name email');
-    await invitation.populate('teamId', 'teamName useCase');
+    await invitation.populate({
+      path: 'teamId',
+      populate: {
+        path: 'useCaseId',
+        select: 'title usecaseId'
+      }
+    });
 
     console.log('[rejectInvitation] Success!');
     return res.success(invitation, 'Invitation rejected successfully', 200);
   } catch (err) {
     console.error('[rejectInvitation] Unexpected error:', err && err.stack ? err.stack : err);
+    if (err.name === 'CastError') {
+      return res.error('Invalid invitation ID format', 400);
+    }
     return res.error('Failed to reject invitation', 500);
   }
 });

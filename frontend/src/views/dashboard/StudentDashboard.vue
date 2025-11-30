@@ -255,10 +255,16 @@ const announcementStore = useAnnouncementStore()
 
 const user = computed(() => authStore.user)
 
-const hasTeam = computed(() => teamStore.hasTeam)
+const hasTeam = computed(() => {
+  // Fixed logic: Check if user has an approved team
+  // Previously was just checking if currentTeam exists
+  const team = teamStore.currentTeam
+  return team && team.status === 'approved'
+})
+
 const teamInfo = computed(() => {
   const team = teamStore.currentTeam
-  if (!team) return null
+  if (!team || team.status !== 'approved') return null
 
   return {
     teamName: team.teamName,

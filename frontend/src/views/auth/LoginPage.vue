@@ -193,6 +193,22 @@ const handleLogin = async () => {
       password: form.password,
     });
 
+    // Check if there's a pending invitation to process
+    const pendingInvitationId = sessionStorage.getItem('pendingInvitationId');
+    const pendingInvitationAction = sessionStorage.getItem('pendingInvitationAction');
+
+    if (pendingInvitationId && pendingInvitationAction) {
+      // Clear from sessionStorage
+      sessionStorage.removeItem('pendingInvitationId');
+      sessionStorage.removeItem('pendingInvitationAction');
+
+      // Redirect to process invitation
+      const invitationPath = `/invitations/${pendingInvitationId}/${pendingInvitationAction}`;
+      console.log('[Login] Redirecting to process pending invitation:', invitationPath);
+      router.push(invitationPath);
+      return;
+    }
+
     // Redirect to intended page or dashboard
     const redirect =
       route.query.redirect ||

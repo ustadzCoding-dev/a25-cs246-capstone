@@ -5,12 +5,12 @@ import { verifyAccessToken } from '../utils/jwt.js';
 // ========== EXISTING MIDDLEWARE (TETAP) ==========
 
 /**
- * OLD SYSTEM: Protect middleware (untuk sistem lama)
- * Digunakan untuk endpoint yang masih pakai token format lama
+ * HYBRID: Protect middleware (supports both old and new token systems)
+ * Used for endpoints that need backward compatibility
  */
 export const protect = async (req, res, next) => {
   try {
-    // Ambil token dari header Authorization
+    // Get token from header Authorization
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
@@ -23,11 +23,30 @@ export const protect = async (req, res, next) => {
     }
     const token = authHeader.split(' ')[1];
 
-    // Verifikasi token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.id;
+    let userId;
 
-    // Ambil data user dari database
+    // Try new token system first (short-lived access token)
+    try {
+      const decoded = verifyAccessToken(token);
+      userId = decoded.id;
+    } catch (newTokenError) {
+      // If new token fails, try old token system (3 days token)
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.id;
+      } catch (oldTokenError) {
+        console.error('Auth error - both token systems failed:', oldTokenError.message);
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Invalid or expired token'
+          }
+        });
+      }
+    }
+
+    // Fetch user data from database
     const user = await User.findById(userId).select('-password');
     if (!user) {
       return res.status(404).json({
@@ -39,7 +58,7 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    // Tambahkan data user ke request object
+    // Add user data to request object
     req.user = user;
     next();
   } catch (error) {

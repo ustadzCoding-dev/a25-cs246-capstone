@@ -38,7 +38,9 @@ export const useTeamStore = defineStore('team', {
     rejectedTeams: state => state.teams.filter(team => team.status === 'rejected'),
 
     // Check if user has a team
-    hasTeam: state => state.currentTeam !== null,
+    // Fixed logic: Check if user has an active team (approved or pending)
+    // Previously was just checking if currentTeam exists
+    hasTeam: state => state.currentTeam !== null && (state.currentTeam.status === 'approved' || state.currentTeam.status === 'pending'),
 
     // Get team status
     teamStatus: state => state.currentTeam?.status || null,

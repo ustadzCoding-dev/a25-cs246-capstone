@@ -22,19 +22,26 @@ export const helmetMiddleware = helmet({
   crossOriginEmbedderPolicy: false
 });
 
-// Rate limiting
+// Rate limiting - Development-friendly settings
 export const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // 1000 for dev, 100 for production
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting for health checks and API docs in development
+    if (process.env.NODE_ENV !== 'production') {
+      return req.path === '/health' || req.path.startsWith('/api-docs');
+    }
+    return false;
+  }
 });
 
 // Stricter rate limit for authentication endpoints
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 login requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 5 : 50, // 50 for dev, 5 for production
   message: 'Too many login attempts, please try again after 15 minutes.',
   skipSuccessfulRequests: true // Don't count successful requests
 });
@@ -68,13 +75,13 @@ export const preventHPP = hpp({
 export const customHeaders = (req, res, next) => {
   // Remove X-Powered-By header
   res.removeHeader('X-Powered-By');
-  
+
   // Add custom security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  
+
   next();
 };
 

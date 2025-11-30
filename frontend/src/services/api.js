@@ -78,7 +78,13 @@ api.interceptors.response.use(
       if (refreshToken) {
         return api
           .post('/auth/refresh', { refreshToken })
-          .then(({ accessToken }) => {
+          .then(({ data }) => {
+            // Extract accessToken from data (new response format)
+            const accessToken = data?.accessToken || data?.data?.accessToken
+            if (!accessToken) {
+              throw new Error('No access token in refresh response')
+            }
+
             localStorage.setItem('token', accessToken)
             api.defaults.headers.common.Authorization = `Bearer ${accessToken}`
             originalRequest.headers.Authorization = `Bearer ${accessToken}`

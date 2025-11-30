@@ -73,6 +73,25 @@ onMounted(async () => {
       provider: authStore.user?.provider
     });
 
+    // Check if there's a pending invitation to process
+    const pendingInvitationId = sessionStorage.getItem('pendingInvitationId');
+    const pendingInvitationAction = sessionStorage.getItem('pendingInvitationAction');
+
+    if (pendingInvitationId && pendingInvitationAction) {
+      // Clear from sessionStorage
+      sessionStorage.removeItem('pendingInvitationId');
+      sessionStorage.removeItem('pendingInvitationAction');
+
+      // Redirect to process invitation
+      const invitationPath = `/invitations/${pendingInvitationId}/${pendingInvitationAction}`;
+      console.log('[AuthCallback] Redirecting to process pending invitation:', invitationPath);
+
+      setTimeout(() => {
+        router.replace(invitationPath);
+      }, 500);
+      return;
+    }
+
     // Let router guard handle redirect logic
     // Router guard will check if profile is complete and redirect appropriately:
     // - If profile incomplete (Google user without dicodingId): redirect to /profile/complete

@@ -63,8 +63,17 @@ describe('Team Store', () => {
 
       expect(store.hasTeam).toBe(false)
 
-      store.currentTeam = { id: '1', name: 'Test Team' }
+      // Test with pending team
+      store.currentTeam = { id: '1', name: 'Test Team', status: 'pending' }
       expect(store.hasTeam).toBe(true)
+
+      // Test with approved team
+      store.currentTeam = { id: '1', name: 'Test Team', status: 'approved' }
+      expect(store.hasTeam).toBe(true)
+
+      // Test with rejected team (should be false)
+      store.currentTeam = { id: '1', name: 'Test Team', status: 'rejected' }
+      expect(store.hasTeam).toBe(false)
     })
   })
 

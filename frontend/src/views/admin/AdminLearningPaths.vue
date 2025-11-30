@@ -415,7 +415,16 @@ const toggleStatus = async (id) => {
 
 // Delete learning path
 const deletePath = async (id) => {
-  if (!confirm('Are you sure you want to delete this learning path?')) {
+  const result = await Swal.fire({
+    title: 'Hapus Learning Path',
+    text: 'Apakah Anda yakin ingin menghapus learning path ini?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Hapus',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) {
     return;
   }
 

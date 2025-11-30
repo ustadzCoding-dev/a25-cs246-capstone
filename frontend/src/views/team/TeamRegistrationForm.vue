@@ -249,6 +249,7 @@ import BaseSelect from '../../components/base/BaseSelect.vue'
 import BaseCheckbox from '../../components/base/BaseCheckbox.vue'
 import BaseButton from '../../components/base/BaseButton.vue'
 import DynamicInputList from '../../components/display/DynamicInputList.vue'
+import api from '../../services/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -528,18 +529,15 @@ const fetchStudentLearningPath = async (index, studentId) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:8000/api/students/lookup/${studentId}`)
+    // Import api service
+    const apiResponse = await api.get(`/students/lookup/${studentId}`)
 
-    if (!response.ok) {
+    if (apiResponse.success && apiResponse.data) {
+      form.learningPaths[index] = apiResponse.data.learningPathName || ''
+      console.log(`Loaded learning path for ${studentId}: ${apiResponse.data.learningPathName}`)
+    } else {
       console.warn(`Student ${studentId} not found`)
       form.learningPaths[index] = ''
-      return
-    }
-
-    const data = await response.json()
-    if (data.success && data.data) {
-      form.learningPaths[index] = data.data.learningPathName || ''
-      console.log(`Loaded learning path for ${studentId}: ${data.data.learningPathName}`)
     }
   } catch (err) {
     console.error(`Failed to fetch student ${studentId}:`, err)

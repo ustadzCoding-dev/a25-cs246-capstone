@@ -164,3 +164,36 @@ export const setTeamComposition = asyncHandler(async (req, res) => {
 
   res.success(useCase, 'Team composition updated successfully', 200);
 });
+
+/**
+ * Get unregistered students (Admin)
+ * GET /api/admin/students/unregistered
+ */
+export const getUnregisteredStudents = asyncHandler(async (req, res) => {
+  const { learningPathId } = req.query;
+
+  const students = await TeamService.getUnregisteredStudents({ learningPathId });
+
+  res.success(students, 'Unregistered students retrieved successfully', 200);
+});
+
+/**
+ * Auto-create teams for unregistered students (Admin)
+ * POST /api/admin/teams/auto-create
+ */
+export const autoCreateTeams = asyncHandler(async (req, res) => {
+  const { useCaseId, teamSize } = req.body;
+  const adminId = req.user._id;
+
+  if (!useCaseId) {
+    return res.error('Use case ID is required', 400);
+  }
+
+  const result = await TeamService.autoCreateTeams({
+    useCaseId,
+    teamSize: teamSize || 4,
+    adminId
+  });
+
+  res.success(result, result.message, 201);
+});

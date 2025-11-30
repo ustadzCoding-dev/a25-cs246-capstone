@@ -7,6 +7,20 @@
           <h1 class="text-3xl font-bold text-gray-900">Kelola Tim</h1>
           <p class="mt-2 text-gray-600">Kelola semua tim capstone</p>
         </div>
+        <button
+          @click="showAutoCreateModal = true"
+          class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+          Randomize Tim Otomatis
+        </button>
       </div>
 
       <!-- Stats Cards -->
@@ -349,6 +363,107 @@
         </div>
       </template>
     </BaseModal>
+
+    <!-- Auto Create Teams Modal -->
+    <BaseModal v-model="showAutoCreateModal" title="Randomize Tim Otomatis" size="md">
+      <div class="space-y-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 class="text-sm font-semibold text-blue-900 mb-2">ℹ️ Informasi</h4>
+          <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
+            <li>Siswa yang belum terdaftar di tim akan di-assign otomatis</li>
+            <li>Tim dibuat berdasarkan learning path yang sama</li>
+            <li>Anggota tim akan dirandom secara otomatis</li>
+            <li>Tim yang dibuat akan langsung disetujui (status: approved)</li>
+          </ul>
+        </div>
+
+        <div v-if="unregisteredStats" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h4 class="text-sm font-semibold text-gray-900 mb-2">📊 Siswa Belum Terdaftar</h4>
+          <p class="text-lg font-bold text-primary-600">{{ unregisteredStats.total }} siswa</p>
+          <div v-if="unregisteredStats.byLearningPath" class="mt-2 space-y-1">
+            <p
+              v-for="(count, path) in unregisteredStats.byLearningPath"
+              :key="path"
+              class="text-sm text-gray-600"
+            >
+              {{ path }}: {{ count }} siswa
+            </p>
+          </div>
+        </div>
+
+        <BaseSelect
+          v-model="autoCreateForm.useCaseId"
+          label="Use Case"
+          :options="useCaseOptionsForCreate"
+          placeholder="Pilih Use Case"
+          required
+        />
+
+        <!-- Use Case Composition Info -->
+        <div v-if="selectedUseCaseForCreate" class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+          <h4 class="text-sm font-semibold text-indigo-900 mb-3">📋 Komposisi Tim yang Dibutuhkan</h4>
+
+          <!-- If use case has team composition requirements -->
+          <div v-if="selectedUseCaseForCreate.teamComposition && selectedUseCaseForCreate.teamComposition.length > 0">
+            <div class="space-y-2">
+              <div
+                v-for="(comp, index) in selectedUseCaseForCreate.teamComposition"
+                :key="index"
+                class="flex justify-between items-center text-sm"
+              >
+                <span class="text-indigo-700 font-medium">
+                  {{ comp.learningPathName || comp.learningPath || 'Unknown' }}
+                </span>
+                <span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-semibold">
+                  {{ comp.count }} orang
+                </span>
+              </div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-indigo-200">
+              <div class="flex justify-between items-center">
+                <span class="text-sm font-semibold text-indigo-900">Total Anggota per Tim:</span>
+                <span class="bg-indigo-600 text-white px-3 py-1 rounded font-bold">
+                  {{ selectedUseCaseForCreate.totalTeamSize }} orang
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- If no team composition (flexible) -->
+          <div v-else class="text-sm text-indigo-700">
+            <p class="font-medium">Komposisi Fleksibel</p>
+            <p class="text-xs text-indigo-600 mt-1">
+              Tim dapat terdiri dari 2-4 anggota dengan learning path yang sama
+            </p>
+          </div>
+        </div>
+
+        <BaseInput
+          v-model.number="autoCreateForm.teamSize"
+          label="Ukuran Tim"
+          type="number"
+          min="2"
+          max="4"
+          placeholder="Jumlah anggota per tim (2-4)"
+          :hint="selectedUseCaseForCreate?.totalTeamSize ? 'Ukuran tim otomatis disesuaikan dengan komposisi use case' : 'Jumlah anggota per tim yang akan dibuat'"
+          :disabled="selectedUseCaseForCreate?.totalTeamSize > 0"
+        />
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <BaseButton variant="outline" @click="showAutoCreateModal = false"> Batal </BaseButton>
+          <BaseButton
+            variant="primary"
+            :loading="autoCreating"
+            :disabled="!autoCreateForm.useCaseId"
+            @click="confirmAutoCreate"
+          >
+            Buat Tim Otomatis
+          </BaseButton>
+        </div>
+      </template>
+    </BaseModal>
   </DashboardLayout>
 </template>
 
@@ -359,6 +474,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTeamStore } from '../../stores/teamStore'
 import { useAdminMenu } from '../../composables/useAdminMenu'
+import api from '../../services/api'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import StatsCard from '../../components/display/StatsCard.vue'
 import BaseSearch from '../../components/base/BaseSearch.vue'
@@ -384,9 +500,16 @@ const filterUseCase = ref('')
 const showDetailsModal = ref(false)
 const showRejectModal = ref(false)
 const showDeleteModal = ref(false)
+const showAutoCreateModal = ref(false)
 const selectedTeam = ref(null)
 const rejectReason = ref('')
 const newCapstoneGroupId = ref('')
+const autoCreating = ref(false)
+const unregisteredStats = ref(null)
+const autoCreateForm = ref({
+  useCaseId: '',
+  teamSize: 4
+})
 
 // Default generation settings (ubah jika perlu)
 const defaultBatch = ref(25) // Angkatan (contoh: 25 -> A25)
@@ -491,6 +614,41 @@ const useCaseOptions = computed(() => {
 
   console.log('[useCaseOptions] final options:', options)
   return options
+})
+
+// Use case options for auto-create (without 'Semua' option)
+const useCaseOptionsForCreate = computed(() => {
+  const options = []
+  if (teamStore.useCases && teamStore.useCases.length > 0) {
+    teamStore.useCases.forEach(useCase => {
+      // Use id or _id (backend toJSON transform changes _id to id)
+      const useCaseId = useCase.id || useCase._id
+      console.log('[useCaseOptionsForCreate] UseCase:', {
+        title: useCase.title,
+        id: useCase.id,
+        _id: useCase._id,
+        useCaseId
+      })
+      options.push({
+        value: useCaseId,
+        label: `${useCase.title} (${useCase.usecaseId})`,
+      })
+    })
+  }
+  return options
+})
+
+// Get selected use case details for auto-create modal
+const selectedUseCaseForCreate = computed(() => {
+  if (!autoCreateForm.value.useCaseId || !teamStore.useCases) return null
+
+  const selected = teamStore.useCases.find(uc => {
+    const ucId = uc.id || uc._id
+    return ucId === autoCreateForm.value.useCaseId
+  })
+
+  console.log('[selectedUseCaseForCreate] Selected:', selected)
+  return selected || null
 })
 
 const filteredTeams = computed(() => {
@@ -735,6 +893,142 @@ const assignCapstoneGroupId = async () => {
     Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal assign ID Tim: ' + err.message })
   }
 }
+
+// Fetch unregistered students stats
+const fetchUnregisteredStats = async () => {
+  try {
+    const response = await api.get('/admin/students/unregistered')
+    if (response.success && response.data) {
+      const students = response.data
+      const byPath = {}
+      students.forEach(student => {
+        const path = student.learningPathName || 'Unknown'
+        byPath[path] = (byPath[path] || 0) + 1
+      })
+      unregisteredStats.value = {
+        total: students.length,
+        byLearningPath: byPath
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch unregistered students:', err)
+  }
+}
+
+// Auto-create teams for unregistered students
+const confirmAutoCreate = async () => {
+  if (!autoCreateForm.value.useCaseId) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Perhatian',
+      text: 'Pilih Use Case terlebih dahulu'
+    })
+    return
+  }
+
+  // Confirm action
+  const confirm = await Swal.fire({
+    icon: 'question',
+    title: 'Konfirmasi',
+    text: `Buat tim otomatis untuk ${unregisteredStats.value?.total || 0} siswa yang belum terdaftar?`,
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Buat Tim',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!confirm.isConfirmed) return
+
+  autoCreating.value = true
+  teamStore.clearError()
+
+  try {
+    const response = await api.post('/admin/teams/auto-create', {
+      useCaseId: autoCreateForm.value.useCaseId,
+      teamSize: autoCreateForm.value.teamSize || 4
+    })
+
+    if (response.success) {
+      showAutoCreateModal.value = false
+
+      // Refresh teams and stats
+      await fetchTeams()
+      await fetchUnregisteredStats()
+
+      // Show appropriate message based on results
+      if (response.data.teamsCreated === 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Tidak Ada Tim Dibuat',
+          html: `
+            <p>${response.message}</p>
+            ${response.data.skippedStudents ? `<p class="text-sm text-gray-600 mt-2">
+              <strong>${response.data.skippedStudents}</strong> siswa di-skip karena tidak memiliki learning path yang valid.
+            </p>` : ''}
+            <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-left">
+              <p class="text-sm font-semibold text-yellow-800 mb-2">💡 Saran:</p>
+              <ul class="text-sm text-yellow-700 list-disc list-inside space-y-1">
+                <li>Pastikan semua siswa memiliki learning path yang ter-assign</li>
+                <li>Cek data siswa di database untuk field 'learningPathName' atau 'learningPath'</li>
+                <li>Minimal 2 siswa dengan learning path yang sama diperlukan untuk membuat tim</li>
+              </ul>
+            </div>
+          `
+        })
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          html: `
+            <p>${response.message}</p>
+            <p class="text-sm text-gray-600 mt-2">
+              <strong>${response.data.teamsCreated}</strong> tim dibuat<br>
+              <strong>${response.data.studentsAssigned}</strong> siswa di-assign
+            </p>
+            ${response.data.skippedStudents ? `<p class="text-sm text-orange-600 mt-2">
+              ⚠️ <strong>${response.data.skippedStudents}</strong> siswa di-skip (tidak ada learning path)
+            </p>` : ''}
+          `
+        })
+      }
+
+      // Reset form
+      autoCreateForm.value = {
+        useCaseId: '',
+        teamSize: 4
+      }
+    }
+  } catch (err) {
+    console.error('Failed to auto-create teams:', err)
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: err.message || 'Gagal membuat tim otomatis'
+    })
+  } finally {
+    autoCreating.value = false
+  }
+}
+
+// Watch auto-create modal to fetch stats when opened
+watch(showAutoCreateModal, (newVal) => {
+  if (newVal) {
+    fetchUnregisteredStats()
+  }
+})
+
+// Watch selected use case to auto-adjust team size if composition is defined
+watch(
+  () => autoCreateForm.value.useCaseId,
+  (newUseCaseId) => {
+    if (newUseCaseId && selectedUseCaseForCreate.value) {
+      // If use case has team composition, set team size to totalTeamSize
+      if (selectedUseCaseForCreate.value.totalTeamSize && selectedUseCaseForCreate.value.totalTeamSize > 0) {
+        autoCreateForm.value.teamSize = selectedUseCaseForCreate.value.totalTeamSize
+        console.log('[Watch useCaseId] Auto-adjusted team size to:', selectedUseCaseForCreate.value.totalTeamSize)
+      }
+    }
+  }
+)
 
 onMounted(() => {
   // Fetch use cases for filter dropdown

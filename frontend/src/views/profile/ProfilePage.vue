@@ -338,8 +338,11 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
+import { useStudentMenu } from '../../composables/useStudentMenu'
+import { useAdminMenu } from '../../composables/useAdminMenu'
 import * as userService from '../../services/userService'
 import * as profilePictureService from '../../services/profilePictureService'
+import api from '../../services/api'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import BaseInput from '../../components/base/BaseInput.vue'
 import BasePasswordInput from '../../components/base/BasePasswordInput.vue'
@@ -350,8 +353,16 @@ import BaseModal from '../../components/base/BaseModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { studentMenuItems } = useStudentMenu()
+const { adminMenuItems } = useAdminMenu()
 
 const user = computed(() => authStore.user)
+
+// Use the appropriate menu items based on user role
+const menuItems = computed(() => {
+  return user.value?.role === 'admin' ? adminMenuItems.value : studentMenuItems.value
+})
+
 const success = ref('')
 const updatingProfile = ref(false)
 const changingPassword = ref(false)
@@ -399,101 +410,25 @@ const passwordErrors = reactive({
 
 const passwordError = ref('')
 
-const menuItems = computed(() => {
-  if (user.value?.role === 'admin') {
-    return [
-      {
-        name: 'Dashboard',
-        icon: 'dashboard',
-        path: '/admin/dashboard',
-        roles: ['admin'],
-      },
-      {
-        name: 'Kelola Tim',
-        icon: 'team',
-        path: '/admin/teams',
-        roles: ['admin'],
-      },
-      {
-        name: 'Dokumen',
-        icon: 'document',
-        path: '/admin/documents',
-        roles: ['admin'],
-      },
-      {
-        name: 'Timeline',
-        icon: 'timeline',
-        path: '/admin/timeline',
-        roles: ['admin'],
-      },
-      {
-        name: 'Pengumuman',
-        icon: 'announcement',
-        path: '/admin/announcements',
-        roles: ['admin'],
-      },
-    ]
-  }
-  return [
-    {
-      name: 'Dashboard',
-      icon: 'dashboard',
-      path: '/dashboard',
-      roles: ['student'],
-    },
-    { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
-    {
-      name: 'Dokumen',
-      icon: 'document',
-      path: '/documents',
-      roles: ['student'],
-    },
-    {
-      name: 'Timeline',
-      icon: 'timeline',
-      path: '/timeline',
-      roles: ['student'],
-    },
-    {
-      name: 'Pengumuman',
-      icon: 'announcement',
-      path: '/announcements',
-      roles: ['student'],
-    },
-    { name: 'Profil', icon: 'profile', path: '/profile', roles: ['student'] },
-  ]
-})
-
 const profilePicture = ref(null)
 
 const fetchUser = async () => {
   try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      console.log('No auth token found')
-      return
+    // Use the properly configured API service instead of raw fetch
+    const response = await api.get('/auth/me')
+
+    if (response.success && response.data) {
+      profilePicture.value = response.data
     }
-
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.log('Token expired or invalid')
-        localStorage.removeItem('token')
-        return
-      }
-      throw new Error(`HTTP ${response.status}`)
-    }
-
-    const data = await response.json()
-    profilePicture.value = data
   } catch (error) {
     console.error('Gagal mengambil data user:', error)
+
+    // Handle token expiration
+    if (error.status === 401) {
+      console.log('Token expired or invalid')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+    }
   }
 }
 
@@ -690,7 +625,16 @@ const handleProfilePictureSelect = async event => {
 }
 
 const handleDeleteProfilePicture = async () => {
-  if (!confirm('Apakah Anda yakin ingin menghapus foto profil?')) {
+  const result = await Swal.fire({
+    title: 'Konfirmasi',
+    text: 'Apakah Anda yakin ingin menghapus foto profil?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Hapus',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) {
     return
   }
 

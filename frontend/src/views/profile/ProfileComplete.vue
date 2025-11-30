@@ -115,6 +115,7 @@ import { useAuthStore } from "../../stores/authStore";
 import BaseInput from "../../components/base/BaseInput.vue";
 import BaseSelect from "../../components/base/BaseSelect.vue";
 import BaseButton from "../../components/base/BaseButton.vue";
+import api from "../../services/api";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -137,10 +138,10 @@ const errors = reactive({
 // Fetch learning paths from backend
 const fetchLearningPaths = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/learning-paths');
-    if (response.ok) {
-      const data = await response.json();
-      learningPathOptions.value = data.data.map(path => ({
+    // Use the properly configured API service instead of raw fetch
+    const response = await api.get('/learning-paths');
+    if (response.success && response.data) {
+      learningPathOptions.value = response.data.map(path => ({
         value: path.name,
         label: path.name
       }));

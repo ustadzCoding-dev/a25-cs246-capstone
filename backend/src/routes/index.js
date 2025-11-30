@@ -36,7 +36,9 @@ import {
   getCapstoneGroupById,
   getCurrentCapstoneGroup,
   setTeamComposition,
-  updateCapstoneGroup
+  updateCapstoneGroup,
+  getUnregisteredStudents,
+  autoCreateTeams
 } from '../controllers/capstoneGroupController.js';
 import {
   getAllDocuments,
@@ -244,6 +246,10 @@ router.put(
 );
 router.put('/capstone-group/update/:id', protect, adminOnly, updateCapstoneGroup);
 router.delete('/capstone-group/:id', protect, adminOnly, deleteCapstoneGroup);
+
+// Admin: Get unregistered students and auto-create teams
+router.get('/admin/students/unregistered', protect, adminOnly, getUnregisteredStudents);
+router.post('/admin/teams/auto-create', protect, adminOnly, autoCreateTeams);
 
 // Admin: Debug - Clear all member capstoneGroupId
 router.post(

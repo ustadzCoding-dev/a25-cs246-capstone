@@ -1089,7 +1089,16 @@ const savePeriod = async () => {
 }
 
 const handleActivate = async period => {
-  if (!confirm('Aktifkan periode ini? Peserta akan dapat mengisi worksheet.')) return
+  const result = await Swal.fire({
+    title: 'Aktifkan Periode',
+    text: 'Aktifkan periode ini? Peserta akan dapat mengisi worksheet.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Aktifkan',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) return
 
   try {
     await worksheetStore.activatePeriod(period.id || period._id)
@@ -1101,7 +1110,16 @@ const handleActivate = async period => {
 }
 
 const handleClose = async period => {
-  if (!confirm('Tutup periode ini? Peserta tidak akan dapat mengisi worksheet lagi.')) return
+  const result = await Swal.fire({
+    title: 'Tutup Periode',
+    text: 'Tutup periode ini? Peserta tidak akan dapat mengisi worksheet lagi.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Tutup',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) return
 
   try {
     await worksheetStore.closePeriod(period.id || period._id)
@@ -1113,7 +1131,16 @@ const handleClose = async period => {
 }
 
 const handleDelete = async period => {
-  if (!confirm('Hapus periode ini? Tindakan ini tidak dapat dibatalkan.')) return
+  const result = await Swal.fire({
+    title: 'Hapus Periode',
+    text: 'Hapus periode ini? Tindakan ini tidak dapat dibatalkan.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Hapus',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) return
 
   try {
     await worksheetStore.deletePeriod(period.id || period._id)
@@ -1161,7 +1188,16 @@ const submitValidation = async () => {
 
 const sendReminders = async () => {
   if (!selectedPeriodId.value) return
-  if (!confirm('Kirim pengingat ke semua peserta yang belum mengisi worksheet?')) return
+  const result = await Swal.fire({
+    title: 'Kirim Pengingat',
+    text: 'Kirim pengingat ke semua peserta yang belum mengisi worksheet?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Kirim',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) return
 
   try {
     const result = await worksheetStore.sendReminderNotifications(selectedPeriodId.value)
@@ -1173,12 +1209,16 @@ const sendReminders = async () => {
 
 const runAutoValidation = async () => {
   if (!selectedPeriodId.value) return
-  if (
-    !confirm(
-      'Jalankan validasi otomatis? Semua worksheet akan divalidasi berdasarkan status submit.'
-    )
-  )
-    return
+  const result = await Swal.fire({
+    title: 'Jalankan Validasi Otomatis',
+    text: 'Jalankan validasi otomatis? Semua worksheet akan divalidasi berdasarkan status submit.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Jalankan',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) return
 
   try {
     const result = await worksheetStore.runAutoValidation(selectedPeriodId.value)

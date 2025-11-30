@@ -918,7 +918,16 @@ export class TeamService {
    */
   async validateUseCase(useCaseId) {
     try {
-      const useCase = await UseCase.findById(useCaseId);
+      // Handle both string and ObjectId formats
+      let useCase;
+
+      // Try to find by _id first (ObjectId or string that can be cast to ObjectId)
+      try {
+        useCase = await UseCase.findById(useCaseId);
+      } catch (castError) {
+        // If cast fails, try to find by usecaseId field (string)
+        useCase = await UseCase.findOne({ usecaseId: useCaseId });
+      }
 
       if (!useCase) {
         throw new NotFoundError('Use case not found');
@@ -962,6 +971,302 @@ export class TeamService {
     if (useCase.availableSlots <= 0) {
       await UseCase.findByIdAndUpdate(useCaseId, { status: 'closed' });
     }
+  }
+
+  /**
+   * Get unregistered students (students without teams)
+   * @param {Object} filters - Filter options
+   * @param {string} filters.learningPathId - Filter by learning path
+   * @returns {Promise<Array>} List of unregistered students
+   */
+  async getUnregisteredStudents(filters = {}) {
+    console.log('[getUnregisteredStudents] Getting students without teams');
+
+    const query = {
+      role: 'student',
+      capstoneGroupId: null // Students not in any team
+    };
+
+    if (filters.learningPathId) {
+      query.learningPathId = filters.learningPathId;
+    }
+
+    const students = await User.find(query)
+      .select('_id name email learningPathId learningPathName university')
+      .populate('learningPathId', 'name')
+      .lean();
+
+    console.log('[getUnregisteredStudents] Found', students.length, 'unregistered students');
+
+    return students;
+  }
+
+  /**
+   * Auto-create teams for unregistered students based on learning paths
+   * @param {Object} options - Randomization options
+   * @param {string} options.useCaseId - Use case to assign teams to
+   * @param {number} options.teamSize - Number of students per team (default: 4)
+   * @param {string} options.adminId - Admin user ID performing the action
+   * @returns {Promise<Object>} Result summary
+   */
+  async autoCreateTeams(options = {}) {
+    const { useCaseId, teamSize = 4, adminId } = options;
+
+    console.log('[autoCreateTeams] Starting auto team creation');
+    console.log('[autoCreateTeams] Options:', { useCaseId, teamSize, adminId });
+    console.log('[autoCreateTeams] useCaseId type:', typeof useCaseId);
+    console.log('[autoCreateTeams] useCaseId value:', useCaseId);
+
+    if (!useCaseId) {
+      throw new ValidationError('Use case ID is required');
+    }
+
+    // Validate use case
+    const useCase = await this.validateUseCase(useCaseId);
+    console.log('[autoCreateTeams] Use case validated:', useCase.title);
+
+    // Get all unregistered students
+    const allStudents = await this.getUnregisteredStudents();
+    console.log('[autoCreateTeams] Total unregistered students:', allStudents.length);
+
+    if (allStudents.length === 0) {
+      return {
+        success: true,
+        message: 'No unregistered students found',
+        teamsCreated: 0,
+        studentsAssigned: 0
+      };
+    }
+
+    // Group students by learning path
+    const studentsByPath = {};
+    let skippedStudents = 0;
+
+    for (const student of allStudents) {
+      // Use learningPathName as the primary key (fallback to learningPath string field)
+      const pathName = student.learningPathName || student.learningPath || 'Unknown';
+      const pathKey = pathName.toString().trim();
+
+      if (!pathKey || pathKey === 'Unknown' || pathKey === 'null') {
+        console.log(`[autoCreateTeams] Skipping student ${student.email} - no valid learning path`);
+        skippedStudents++;
+        continue; // Skip students without valid learning path
+      }
+
+      if (!studentsByPath[pathKey]) {
+        studentsByPath[pathKey] = {
+          learningPathId: student.learningPathId,
+          learningPathName: pathName,
+          students: []
+        };
+      }
+      studentsByPath[pathKey].students.push(student);
+    }
+
+    if (skippedStudents > 0) {
+      console.log(`[autoCreateTeams] WARNING: Skipped ${skippedStudents} student(s) without valid learning path`);
+    }
+
+    if (Object.keys(studentsByPath).length === 0) {
+      return {
+        success: true,
+        message: `All ${allStudents.length} unregistered student(s) do not have valid learning path assigned. Please assign learning paths first.`,
+        teamsCreated: 0,
+        studentsAssigned: 0,
+        skippedStudents: skippedStudents
+      };
+    }
+
+    console.log('[autoCreateTeams] Students grouped by learning path:');
+    Object.keys(studentsByPath).forEach(key => {
+      console.log(`  - ${studentsByPath[key].learningPathName}: ${studentsByPath[key].students.length} students`);
+    });
+
+    // IMPORTANT: If use case has team composition requirements,
+    // ONLY create teams for learning paths specified in the composition
+    const allowedLearningPaths = new Set();
+    if (useCase.teamComposition && useCase.teamComposition.length > 0) {
+      console.log('[autoCreateTeams] Use case has team composition requirements');
+      useCase.teamComposition.forEach(comp => {
+        allowedLearningPaths.add(comp.learningPathName);
+        console.log(`  - Required: ${comp.learningPathName} (${comp.count} per team)`);
+      });
+
+      // Filter out learning paths that are NOT in the composition
+      const filteredPaths = {};
+      for (const pathKey of Object.keys(studentsByPath)) {
+        if (allowedLearningPaths.has(pathKey)) {
+          filteredPaths[pathKey] = studentsByPath[pathKey];
+        } else {
+          console.log(`  - SKIPPING ${pathKey}: Not required by this use case`);
+        }
+      }
+
+      // Replace studentsByPath with filtered version
+      Object.keys(studentsByPath).forEach(key => delete studentsByPath[key]);
+      Object.assign(studentsByPath, filteredPaths);
+
+      console.log('[autoCreateTeams] After filtering by composition:');
+      Object.keys(studentsByPath).forEach(key => {
+        console.log(`  - ${key}: ${studentsByPath[key].students.length} students`);
+      });
+    } else {
+      console.log('[autoCreateTeams] Use case has flexible composition (no specific requirements)');
+    }
+
+    // Create teams based on use case composition
+    const createdTeams = [];
+    let totalStudentsAssigned = 0;
+
+    // Strategy 1: Use case has specific team composition (e.g., 2 FEBE + 1 ML = 3 total)
+    if (useCase.teamComposition && useCase.teamComposition.length > 0 && useCase.totalTeamSize) {
+      console.log('[autoCreateTeams] Creating teams based on EXACT composition requirements');
+
+      // Build composition map: learningPathName -> count required
+      const compositionMap = {};
+      useCase.teamComposition.forEach(comp => {
+        compositionMap[comp.learningPathName] = comp.count;
+      });
+
+      // Prepare pools of students for each learning path
+      const studentPools = {};
+      Object.keys(studentsByPath).forEach(pathKey => {
+        const shuffled = studentsByPath[pathKey].students.sort(() => Math.random() - 0.5);
+        studentPools[pathKey] = shuffled;
+      });
+
+      // Create teams by pulling exact number from each pool
+      let teamNumber = 1;
+      let canCreateMore = true;
+
+      while (canCreateMore) {
+        const teamMembers = [];
+        const teamMemberEmails = [];
+
+        // Try to build one team according to composition
+        let missingPath = null;
+        for (const [pathName, requiredCount] of Object.entries(compositionMap)) {
+          const pool = studentPools[pathName];
+          if (!pool || pool.length < requiredCount) {
+            missingPath = pathName;
+            console.log(`[autoCreateTeams] Cannot create more teams: Not enough students in ${pathName} (need ${requiredCount}, have ${pool?.length || 0})`);
+            canCreateMore = false;
+            break;
+          }
+
+          // Pull required number of students from this pool
+          const selectedStudents = pool.splice(0, requiredCount);
+          teamMembers.push(...selectedStudents);
+          teamMemberEmails.push(...selectedStudents.map(s => s.email));
+        }
+
+        if (!canCreateMore) break;
+
+        // Create the team
+        const firstPath = Object.keys(compositionMap)[0];
+        const teamName = `Mixed Team ${teamNumber} - ${useCase.title}`;
+
+        try {
+          console.log(`[autoCreateTeams] Creating mixed team: ${teamName} with ${teamMembers.length} members`);
+          console.log(`[autoCreateTeams] Composition:`, Object.entries(compositionMap).map(([path, count]) => `${path}: ${count}`).join(', '));
+
+          // Create team using existing service method
+          const team = await this.createTeam(
+            {
+              teamName,
+              membersUserId: teamMemberEmails,
+              useCaseId
+            },
+            teamMembers[0]._id // Use first member as leader
+          );
+
+          // Auto-approve the team since it's created by admin
+          team.status = 'approved';
+          team.validatedBy = adminId;
+          team.validatedAt = new Date();
+          await team.save();
+
+          createdTeams.push(team);
+          totalStudentsAssigned += teamMembers.length;
+          teamNumber++;
+
+          console.log(`[autoCreateTeams] Team created and approved: ${teamName}`);
+        } catch (error) {
+          console.error(`[autoCreateTeams] Failed to create team ${teamName}:`, error.message);
+          canCreateMore = false;
+        }
+      }
+
+    } else {
+      // Strategy 2: Flexible composition - create teams within same learning path
+      console.log('[autoCreateTeams] Creating teams with FLEXIBLE composition (same learning path)');
+
+      for (const pathKey of Object.keys(studentsByPath)) {
+        const pathData = studentsByPath[pathKey];
+        const students = pathData.students;
+
+        console.log(`[autoCreateTeams] Processing ${pathData.learningPathName} (${students.length} students)`);
+
+        // Shuffle students to randomize
+        const shuffled = students.sort(() => Math.random() - 0.5);
+
+        // Create teams of specified size
+        let teamNumber = 1;
+        for (let i = 0; i < shuffled.length; i += teamSize) {
+          const teamMembers = shuffled.slice(i, i + teamSize);
+
+          // Skip if team has less than 2 members
+          if (teamMembers.length < 2) {
+            console.log(`[autoCreateTeams] Skipping team with ${teamMembers.length} member(s) - minimum is 2`);
+            continue;
+          }
+
+          // Generate team name
+          const teamName = `${pathData.learningPathName} - Team ${teamNumber}`;
+          const memberEmails = teamMembers.map(m => m.email);
+
+          try {
+            console.log(`[autoCreateTeams] Creating team: ${teamName} with ${teamMembers.length} members`);
+
+            // Create team using existing service method
+            const team = await this.createTeam(
+              {
+                teamName,
+                membersUserId: memberEmails,
+                useCaseId
+              },
+              teamMembers[0]._id // Use first member as leader
+            );
+
+            // Auto-approve the team since it's created by admin
+            team.status = 'approved';
+            team.validatedBy = adminId;
+            team.validatedAt = new Date();
+            await team.save();
+
+            createdTeams.push(team);
+            totalStudentsAssigned += teamMembers.length;
+            teamNumber++;
+
+            console.log(`[autoCreateTeams] Team created and approved: ${teamName}`);
+          } catch (error) {
+            console.error(`[autoCreateTeams] Failed to create team ${teamName}:`, error.message);
+            // Continue with next team even if one fails
+          }
+        }
+      }
+    }
+
+    console.log('[autoCreateTeams] Auto team creation complete');
+    console.log(`[autoCreateTeams] Created ${createdTeams.length} teams with ${totalStudentsAssigned} students`);
+
+    return {
+      success: true,
+      message: `Successfully created ${createdTeams.length} team(s) and assigned ${totalStudentsAssigned} student(s)`,
+      teamsCreated: createdTeams.length,
+      studentsAssigned: totalStudentsAssigned,
+      teams: createdTeams
+    };
   }
 }
 
