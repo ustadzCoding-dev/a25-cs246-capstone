@@ -7,26 +7,43 @@
     <div class="space-y-6">
       <!-- Page Header -->
       <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
-        <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
-        <p class="text-gray-600 text-lg">
+        <h1 class="font-semibold text-gray-900
+        lg:text-2xl
+          md:text-xl
+          sm:text-lg
+          text-base">Dashboard</h1>
+        <p class="text-gray-600
+        lg:text-lg md:text-lg sm:text-sm text-sm">
           Selamat datang kembali, <span class="text-primary-600 font-semibold">{{ user?.name }}</span>!
         </p>
       </div>
 
       <!-- Detail Info Capstone Project -->
-      <div class="grid grid-cols-3 gap-5 bg-white shadow-md p-6 rounded-lg">
+      <div class="grid gap-5 bg-white shadow-md p-6 rounded-lg
+      lg:grid-cols-3
+      md:grid-cols-4
+      grid-cols-1">
        <div class="
-       col-span-2 row-start-1">
+       lg:col-span-2 lg:row-start-1
+       md:col-span-2 md:row-start-1">
         <div class="border-b border-gray-200 pb-3">
-          <h2 class="text-2xl font-semibold text-gray-900">Apa itu Capstone Project?</h2>
+          <h2 class=" font-semibold text-gray-900
+          lg:text-2xl
+          md:text-xl
+          sm:text-lg
+          text-base">Apa itu Capstone Project?</h2>
         </div>
-        <p class="text-gray-700 mt-5 text-lg">
+        <p class="text-gray-700
+        lg:text-lg lg:mt-5
+        md:text-base
+        sm:text-sm
+        mt-1 text-xs">
           Capstone Project adalah proyek akhir yang dirancang untuk mengaplikasikan
           pengetahuan dan keterampilan yang telah Anda pelajari selama program
           bootcamp. Proyek ini bertujuan untuk memberikan pengalaman praktis dalam
           menyelesaikan masalah dunia nyata melalui kolaborasi tim dan inovasi.
         </p>
-        <ul class="ml-10 text-gray-700 text-lg">
+        <ul class="text-gray-700 lg:text-lg lg:ml-10 md:text-base md:ml-6 sm:text-sm text-xs ml-3">
           <li class="mt-2">• Bekerja dalam tim untuk <span class="font-semibold">mengembangkan solusi nyata.</span></li>
           <li class="mt-2">• <span class="font-semibold">Meningkatkan keterampilan</span> manajemen proyek dan komunikasi.</li>
         </ul>
@@ -34,7 +51,8 @@
 
         <!-- Team Status Card -->
         <div class="
-        col-span-2 row-start-2">
+        lg:col-span-2 lg:row-start-2
+        md:col-span-4 md:row-start-2">
           <TeamStatusCard
             v-if="hasTeam"
             :team-name="teamInfo.teamName"
@@ -64,8 +82,12 @@
                 />
               </svg>
               <div class="flex-1">
-                <h3 class="text-lg font-semibold text-warning-700">Anda Belum Terdaftar di Tim</h3>
-                <p class="text-md text-warning-600">
+                <h3 class=" font-semibold text-warning-700
+                lg:text-lg
+                md:text-base
+                sm:text-base
+                text-sm">Anda Belum Terdaftar di Tim</h3>
+                <p class="lg:text-base md:text-base sm:text-sm text-xs text-warning-600">
                   Silakan bergabung dengan tim atau buat tim baru untuk
                   melanjutkan program capstone.
                 </p>
@@ -80,25 +102,30 @@
         </div>
 
         <!-- Information Card -->
-        <div class=" p-5 border-l border-gray-300
-        col-span-1 row-span-2 col-start-3 row-start-1">
+        <div class=" lg:p-5 md:p-5 lg:border-l md:border-l border-gray-300
+        lg:col-span-1 lg:row-span-2 lg:col-start-3 lg:row-start-1
+        md:col-span-2 md:row-span-1 md:col-start-3 md:row-start-1">
           <div class="border-b border-gray-200 pb-3">
-            <h3 class="text-lg font-semibold text-gray-900">Informasi</h3>
+            <h3 class="font-semibold text-gray-900
+            lg:text-lg
+                md:text-base
+                sm:text-base
+                text-sm">Informasi</h3>
           </div>
-          <div class="flex flex-col gap-5 mt-4">
+          <div class="flex flex-col gap-5 lg:mt-4 md:mt-1">
             <div class="grid grid-cols-7">
               <div class="col-span-5">
-                <h4 class="text-md font-semibold">
+                <h4 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold">
                   {3} Dokumen Telah Ditambahkan
                 </h4>
-                <p class="text-sm text-gray-500">
+                <p class="lg:text-sm md:text-sm sm:text-xs text-xs text-gray-500">
                   Check dokumen terbaru untuk referensi capstone project Anda.
                 </p>
               </div>
               <div class="text-end col-span-2">
                 <router-link
                   to="/documents"
-                  class="text-sm font-medium text-primary-600 hover:text-primary-700"
+                  class="lg:text-sm md:text-sm sm:text-xs text-xs font-medium text-primary-600 hover:text-primary-700"
                 >
                   Lihat Semua
                 </router-link>
@@ -106,10 +133,10 @@
             </div>
             <div class="grid grid-cols-7">
               <div class="col-span-5">
-                <h4 class="text-md font-semibold">
+                <h4 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold">
                   {5} Timeline Aktif
                 </h4>
-                <p class="text-sm text-gray-500">
+                <p class="lg:text-sm md:text-sm sm:text-xs text-xs text-gray-500">
                   Pantau perkembangan capstone project Anda melalui timeline yang
                   telah dibuat.
                 </p>
@@ -117,7 +144,7 @@
               <div class="text-end col-span-2">
                 <router-link
                   to="/timeline"
-                  class="text-sm font-medium text-primary-600 hover:text-primary-700"
+                  class="lg:text-sm md:text-sm sm:text-xs text-xs font-medium text-primary-600 hover:text-primary-700"
                 >
                   Lihat Semua
                 </router-link>
@@ -125,17 +152,17 @@
             </div>
             <div class="grid grid-cols-7">
               <div class="col-span-5">
-                <h4 class="text-md font-semibold">
+                <h4 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold">
                   {8} Pengumuman Baru
                 </h4>
-                <p class="text-sm text-gray-500">
+                <p class="lg:text-sm md:text-sm sm:text-xs text-xs text-gray-500">
                   Jangan lewatkan pengumuman penting terkait capstone project Anda.
                 </p>
               </div>
               <div class="text-end col-span-2">
                 <router-link
                   to="/announcements"
-                  class="text-sm font-medium text-primary-600 hover:text-primary-700"
+                  class="lg:text-sm md:text-sm sm:text-xs text-xs font-medium text-primary-600 hover:text-primary-700"
                 >
                   Lihat Semua
                 </router-link>
@@ -145,10 +172,15 @@
         </div>
 
         <!-- Quick Links -->
-        <div class="bg-white rounded-lg p-5 border-t border-gray-300
-        col-span-3 row-start-3">
+        <div class="bg-white rounded-lg lg:p-5 md:p-5 border-t border-gray-300
+        lg:col-span-3 lg:row-start-3
+        md:col-span-4 md:row-start-3">
           <div class="mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Akses Cepat</h3>
+            <h3 class="font-semibold text-gray-900
+            lg:text-lg
+                md:text-base
+                sm:text-base
+                text-sm">Akses Cepat</h3>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <router-link
@@ -156,7 +188,7 @@
               class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200"
             >
               <svg
-                class="w-8 h-8 text-primary-600 mb-2"
+                class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -168,7 +200,8 @@
                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
-              <span class="font-medium text-primary-600 mt-1">Tim Saya</span>
+              <span class="font-medium text-primary-600 mt-1
+              lg:text-sm md:text-sm sm:text-xs text-xs">Tim Saya</span>
             </router-link>
 
             <router-link
@@ -176,7 +209,7 @@
               class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200"
             >
               <svg
-                class="w-8 h-8 text-primary-600 mb-2"
+                class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -188,7 +221,8 @@
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <span class="font-medium text-primary-600 mt-1">Dokumen</span>
+              <span class="font-medium text-primary-600 mt-1
+              lg:text-sm md:text-sm sm:text-xs text-xs">Dokumen</span>
             </router-link>
 
             <router-link
@@ -196,7 +230,7 @@
               class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200"
             >
               <svg
-                class="w-8 h-8 text-primary-600 mb-2"
+                class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -208,7 +242,8 @@
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <span class="font-medium text-primary-600 mt-1">Timeline</span>
+              <span class="font-medium text-primary-600 mt-1
+              lg:text-sm md:text-sm sm:text-xs text-xs">Timeline</span>
             </router-link>
 
             <router-link
@@ -216,7 +251,7 @@
               class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200"
             >
               <svg
-                class="w-8 h-8 text-primary-600 mb-2"
+                class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -228,7 +263,8 @@
                   d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
                 />
               </svg>
-              <span class="font-medium text-primary-600 mt-1">Pengumuman</span>
+              <span class="font-medium text-primary-600 mt-1
+              lg:text-sm md:text-sm sm:text-xs text-xs">Pengumuman</span>
             </router-link>
           </div>
         </div>
