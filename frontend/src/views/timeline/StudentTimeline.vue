@@ -2,9 +2,9 @@
   <DashboardLayout :user="user" :menu-items="studentMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Timeline Capstone</h1>
-        <p class="mt-2 text-gray-600">Pantau progress dan deadline project Anda</p>
+      <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
+        <h1 class="text-2xl font-semibold text-gray-900">Timeline Capstone</h1>
+        <p class="text-gray-600 text-lg">Pantau progres dan deadline project Anda</p>
       </div>
 
       <!-- Current Week Highlight -->
@@ -158,22 +158,36 @@
       </div>
 
       <!-- Tips -->
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <div class="flex items-start">
-          <svg class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div class="flex-1">
-            <h3 class="text-base font-semibold text-blue-900 mb-2">Tips Mengelola Timeline</h3>
-            <ul class="text-sm text-blue-700 space-y-1 list-disc list-inside">
-              <li>Pantau deadline secara berkala agar tidak terlewat</li>
-              <li>Koordinasi dengan tim untuk pembagian tugas yang efektif</li>
-              <li>Mulai mengerjakan task lebih awal untuk menghindari deadline mepet</li>
-              <li>Komunikasikan kendala ke mentor jika ada kesulitan</li>
-            </ul>
+      <div class="bg-primary-50 border border-primary-400 rounded-lg p-6">
+          <div class="flex items-start">
+            <svg
+              class="size-7 text-primary-600 mr-3 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-blue-700 mb-2">Tips Mengelola Timeline</h3>
+              <ul class="text-sm text-primary-700 space-y-1 list-disc list-inside">
+                <li class="font-medium">
+                  Pantau deadline secara berkala agar tidak terlewat
+                </li>
+                <li class="font-medium">
+                  Koordinasi dengan tim untuk pembagian tugas yang efektif
+                </li>
+                <li class="font-medium">Mulai mengerjakan task lebih awal untuk menghindari deadline mepet</li>
+                <li class="font-medium">Komunikasikan kendala ke mentor jika ada kesulitan</li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
     </div>
   </DashboardLayout>
 </template>

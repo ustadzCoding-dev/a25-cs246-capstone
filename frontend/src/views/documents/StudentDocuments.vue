@@ -81,7 +81,7 @@
         </div>
 
         <!-- Tips -->
-        <div class="bg-primary-50 border border-primary-200 rounded-lg p-6">
+        <div class="bg-primary-50 border border-primary-400 rounded-lg p-6">
           <div class="flex items-start">
             <svg
               class="size-7 text-primary-600 mr-3 flex-shrink-0"
