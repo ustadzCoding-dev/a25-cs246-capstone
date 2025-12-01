@@ -31,7 +31,7 @@
 
         <div
           v-else-if="filteredDocuments.length === 0"
-          class="bg-white rounded-lg shadow p-12 text-center"
+          class="bg-white rounded-lg p-12 text-center"
         >
           <svg
             class="mx-auto h-12 w-12 text-gray-400"
