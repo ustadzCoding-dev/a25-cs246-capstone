@@ -25,8 +25,8 @@
         </div>
 
         <!-- Documents Grid -->
-        <div v-if="loading" class="bg-white rounded-lg shadow p-12">
-          <BaseSpinner centered size="lg" label="Memuat dokumen..." />
+        <div v-if="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
 
         <div

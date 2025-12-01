@@ -66,9 +66,9 @@
             </div>
           </div>
 
-          <div v-if="loading" class="p-12">
-            <BaseSpinner centered size="lg" label="Memuat pengumuman..." />
-          </div>
+          <div v-if="loading" class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
 
           <div v-else-if="filteredAnnouncements.length === 0" class="p-12 text-center">
             <svg

@@ -8,12 +8,20 @@
       </div>
 
       <!-- Current Week Highlight -->
-      <div v-if="currentTimeline" class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg shadow-lg p-6 text-white">
+      <div
+        v-if="currentTimeline"
+        class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg shadow-lg p-6 text-white"
+      >
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <div class="flex items-center space-x-2 mb-2">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
               <span class="text-sm font-semibold uppercase tracking-wide">Timeline Aktif</span>
             </div>
@@ -22,15 +30,29 @@
             <div class="flex items-center space-x-6 text-sm">
               <div class="flex items-center space-x-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
-                <span>{{ formatDateRange(currentTimeline.startDate, currentTimeline.endDate) }}</span>
+                <span>{{
+                  formatDateRange(currentTimeline.startDate, currentTimeline.endDate)
+                }}</span>
               </div>
               <div class="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded-full">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
-                <span class="font-semibold">{{ getDaysRemaining(currentTimeline.endDate) }} hari tersisa</span>
+                <span class="font-semibold"
+                  >{{ getDaysRemaining(currentTimeline.endDate) }} hari tersisa</span
+                >
               </div>
             </div>
           </div>
@@ -46,8 +68,18 @@
               <p class="text-2xl text-success-600">{{ stats.completed }}</p>
             </div>
             <div class="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              <svg
+                class="w-6 h-6 text-success-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
           </div>
@@ -60,8 +92,18 @@
               <p class="text-2xl text-warning-600">{{ stats.active }}</p>
             </div>
             <div class="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                class="w-6 h-6 text-warning-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
           </div>
@@ -74,8 +116,18 @@
               <p class="text-2xl text-gray-600">{{ stats.upcoming }}</p>
             </div>
             <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                class="w-6 h-6 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
             </div>
           </div>
@@ -88,13 +140,23 @@
           <h2 class="text-xl font-semibold text-gray-900">Timeline Project</h2>
         </div>
 
-        <div v-if="loading" class="p-12">
-          <BaseSpinner centered size="lg" label="Memuat timeline..." />
+        <div v-if="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
 
         <div v-else-if="timelineItems.length === 0" class="p-12 text-center">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <svg
+            class="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
           </svg>
           <p class="mt-2 text-sm text-gray-500">Belum ada timeline</p>
         </div>
@@ -136,7 +198,9 @@
                   <span
                     :class="[
                       'font-medium',
-                      getDaysRemaining(deadline.endDate) <= 3 ? 'text-danger-600' : 'text-warning-600'
+                      getDaysRemaining(deadline.endDate) <= 3
+                        ? 'text-danger-600'
+                        : 'text-warning-600',
                     ]"
                   >
                     {{ getDaysRemaining(deadline.endDate) }} hari lagi
@@ -147,7 +211,9 @@
               <div
                 :class="[
                   'flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold',
-                  getDaysRemaining(deadline.endDate) <= 3 ? 'bg-danger-100 text-danger-600' : 'bg-warning-100 text-warning-600'
+                  getDaysRemaining(deadline.endDate) <= 3
+                    ? 'bg-danger-100 text-danger-600'
+                    : 'bg-warning-100 text-warning-600',
                 ]"
               >
                 {{ getDaysRemaining(deadline.endDate) }}
@@ -159,35 +225,33 @@
 
       <!-- Tips -->
       <div class="bg-primary-50 border border-primary-400 rounded-lg p-6">
-          <div class="flex items-start">
-            <svg
-              class="size-7 text-primary-600 mr-3 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <div class="flex-1">
-              <h3 class="text-lg font-semibold text-blue-700 mb-2">Tips Mengelola Timeline</h3>
-              <ul class="text-sm text-primary-700 space-y-1 list-disc list-inside">
-                <li class="font-medium">
-                  Pantau deadline secara berkala agar tidak terlewat
-                </li>
-                <li class="font-medium">
-                  Koordinasi dengan tim untuk pembagian tugas yang efektif
-                </li>
-                <li class="font-medium">Mulai mengerjakan task lebih awal untuk menghindari deadline mepet</li>
-                <li class="font-medium">Komunikasikan kendala ke mentor jika ada kesulitan</li>
-              </ul>
-            </div>
+        <div class="flex items-start">
+          <svg
+            class="size-7 text-primary-600 mr-3 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-blue-700 mb-2">Tips Mengelola Timeline</h3>
+            <ul class="text-sm text-primary-700 space-y-1 list-disc list-inside">
+              <li class="font-medium">Pantau deadline secara berkala agar tidak terlewat</li>
+              <li class="font-medium">Koordinasi dengan tim untuk pembagian tugas yang efektif</li>
+              <li class="font-medium">
+                Mulai mengerjakan task lebih awal untuk menghindari deadline mepet
+              </li>
+              <li class="font-medium">Komunikasikan kendala ke mentor jika ada kesulitan</li>
+            </ul>
           </div>
         </div>
+      </div>
     </div>
   </DashboardLayout>
 </template>
@@ -222,7 +286,7 @@ const stats = computed(() => {
   return {
     completed: timelineItems.value.filter(item => item.status === 'overdue').length,
     active: timelineItems.value.filter(item => item.status === 'ongoing').length,
-    upcoming: timelineItems.value.filter(item => item.status === 'upcoming').length
+    upcoming: timelineItems.value.filter(item => item.status === 'upcoming').length,
   }
 })
 
@@ -238,21 +302,25 @@ const upcomingDeadlines = computed(() => {
     .slice(0, 3)
 })
 
-const formatDate = (date) => {
+const formatDate = date => {
   return new Date(date).toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
   })
 }
 
 const formatDateRange = (start, end) => {
   const startDate = new Date(start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-  const endDate = new Date(end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+  const endDate = new Date(end).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
   return `${startDate} - ${endDate}`
 }
 
-const getDaysRemaining = (endDate) => {
+const getDaysRemaining = endDate => {
   const today = new Date()
   const end = new Date(endDate)
   const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24))
