@@ -42,8 +42,8 @@
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-600">Selesai</p>
-              <p class="text-2xl font-bold text-success-600">{{ stats.completed }}</p>
+              <p class="text-md text-gray-600">Selesai</p>
+              <p class="text-2xl text-success-600">{{ stats.completed }}</p>
             </div>
             <div class="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center">
               <svg class="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,8 +56,8 @@
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-600">Sedang Berjalan</p>
-              <p class="text-2xl font-bold text-warning-600">{{ stats.active }}</p>
+              <p class="text-md text-gray-600">Sedang Berjalan</p>
+              <p class="text-2xl text-warning-600">{{ stats.active }}</p>
             </div>
             <div class="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center">
               <svg class="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,8 +70,8 @@
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm text-gray-600">Mendatang</p>
-              <p class="text-2xl font-bold text-gray-600">{{ stats.upcoming }}</p>
+              <p class="text-md text-gray-600">Mendatang</p>
+              <p class="text-2xl text-gray-600">{{ stats.upcoming }}</p>
             </div>
             <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
               <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
