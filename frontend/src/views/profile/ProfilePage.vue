@@ -2,9 +2,9 @@
   <DashboardLayout :user="user" :menu-items="menuItems" @logout="handleLogout">
     <div class="max-w-4xl mx-auto space-y-6">
       <!-- Page Header -->
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Profil Saya</h1>
-        <p class="mt-2 text-gray-600">Kelola informasi profil dan keamanan akun Anda</p>
+      <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
+        <h1 class="text-2xl font-semibold text-gray-900">Profil Saya</h1>
+        <p class="text-gray-600 text-lg">Kelola informasi profil dan keamanan akun Anda</p>
       </div>
 
       <!-- Success Alert -->
