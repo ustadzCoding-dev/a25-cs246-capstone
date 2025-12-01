@@ -3,8 +3,8 @@
     <div class="space-y-6">
       <!-- Page Header -->
       <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
-        <h1 class="text-2xl font-semibold text-gray-900">Tim Saya</h1>
-        <p class="text-gray-600 text-lg">
+        <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">Tim Saya</h1>
+        <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
           Kelola informasi tim dan lihat undangan yang masuk di halaman ini.
         </p>
       </div>
