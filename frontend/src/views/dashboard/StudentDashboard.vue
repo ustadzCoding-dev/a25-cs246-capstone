@@ -15,7 +15,8 @@
 
       <!-- Detail Info Capstone Project -->
       <div class="grid grid-cols-3 gap-5 bg-white shadow-md p-6 rounded-lg">
-       <div class="col-span-2">
+       <div class="
+       col-span-2 row-start-1">
         <div class="border-b border-gray-200 pb-3">
           <h2 class="text-2xl font-semibold text-gray-900">Apa itu Capstone Project?</h2>
         </div>
@@ -32,7 +33,8 @@
        </div>
 
         <!-- Team Status Card -->
-        <div class="col-span-2 row-start-2">
+        <div class="
+        col-span-2 row-start-2">
           <TeamStatusCard
             v-if="hasTeam"
             :team-name="teamInfo.teamName"
@@ -78,7 +80,8 @@
         </div>
 
         <!-- Information Card -->
-        <div class="col-span-1 row-span-2 col-start-3 row-start-1 p-5 border-l border-gray-300">
+        <div class=" p-5 border-l border-gray-300
+        col-span-1 row-span-2 col-start-3 row-start-1">
           <div class="border-b border-gray-200 pb-3">
             <h3 class="text-lg font-semibold text-gray-900">Informasi</h3>
           </div>
@@ -142,7 +145,8 @@
         </div>
 
         <!-- Quick Links -->
-        <div class="bg-white rounded-lg p-5 col-span-3 row-start-3 border-t border-gray-300">
+        <div class="bg-white rounded-lg p-5 border-t border-gray-300
+        col-span-3 row-start-3">
           <div class="mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Akses Cepat</h3>
           </div>
