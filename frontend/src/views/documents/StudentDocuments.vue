@@ -3,18 +3,22 @@
     <div class="space-y-6">
       <!-- Page Header -->
       <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
-        <h1 class="text-2xl font-semibold text-gray-900">Dokumen</h1>
-        <p class="text-gray-600 text-lg">Akses dokumen panduan dan referensi capstone</p>
+        <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+          Documents
+        </h1>
+        <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+          Akses dokumen panduan dan referensi capstone
+        </p>
       </div>
 
       <!-- Filters -->
       <div class="bg-white rounded-lg shadow-md p-6 flex flex-col gap-5">
         <div>
           <div class="grid grid-cols-3 gap-3">
-            <div class="col-span-2">
+            <div class="lg:col-span-2 md:col-span-2 sm:col-span-3 xs:col-span-3 col-span-3">
               <BaseSearch v-model="searchQuery" placeholder="Cari dokumen..." />
             </div>
-            <div class="col-span-1">
+            <div class="col-span-3 lg:col-span-1 md:col-span-1 sm:col-span-3 xs:col-span-3">
               <BaseSelect
                 v-model="filterCategory"
                 :options="categoryOptions"
@@ -97,8 +101,16 @@
               />
             </svg>
             <div class="flex-1">
-              <h3 class="text-lg font-semibold text-blue-700 mb-2">Tips Menggunakan Dokumen</h3>
-              <ul class="text-sm text-primary-700 space-y-1 list-disc list-inside">
+              <h3 class="text-md font-semibold text-blue-700 mb-2
+              lg:text-lg
+              md:text-lg
+              sm:text-md
+              xs:text-md">Tips Menggunakan Dokumen</h3>
+              <ul class="text-xs text-primary-700 space-y-1 list-disc list-inside
+              lg:text-sm
+              md:text-sm
+              sm:text-xs
+              xs:text-xs">
                 <li class="font-medium">
                   Download dokumen yang relevan dengan tahap project Anda saat ini
                 </li>
