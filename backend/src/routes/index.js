@@ -115,6 +115,32 @@ import {
 const router = express.Router();
 
 // ========== HEALTH CHECK ==========
+/**
+ * @swagger
+ * /api/health:
+ *   get:
+ *     tags:
+ *       - Health
+ *     summary: Health check endpoint
+ *     description: Check if API server is running and services are available
+ *     responses:
+ *       200:
+ *         description: Server is running
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 googleOAuth:
+ *                   type: string
+ */
 router.get('/health', (req, res) => {
   res.status(200).json({
     success: true,

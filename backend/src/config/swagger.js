@@ -255,24 +255,56 @@ const options = {
     },
     tags: [
       {
+        name: 'Health',
+        description: 'Health check endpoints'
+      },
+      {
         name: 'Authentication',
         description: 'User authentication and authorization'
+      },
+      {
+        name: 'Users',
+        description: 'User profile and account management'
+      },
+      {
+        name: 'Learning Paths',
+        description: 'Learning path management'
       },
       {
         name: 'Teams',
         description: 'Capstone team management'
       },
       {
-        name: 'Use Cases',
-        description: 'Capstone project use case management'
+        name: 'Invitations',
+        description: 'Team invitation management'
       },
       {
-        name: 'Health',
-        description: 'Health check endpoints'
+        name: 'Documents',
+        description: 'Capstone guidance documents'
+      },
+      {
+        name: 'Timeline',
+        description: 'Capstone project timeline'
+      },
+      {
+        name: 'Announcements',
+        description: 'System announcements'
+      },
+      {
+        name: 'Worksheet',
+        description: 'Worksheet check-in management'
+      },
+      {
+        name: 'Dashboard',
+        description: 'Dashboard statistics'
+      },
+      {
+        name: 'Use Cases',
+        description: 'Capstone project use case management'
       }
     ]
   },
-  apis: ['./src/routes/*.js', './src/controllers/*.js']
+  apis: ['./src/routes/*.js', './src/controllers/*.js', './src/docs/*.js']
 };
 
 const swaggerSpec = swaggerJsdoc(options);
