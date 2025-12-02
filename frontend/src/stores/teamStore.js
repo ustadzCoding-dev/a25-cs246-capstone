@@ -139,12 +139,29 @@ export const useTeamStore = defineStore('team', {
         if (response.success) {
           this.currentTeam = response.data
           this.teams.push(response.data)
+          return response
+        } else {
+          // If response.success is false, treat as error
+          const errorMessage = response.message || 'Gagal mendaftarkan tim'
+          this.error = errorMessage
+          return {
+            success: false,
+            message: errorMessage,
+            data: null,
+          }
         }
-
-        return response
       } catch (error) {
-        this.error = error.message || 'Failed to create team'
-        throw error
+        // Error is already formatted by API interceptor
+        const errorMessage = error.message || 'Gagal mendaftarkan tim. Silakan coba lagi.'
+        this.error = errorMessage
+
+        // Return error response instead of throwing
+        // This allows component to handle it gracefully
+        return {
+          success: false,
+          message: errorMessage,
+          data: null,
+        }
       } finally {
         this.loading = false
       }
@@ -449,6 +466,195 @@ export const useTeamStore = defineStore('team', {
      */
     clearSuccess() {
       this.successMessage = null
+    },
+
+    /**
+     * Remove team member (Admin only)
+     */
+    async removeTeamMember(teamId, memberId) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.removeTeamMember(teamId, memberId)
+
+        if (response.success) {
+          // Update current team if it's the same
+          if (this.currentTeam?.id === teamId || this.currentTeam?._id === teamId) {
+            this.currentTeam = response.data
+          }
+
+          // Update in teams list
+          const index = this.teams.findIndex(team => team._id === teamId || team.id === teamId)
+          if (index !== -1) {
+            this.teams[index] = response.data
+          }
+
+          this.setSuccess('Anggota berhasil dihapus')
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Gagal menghapus anggota'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Replace team member (Admin only)
+     */
+    async replaceTeamMember(teamId, oldMemberId, newMemberId) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.replaceTeamMember(teamId, oldMemberId, newMemberId)
+
+        if (response.success) {
+          // Update current team if it's the same
+          if (this.currentTeam?.id === teamId || this.currentTeam?._id === teamId) {
+            this.currentTeam = response.data
+          }
+
+          // Update in teams list
+          const index = this.teams.findIndex(team => team._id === teamId || team.id === teamId)
+          if (index !== -1) {
+            this.teams[index] = response.data
+          }
+
+          this.setSuccess('Anggota berhasil diganti')
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Gagal mengganti anggota'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Bulk approve teams (Admin only)
+     */
+    async bulkApproveTeams(teamIds) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.bulkApproveTeams(teamIds)
+
+        if (response.success) {
+          // Update teams in list
+          teamIds.forEach(id => {
+            const index = this.teams.findIndex(team => team._id === id || team.id === id)
+            if (index !== -1) {
+              this.teams[index].status = 'approved'
+            }
+          })
+
+          this.setSuccess(`${teamIds.length} tim berhasil disetujui`)
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Gagal menyetujui tim'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Bulk reject teams (Admin only)
+     */
+    async bulkRejectTeams(teamIds, reason) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.bulkRejectTeams(teamIds, reason)
+
+        if (response.success) {
+          // Update teams in list
+          teamIds.forEach(id => {
+            const index = this.teams.findIndex(team => team._id === id || team.id === id)
+            if (index !== -1) {
+              this.teams[index].status = 'rejected'
+            }
+          })
+
+          this.setSuccess(`${teamIds.length} tim berhasil ditolak`)
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Gagal menolak tim'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Bulk delete teams (Admin only)
+     */
+    async bulkDeleteTeams(teamIds) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.bulkDeleteTeams(teamIds)
+
+        if (response.success) {
+          // Remove from teams list
+          this.teams = this.teams.filter(team => !teamIds.includes(team._id) && !teamIds.includes(team.id))
+
+          this.setSuccess(`${teamIds.length} tim berhasil dihapus`)
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Gagal menghapus tim'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Export teams to CSV (Admin only)
+     */
+    async exportTeamsCSV(filters = {}) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await teamService.exportTeamsCSV(filters)
+
+        // Handle file download
+        if (response instanceof Blob || response.type === 'text/csv') {
+          const url = window.URL.createObjectURL(response)
+          const link = document.createElement('a')
+          link.href = url
+          link.setAttribute('download', `teams-${new Date().toISOString().split('T')[0]}.csv`)
+          document.body.appendChild(link)
+          link.click()
+          link.parentNode.removeChild(link)
+          window.URL.revokeObjectURL(url)
+
+          this.setSuccess('File berhasil diunduh')
+        }
+
+        return response
+      } catch (error) {
+        this.error = error.message || 'Gagal mengunduh file'
+        throw error
+      } finally {
+        this.loading = false
+      }
     },
 
     /**

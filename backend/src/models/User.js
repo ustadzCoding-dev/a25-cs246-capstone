@@ -131,6 +131,13 @@ const userSchema = new mongoose.Schema(
       default: null
     },
 
+    // FIX CASE 31: Member status in team (active/kedo/dropout)
+    memberStatus: {
+      type: String,
+      enum: ['active', 'kedo', 'dropout'],
+      default: 'active'
+    },
+
     // Learning Group
     // Contoh: "ObjectId of LearningGroup"
     learningGroupId: {

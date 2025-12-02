@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import UseCase from '../models/UseCase.js';
 import EmailService from './EmailService.js';
 import { ValidationError, NotFoundError, ConflictError } from '../utils/errorHandler.js';
+import { withTransaction } from '../utils/transaction.js';
 
 /**
  * Team Service
@@ -29,101 +30,116 @@ export class TeamService {
       members: teamData.membersUserId
     });
 
-    // 1. Validate input
+    // 1. Validate input (before transaction)
     this.validateTeamData(teamData);
 
-    // 2. Check team name uniqueness
+    // 2. Check team name uniqueness (before transaction)
     await this.checkTeamNameUniqueness(teamData.teamName);
 
-    // 3. Validate members and convert emails to ObjectIds
+    // 3. Validate members and convert emails to ObjectIds (before transaction)
     console.log('[createTeam] Validating members...');
     const members = await this.validateMembers(teamData.membersUserId);
     const memberIds = members.map((m) => m._id);
     console.log('[createTeam] Members converted to IDs:', memberIds);
 
-    // 4. Validate use case first (to get composition requirements)
+    // 4. Validate use case first (before transaction)
     console.log('[createTeam] Validating use case...');
     const useCase = await this.validateUseCase(teamData.useCaseId);
     console.log('[createTeam] Use case validated:', useCase._id);
 
-    // 5. Validate team composition against use case requirements
+    // 5. Validate team composition (before transaction)
     console.log('[createTeam] Validating team composition...');
     await this.validateTeamComposition(memberIds, useCase);
     console.log('[createTeam] Team composition validated!');
 
-    // 6. Check members not in other team
+    // 6. Check members availability (before transaction)
     console.log('[createTeam] Checking members availability...');
     await this.checkMembersAvailability(memberIds);
     console.log('[createTeam] Members availability checked!');
 
-    // 7. Create team
-    console.log('[createTeam] Creating team...');
-    let team;
-    try {
-      team = await CapstoneGroup.create({
-        teamName: teamData.teamName.trim(),
-        membersUserId: memberIds,
-        useCaseId: teamData.useCaseId,
-        status: 'pending',
-        submittedAt: new Date(),
-        createdBy: userId
-      });
-      console.log('[createTeam] Team created:', team._id);
-    } catch (err) {
-      console.error('[createTeam] Error creating team:', err.message);
-      if (err.name === 'CastError') {
-        throw new ValidationError('Invalid use case ID format');
-      }
-      throw err;
-    }
-
-    // 8. Update members
-    console.log('[createTeam] Updating members team ID...');
-    await this.updateMembersTeamId(memberIds, team._id);
-    console.log('[createTeam] Members team ID updated!');
-
-    // 9. Update use case
-    console.log('[createTeam] Updating use case slots...');
-    await this.updateUseCaseSlots(teamData.useCaseId);
-    console.log('[createTeam] Use case slots updated!');
-
-    // 10. Create invitations for team members (except leader)
-    console.log('[createTeam] Creating invitations...');
-    const Invitation = (await import('../models/Invitation.js')).default;
-    const otherMembers = memberIds.filter((memberId) => memberId.toString() !== userId.toString());
-    console.log('[createTeam] Other members for invitations:', otherMembers.length);
-
-    const leader = await User.findById(userId);
-
-    for (const memberId of otherMembers) {
-      const invitation = await Invitation.create({
-        leaderId: userId,
-        memberId: memberId,
-        teamId: team._id,
-        status: 'pending'
-      });
-
-      // Send invitation email
+    // FIX CASE 33: Wrap all write operations in transaction
+    console.log('[createTeam] Starting transaction for team creation...');
+    const team = await withTransaction(async (session) => {
+      // 7. Create team (within transaction)
+      console.log('[createTeam] Creating team...');
+      let createdTeam;
       try {
-        const member = await User.findById(memberId);
-        console.log('[createTeam] Sending invitation email to:', member.email);
-        await EmailService.sendInvitationEmail({
-          memberEmail: member.email,
-          memberName: member.name,
-          teamName: team.teamName,
-          useCaseName: useCase.title || 'Unknown Use Case',
-          leaderName: leader.name,
-          invitationId: invitation._id
-        });
-        console.log('[createTeam] Email sent to:', member.email);
-      } catch (emailErr) {
-        console.error('[createTeam] Email error for', memberId, ':', emailErr.message);
-        // Don't throw - continue with other members even if email fails
+        createdTeam = await CapstoneGroup.create([{
+          teamName: teamData.teamName.trim(),
+          membersUserId: memberIds,
+          useCaseId: teamData.useCaseId,
+          status: 'pending',
+          submittedAt: new Date(),
+          createdBy: userId
+        }], { session });
+        createdTeam = createdTeam[0];
+        console.log('[createTeam] Team created:', createdTeam._id);
+      } catch (err) {
+        console.error('[createTeam] Error creating team:', err.message);
+        if (err.name === 'CastError') {
+          throw new ValidationError('Invalid use case ID format');
+        }
+        throw err;
       }
-    }
-    console.log('[createTeam] Invitations created!');
 
-    console.log('[createTeam] ✅ TEAM REGISTRATION COMPLETE!');
+      // 8. Update members (within transaction)
+      console.log('[createTeam] Updating members team ID...');
+      await User.updateMany(
+        { _id: { $in: memberIds } },
+        { $set: { capstoneGroupId: createdTeam._id } },
+        { session }
+      );
+      console.log('[createTeam] Members team ID updated!');
+
+      // 9. Update use case slots (within transaction)
+      console.log('[createTeam] Updating use case slots...');
+      await UseCase.findByIdAndUpdate(
+        teamData.useCaseId,
+        { $inc: { availableSlots: -1 }, $push: { capstoneGroup: createdTeam._id } },
+        { session }
+      );
+      console.log('[createTeam] Use case slots updated!');
+
+      // 10. Create invitations (within transaction)
+      console.log('[createTeam] Creating invitations...');
+      const Invitation = (await import('../models/Invitation.js')).default;
+      const otherMembers = memberIds.filter((memberId) => memberId.toString() !== userId.toString());
+      console.log('[createTeam] Other members for invitations:', otherMembers.length);
+
+      const leader = await User.findById(userId);
+
+      for (const memberId of otherMembers) {
+        const invitation = await Invitation.create([{
+          leaderId: userId,
+          memberId: memberId,
+          teamId: createdTeam._id,
+          status: 'pending'
+        }], { session });
+
+        // Send invitation email (outside transaction - non-critical)
+        try {
+          const member = await User.findById(memberId);
+          console.log('[createTeam] Sending invitation email to:', member.email);
+          await EmailService.sendInvitationEmail({
+            memberEmail: member.email,
+            memberName: member.name,
+            teamName: createdTeam.teamName,
+            useCaseName: useCase.title || 'Unknown Use Case',
+            leaderName: leader.name,
+            invitationId: invitation[0]._id
+          });
+          console.log('[createTeam] Email sent to:', member.email);
+        } catch (emailErr) {
+          console.error('[createTeam] Email error for', memberId, ':', emailErr.message);
+          // Don't throw - continue with other members even if email fails
+        }
+      }
+      console.log('[createTeam] Invitations created!');
+
+      return createdTeam;
+    });
+
+    console.log('[createTeam] TEAM REGISTRATION COMPLETE!');
     return team;
   }
 
@@ -356,7 +372,7 @@ export class TeamService {
       console.log('[editTeam] Invitations deleted!');
     }
 
-    console.log('[editTeam] ✅ TEAM EDIT COMPLETE!');
+    console.log('[editTeam] TEAM EDIT COMPLETE!');
     return {
       team,
       changes: {
@@ -373,7 +389,7 @@ export class TeamService {
    * @param {string} adminId - Admin user ID
    * @returns {Promise<Object>} Updated team
    * @throws {NotFoundError} If team not found
-   * @throws {ValidationError} If team not pending
+   * @throws {ValidationError} If team not pending or invalid composition
    */
   async approveTeam(teamId, adminId) {
     const team = await this.findTeamById(teamId);
@@ -382,9 +398,49 @@ export class TeamService {
       throw new ValidationError('Team is not in pending status');
     }
 
+    // FIX CASE 21 & 22: Validate composition and member status before approval
+    console.log('[approveTeam] Validating team before approval...');
+
+    // Check team has members
+    if (!team.membersUserId || team.membersUserId.length === 0) {
+      throw new ValidationError('Tim tidak memiliki anggota');
+    }
+
+    // Get use case to validate composition
+    const useCase = await this.validateUseCase(team.useCaseId);
+
+    // Validate composition
+    await this.validateTeamComposition(team.membersUserId, useCase);
+    console.log('[approveTeam] Team composition validated!');
+
+    // FIX CASE 22: Check all invitations are accepted
+    const Invitation = (await import('../models/Invitation.js')).default;
+    const invitations = await Invitation.find({ teamId: team._id });
+
+    const rejectedInvitations = invitations.filter(inv => inv.status === 'rejected');
+    if (rejectedInvitations.length > 0) {
+      throw new ValidationError(`Ada ${rejectedInvitations.length} member yang menolak undangan`);
+    }
+
+    const pendingInvitations = invitations.filter(inv => inv.status === 'pending');
+    if (pendingInvitations.length > 0) {
+      throw new ValidationError(`Ada ${pendingInvitations.length} member yang belum merespons undangan`);
+    }
+
+    console.log('[approveTeam] All validations passed!');
+
+    // FIX CASE 30: Optimistic locking to prevent race conditions
+    console.log('[approveTeam] Checking version for race condition prevention...');
+    const currentTeam = await CapstoneGroup.findById(teamId);
+    if (currentTeam.version !== team.version) {
+      console.error('[approveTeam] Version mismatch detected - race condition prevented');
+      throw new ValidationError('Tim telah dimodifikasi oleh admin lain. Silakan refresh dan coba lagi.');
+    }
+
     team.status = 'approved';
     team.validatedBy = adminId;
     team.validatedAt = new Date();
+    team.version += 1; // Increment version after update
 
     await team.save();
 
@@ -551,6 +607,347 @@ export class TeamService {
     console.log('[deleteTeam] Deleting team document');
     const deleteResult = await CapstoneGroup.findByIdAndDelete(teamId);
     console.log('[deleteTeam] Team deleted:', deleteResult ? 'SUCCESS' : 'FAILED');
+  }
+
+  /**
+   * FIX CASE 31: Remove member from approved team
+   * @param {string} teamId - Team ID
+   * @param {string} memberId - Member ID to remove
+   * @param {string} _adminId - Admin user ID
+   * @returns {Promise<Object>} Updated team
+   * @throws {ValidationError} If team not approved or member not found
+   */
+  async removeTeamMember(teamId, memberId, _adminId) {
+    console.log('[removeTeamMember] Starting removal for team:', teamId, 'member:', memberId);
+
+    const team = await this.findTeamById(teamId);
+
+    // Only allow removal from approved teams
+    if (team.status !== 'approved') {
+      throw new ValidationError('Hanya member dari tim yang sudah disetujui yang bisa dihapus');
+    }
+
+    // Check member exists in team
+    if (!team.membersUserId.some(m => m.toString() === memberId.toString())) {
+      throw new ValidationError('Member tidak ditemukan di tim ini');
+    }
+
+    // Remove member from team
+    team.membersUserId = team.membersUserId.filter(m => m.toString() !== memberId.toString());
+    await team.save();
+    console.log('[removeTeamMember] Member removed from team');
+
+    // Clear member's capstoneGroupId
+    await User.findByIdAndUpdate(memberId, { $set: { capstoneGroupId: null, memberStatus: 'active' } });
+    console.log('[removeTeamMember] Member capstoneGroupId cleared');
+
+    // Restore use case slot
+    await UseCase.findByIdAndUpdate(team.useCaseId, { $inc: { availableSlots: 1 } });
+    console.log('[removeTeamMember] Use case slot restored');
+
+    // Send notification email
+    try {
+      const member = await User.findById(memberId);
+      const { default: EmailService } = await import('./EmailService.js');
+      await EmailService.sendMemberRemovedNotification(
+        member.email,
+        member.name,
+        team.teamName
+      );
+      console.log('[removeTeamMember] Notification email sent');
+    } catch (emailErr) {
+      console.error('[removeTeamMember] Email error:', emailErr.message);
+    }
+
+    return team;
+  }
+
+  /**
+   * FIX CASE 31: Replace member in approved team
+   * @param {string} teamId - Team ID
+   * @param {string} removeMemberId - Member ID to remove
+   * @param {string} addMemberId - New member ID to add
+   * @param {string} _adminId - Admin user ID
+   * @returns {Promise<Object>} Updated team
+   * @throws {ValidationError} If validation fails
+   */
+  async replaceTeamMember(teamId, removeMemberId, addMemberId, _adminId) {
+    console.log('[replaceTeamMember] Starting replacement for team:', teamId);
+    console.log('[replaceTeamMember] Remove:', removeMemberId, 'Add:', addMemberId);
+
+    const team = await this.findTeamById(teamId);
+
+    // Only allow replacement in approved teams
+    if (team.status !== 'approved') {
+      throw new ValidationError('Hanya member dari tim yang sudah disetujui yang bisa diganti');
+    }
+
+    // Check old member exists in team
+    if (!team.membersUserId.some(m => m.toString() === removeMemberId.toString())) {
+      throw new ValidationError('Member yang akan dihapus tidak ditemukan di tim ini');
+    }
+
+    // Check new member exists
+    const newMember = await User.findById(addMemberId);
+    if (!newMember) {
+      throw new ValidationError('Member pengganti tidak ditemukan');
+    }
+
+    // Check new member not already in team
+    if (team.membersUserId.some(m => m.toString() === addMemberId.toString())) {
+      throw new ValidationError('Member pengganti sudah ada di tim ini');
+    }
+
+    // Check new member not in another team
+    if (newMember.capstoneGroupId) {
+      throw new ValidationError('Member pengganti sudah terdaftar di tim lain');
+    }
+
+    // Validate composition with new member
+    const newMemberIds = team.membersUserId.map(m => m.toString() === removeMemberId.toString() ? addMemberId : m);
+    await this.validateTeamComposition(newMemberIds, team.useCaseId);
+    console.log('[replaceTeamMember] Composition validated');
+
+    // Remove old member
+    team.membersUserId = team.membersUserId.filter(m => m.toString() !== removeMemberId.toString());
+    // Add new member
+    team.membersUserId.push(addMemberId);
+    await team.save();
+    console.log('[replaceTeamMember] Members updated');
+
+    // Clear old member's capstoneGroupId
+    await User.findByIdAndUpdate(removeMemberId, { $set: { capstoneGroupId: null, memberStatus: 'active' } });
+
+    // Set new member's capstoneGroupId
+    await User.findByIdAndUpdate(addMemberId, { $set: { capstoneGroupId: team._id, memberStatus: 'active' } });
+    console.log('[replaceTeamMember] User records updated');
+
+    // Send notification emails
+    try {
+      const oldMember = await User.findById(removeMemberId);
+      const { default: EmailService } = await import('./EmailService.js');
+      await EmailService.sendMemberRemovedNotification(
+        oldMember.email,
+        oldMember.name,
+        team.teamName
+      );
+
+      await EmailService.sendInvitationEmail({
+        memberEmail: newMember.email,
+        memberName: newMember.name,
+        teamName: team.teamName,
+        useCaseName: team.useCaseId?.title || 'Unknown Use Case',
+        leaderName: (await User.findById(team.createdBy)).name,
+        invitationId: null // No invitation for replacement
+      });
+
+      console.log('[replaceTeamMember] Notification emails sent');
+    } catch (emailErr) {
+      console.error('[replaceTeamMember] Email error:', emailErr.message);
+    }
+
+    return team;
+  }
+
+  /**
+   * PRIORITY 2.2: Bulk approve multiple teams
+   * @param {Array<string>} teamIds - Array of team IDs to approve
+   * @param {string} adminId - Admin user ID
+   * @returns {Promise<Object>} Result summary
+   * @throws {ValidationError} If validation fails
+   */
+  async bulkApproveTeams(teamIds, adminId) {
+    console.log('[bulkApproveTeams] Starting bulk approval for', teamIds.length, 'teams');
+
+    if (!Array.isArray(teamIds) || teamIds.length === 0) {
+      throw new ValidationError('Team IDs array is required and must not be empty');
+    }
+
+    const results = {
+      approved: [],
+      failed: [],
+      totalRequested: teamIds.length
+    };
+
+    for (const teamId of teamIds) {
+      try {
+        const team = await this.approveTeam(teamId, adminId);
+        results.approved.push({
+          teamId: team._id,
+          teamName: team.teamName,
+          status: 'approved'
+        });
+        console.log('[bulkApproveTeams] Team approved:', team.teamName);
+      } catch (error) {
+        results.failed.push({
+          teamId,
+          error: error.message
+        });
+        console.error('[bulkApproveTeams] Failed to approve team:', teamId, error.message);
+      }
+    }
+
+    console.log('[bulkApproveTeams] Bulk approval complete:', {
+      approved: results.approved.length,
+      failed: results.failed.length
+    });
+
+    return results;
+  }
+
+  /**
+   * PRIORITY 2.3: Bulk reject multiple teams
+   * @param {Array<string>} teamIds - Array of team IDs to reject
+   * @param {string} reason - Rejection reason
+   * @param {string} adminId - Admin user ID
+   * @returns {Promise<Object>} Result summary
+   */
+  async bulkRejectTeams(teamIds, reason, adminId) {
+    console.log('[bulkRejectTeams] Starting bulk rejection for', teamIds.length, 'teams');
+
+    if (!Array.isArray(teamIds) || teamIds.length === 0) {
+      throw new ValidationError('Team IDs array is required and must not be empty');
+    }
+
+    const results = {
+      rejected: [],
+      failed: [],
+      totalRequested: teamIds.length
+    };
+
+    for (const teamId of teamIds) {
+      try {
+        const team = await this.rejectTeam(teamId, adminId, reason);
+        results.rejected.push({
+          teamId: team._id,
+          teamName: team.teamName,
+          status: 'rejected'
+        });
+        console.log('[bulkRejectTeams] Team rejected:', team.teamName);
+      } catch (error) {
+        results.failed.push({
+          teamId,
+          error: error.message
+        });
+        console.error('[bulkRejectTeams] Failed to reject team:', teamId, error.message);
+      }
+    }
+
+    console.log('[bulkRejectTeams] Bulk rejection complete:', {
+      rejected: results.rejected.length,
+      failed: results.failed.length
+    });
+
+    return results;
+  }
+
+  /**
+   * PRIORITY 2.3: Bulk delete multiple teams
+   * @param {Array<string>} teamIds - Array of team IDs to delete
+   * @param {string} _adminId - Admin user ID
+   * @returns {Promise<Object>} Result summary
+   */
+  async bulkDeleteTeams(teamIds, _adminId) {
+    console.log('[bulkDeleteTeams] Starting bulk deletion for', teamIds.length, 'teams');
+
+    if (!Array.isArray(teamIds) || teamIds.length === 0) {
+      throw new ValidationError('Team IDs array is required and must not be empty');
+    }
+
+    const results = {
+      deleted: [],
+      failed: [],
+      totalRequested: teamIds.length
+    };
+
+    for (const teamId of teamIds) {
+      try {
+        await this.deleteTeam(teamId);
+        results.deleted.push({
+          teamId,
+          status: 'deleted'
+        });
+        console.log('[bulkDeleteTeams] Team deleted:', teamId);
+      } catch (error) {
+        results.failed.push({
+          teamId,
+          error: error.message
+        });
+        console.error('[bulkDeleteTeams] Failed to delete team:', teamId, error.message);
+      }
+    }
+
+    console.log('[bulkDeleteTeams] Bulk deletion complete:', {
+      deleted: results.deleted.length,
+      failed: results.failed.length
+    });
+
+    return results;
+  }
+
+  /**
+   * PRIORITY 3.1: Export teams to CSV
+   * @param {Object} filters - Filter options
+   * @param {string} filters.status - Team status
+   * @param {string} filters.useCaseId - Use case ID
+   * @returns {Promise<string>} CSV content
+   */
+  async exportTeamsCSV(filters = {}) {
+    console.log('[exportTeamsCSV] Starting CSV export with filters:', filters);
+
+    const { status, useCaseId } = filters;
+
+    // Build query
+    const query = {};
+    if (status) {
+      query.status = status;
+    }
+    if (useCaseId) {
+      query.useCaseId = useCaseId;
+    }
+
+    // Get teams with populated data
+    const teams = await CapstoneGroup.find(query)
+      .populate('useCaseId', 'title')
+      .populate('membersUserId', 'name email learningPathName')
+      .lean();
+
+    console.log('[exportTeamsCSV] Found', teams.length, 'teams to export');
+
+    // Build CSV header
+    const headers = [
+      'Team ID',
+      'Team Name',
+      'Status',
+      'Use Case',
+      'Member Count',
+      'Members',
+      'Leader',
+      'Submitted Date',
+      'Approved Date'
+    ];
+
+    // Build CSV rows
+    const rows = teams.map(team => [
+      team.capstoneGroupId || 'N/A',
+      team.teamName,
+      team.status,
+      team.useCaseId?.title || 'Unknown',
+      team.membersUserId?.length || 0,
+      team.membersUserId?.map(m => `${m.name} (${m.email})`).join('; ') || 'N/A',
+      team.createdBy?.name || 'Unknown',
+      new Date(team.submittedAt).toLocaleDateString('id-ID'),
+      team.validatedAt ? new Date(team.validatedAt).toLocaleDateString('id-ID') : 'N/A'
+    ]);
+
+    // Convert to CSV format
+    const csvContent = [
+      headers.map(h => `"${h}"`).join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    console.log('[exportTeamsCSV] CSV export complete');
+    return csvContent;
   }
 
   /**
@@ -924,7 +1321,7 @@ export class TeamService {
       // Try to find by _id first (ObjectId or string that can be cast to ObjectId)
       try {
         useCase = await UseCase.findById(useCaseId);
-      } catch (castError) {
+      } catch {
         // If cast fails, try to find by usecaseId field (string)
         useCase = await UseCase.findOne({ usecaseId: useCaseId });
       }
@@ -1014,8 +1411,6 @@ export class TeamService {
 
     console.log('[autoCreateTeams] Starting auto team creation');
     console.log('[autoCreateTeams] Options:', { useCaseId, teamSize, adminId });
-    console.log('[autoCreateTeams] useCaseId type:', typeof useCaseId);
-    console.log('[autoCreateTeams] useCaseId value:', useCaseId);
 
     if (!useCaseId) {
       throw new ValidationError('Use case ID is required');
@@ -1144,11 +1539,9 @@ export class TeamService {
         const teamMemberEmails = [];
 
         // Try to build one team according to composition
-        let missingPath = null;
         for (const [pathName, requiredCount] of Object.entries(compositionMap)) {
           const pool = studentPools[pathName];
           if (!pool || pool.length < requiredCount) {
-            missingPath = pathName;
             console.log(`[autoCreateTeams] Cannot create more teams: Not enough students in ${pathName} (need ${requiredCount}, have ${pool?.length || 0})`);
             canCreateMore = false;
             break;
@@ -1160,15 +1553,14 @@ export class TeamService {
           teamMemberEmails.push(...selectedStudents.map(s => s.email));
         }
 
-        if (!canCreateMore) break;
+        if (!canCreateMore) {break;}
 
         // Create the team
-        const firstPath = Object.keys(compositionMap)[0];
         const teamName = `Mixed Team ${teamNumber} - ${useCase.title}`;
 
         try {
           console.log(`[autoCreateTeams] Creating mixed team: ${teamName} with ${teamMembers.length} members`);
-          console.log(`[autoCreateTeams] Composition:`, Object.entries(compositionMap).map(([path, count]) => `${path}: ${count}`).join(', '));
+          console.log('[autoCreateTeams] Composition:', Object.entries(compositionMap).map(([path, count]) => `${path}: ${count}`).join(', '));
 
           // Create team using existing service method
           const team = await this.createTeam(

@@ -197,7 +197,7 @@ export const uploadEvidence = asyncHandler(async (req, res) => {
   logger.info(`[uploadEvidence] Files received: ${req.files ? req.files.length : 'none'}`);
 
   if (!req.files || req.files.length === 0) {
-    logger.warn(`[uploadEvidence] No files in request`);
+    logger.warn('[uploadEvidence] No files in request');
     return res.error('No files uploaded', 400);
   }
 

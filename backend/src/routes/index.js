@@ -14,8 +14,6 @@ import {
   worksheetSchema
 } from '../utils/validators.js';
 import { parseFormDataFields } from '../middleware/parseFormData.js';
-import { asyncHandler } from '../utils/errorHandler.js';
-import User from '../models/User.js';
 
 // Controllers
 import {
@@ -24,7 +22,8 @@ import {
   updateUserProfile,
   changePassword,
   uploadProfilePictureController,
-  deleteProfilePictureController
+  deleteProfilePictureController,
+  changeUserRole
 } from '../controllers/userController.js';
 import {
   getAllCapstoneGroups,
@@ -38,7 +37,13 @@ import {
   setTeamComposition,
   updateCapstoneGroup,
   getUnregisteredStudents,
-  autoCreateTeams
+  autoCreateTeams,
+  removeTeamMember,
+  replaceTeamMember,
+  bulkApproveTeams,
+  bulkRejectTeams,
+  bulkDeleteTeams,
+  exportTeamsCSV
 } from '../controllers/capstoneGroupController.js';
 import {
   getAllDocuments,
@@ -80,7 +85,8 @@ import {
   createLearningPath,
   updateLearningPath,
   deleteLearningPath,
-  toggleLearningPathStatus
+  toggleLearningPathStatus,
+  migrateStudentLearningPathIds
 } from '../controllers/learningPathController.js';
 import {
   getAllPeriods,
@@ -108,25 +114,6 @@ import {
 
 const router = express.Router();
 
-// ========== API INFO ==========
-router.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Dicoding Capstone API',
-    version: '2.0.0',
-    endpoints: {
-      health: '/api/health',
-      docs: '/api-docs',
-      auth: {
-        local: '/api/auth/login (OLD), /api/auth/register (OLD)',
-        google: '/api/auth/google (NEW)',
-        refresh: '/api/auth/refresh (NEW)',
-        me: '/api/auth/me (NEW)'
-      }
-    }
-  });
-});
-
 // ========== HEALTH CHECK ==========
 router.get('/health', (req, res) => {
   res.status(200).json({
@@ -151,6 +138,7 @@ router.get('/users', protect, getAllUsers);
 router.get('/user/profile', protect, getUserById);
 router.put('/user/profile/update', protect, updateUserProfile);
 router.put('/user/password/change', protect, changePassword);
+router.put('/users/:id/role', protect, adminOnly, changeUserRole);
 router.post(
   '/user/profile-picture/upload',
   protect,
@@ -180,6 +168,9 @@ router.post('/admin/learning-paths', protect, adminOnly, createLearningPath);
 router.put('/admin/learning-paths/:id', protect, adminOnly, updateLearningPath);
 router.delete('/admin/learning-paths/:id', protect, adminOnly, deleteLearningPath);
 router.put('/admin/learning-paths/:id/toggle', protect, adminOnly, toggleLearningPathStatus);
+
+// Migration: Update existing students with learningPathId
+router.post('/admin/learning-paths/migrate/students', protect, adminOnly, migrateStudentLearningPathIds);
 
 // Student lookup by ID (for team registration - public)
 router.get('/students/lookup/:studentId', async (req, res) => {
@@ -233,6 +224,13 @@ router.put('/capstone-group/:id/edit', protect, studentOnly, validate(teamSchema
 // All: View teams
 router.get('/capstone-groups', protect, getAllCapstoneGroups);
 router.get('/capstone-group/current', protect, getCurrentCapstoneGroup);
+
+// PRIORITY 3.1: Admin - Export teams to CSV (MUST BE BEFORE /:id route!)
+// Note: No middleware to avoid issues with res.end() and CSV response
+// Auth check done manually in controller
+router.get('/capstone-group/export-csv', exportTeamsCSV);
+
+// Get team by ID (MUST BE AFTER specific routes like /export-csv)
 router.get('/capstone-group/:id', protect, getCapstoneGroupById);
 
 // Admin: Approve/Reject/Delete teams
@@ -251,20 +249,14 @@ router.delete('/capstone-group/:id', protect, adminOnly, deleteCapstoneGroup);
 router.get('/admin/students/unregistered', protect, adminOnly, getUnregisteredStudents);
 router.post('/admin/teams/auto-create', protect, adminOnly, autoCreateTeams);
 
-// Admin: Debug - Clear all member capstoneGroupId
-router.post(
-  '/admin/debug/clear-members',
-  protect,
-  adminOnly,
-  asyncHandler(async (req, res) => {
-    const result = await User.updateMany(
-      { capstoneGroupId: { $exists: true, $ne: null } },
-      { $set: { capstoneGroupId: null } }
-    );
-    console.log('[DEBUG] Cleared capstoneGroupId from', result.modifiedCount, 'members');
-    res.success({ modifiedCount: result.modifiedCount }, 'Members cleared', 200);
-  })
-);
+// FIX CASE 31: Admin - Remove/Replace team members
+router.put('/capstone-group/:id/remove-member', protect, adminOnly, removeTeamMember);
+router.put('/capstone-group/:id/replace-member', protect, adminOnly, replaceTeamMember);
+
+// PRIORITY 2.2 & 2.3: Admin - Bulk operations
+router.post('/capstone-group/bulk-approve', protect, adminOnly, bulkApproveTeams);
+router.post('/capstone-group/bulk-reject', protect, adminOnly, bulkRejectTeams);
+router.post('/capstone-group/bulk-delete', protect, adminOnly, bulkDeleteTeams);
 
 // Admin: Set team composition for use case
 router.put('/usecase/:usecaseId/team-composition', protect, adminOnly, setTeamComposition);
@@ -293,8 +285,8 @@ router.put('/document/:id/restore', protect, adminOnly, restoreDocument);
 // ========== TIMELINES ==========
 // All: View timelines
 router.get('/timelines', protect, getAllTimelines);
-router.get('/timeline/:id', protect, getTimelineById);
 router.get('/timeline/stats', protect, adminOnly, getTimelineStats);
+router.get('/timeline/:id', protect, getTimelineById);
 
 // Admin: Create/Update/Delete timelines
 router.post('/timeline/add', protect, adminOnly, validate(timelineSchema.create), addTimeline);

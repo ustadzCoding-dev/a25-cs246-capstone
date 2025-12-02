@@ -7,10 +7,14 @@ Express.js REST API for Capstone Project Management System.
 - **Express.js 5** - Web framework
 - **MongoDB 8** - NoSQL database
 - **Mongoose 8** - MongoDB ODM
-- **JWT** - Authentication
-- **Bcrypt** - Password hashing
-- **Joi** - Validation
+- **JWT + Bcrypt** - Authentication & password hashing
+- **Passport.js** - Google OAuth 2.0
 - **Multer** - File upload
+- **Cloudinary** - Image storage & CDN
+- **Nodemailer** - Email service
+- **Joi** - Validation
+- **Helmet** - Security headers
+- **Express Rate Limit** - Rate limiting
 - **CORS** - Cross-origin resource sharing
 
 ## 📦 Installation
@@ -40,37 +44,57 @@ npm start
 ```
 src/
 ├── config/
-│   └── database.js
-├── models/
+│   ├── database.js
+│   ├── cloudinary.js
+│   └── passport.js
+├── models/ (14 models)
+│   ├── User.js
+│   ├── LearningPath.js
 │   ├── CapstoneGroup.js
-│   ├── Counter.js
+│   ├── Invitation.js
 │   ├── Document.js
-│   ├── index.js
-│   ├── LearningGroup.js
 │   ├── Timeline.js
+│   ├── Announcement.js
+│   ├── Worksheet.js
+│   ├── WorksheetPeriod.js
 │   ├── UseCase.js
-│   └── User.js
-├── controllers/
+│   ├── LearningGroup.js
+│   ├── Counter.js
+│   └── index.js
+├── controllers/ (13 controllers)
 │   ├── authController.js
+│   ├── userController.js
 │   ├── capstoneGroupController.js
+│   ├── invitationController.js
 │   ├── documentController.js
-│   ├── learningGroupController.js
 │   ├── timelineController.js
+│   ├── announcementController.js
+│   ├── worksheetController.js
 │   ├── usecaseController.js
-│   └── userController.js
+│   ├── learningPathController.js
+│   ├── learningGroupController.js
+│   ├── dashboardController.js
+│   └── index.js
 ├── routes/
 │   └── index.js
-├── scripts/
-│   ├── fixAdminRole.js
-│   └── seedData.js
+├── services/
+│   ├── TeamService.js
+│   ├── CloudinaryService.js
+│   ├── EmailService.js
+│   └── index.js
 ├── middleware/
 │   ├── auth.js
 │   ├── errorHandler.js
 │   ├── security.js
-│   └── validate.js
+│   ├── validate.js
+│   └── multerProfilePicture.js
 ├── validators/
 ├── utils/
 │   └── logger.js
+├── scripts/
+│   ├── seedData.js
+│   ├── fixAdminRole.js
+│   └── index.js
 └── server.js
 ```
 
@@ -85,6 +109,24 @@ MONGODB_URI=mongodb://localhost:27017/capstone_test
 JWT_SECRET=your-secret-key-here
 JWT_EXPIRES_IN=7d
 CORS_ORIGIN=http://localhost:5173
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+FRONTEND_URL=http://localhost:5173
+
+# Cloudinary (Profile Picture Upload)
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# Email Service (Nodemailer)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM_EMAIL=your-email@gmail.com
 ```
 
 ## 📡 API Endpoints
@@ -96,25 +138,29 @@ GET /api/health
 ```
 
 **Response:**
+
 ```json
 {
-"success": true,
-"message": "API is running",
-"timestamp": "2025-11-10T18:29:48.077Z"
+  "success": true,
+  "message": "API is running",
+  "timestamp": "2025-11-10T18:29:48.077Z"
 }
 ```
 
-### Placeholder Routes
+### Main API Routes
 
-Routes will be added based on ERD design:
-
-- `/api/auth` - Auth management
-- `/api/capstone-groups` - Capstone group management
-- `/api/documents` - Document management
+- `/api/auth` - Authentication (login, register, Google OAuth, profile completion)
+- `/api/users` - User management (profile, picture upload, update)
+- `/api/capstone-groups` - Team management (create, edit, approve, reject)
+- `/api/invitations` - Team invitations (create, accept, reject)
+- `/api/documents` - Document management (upload, download, categorize)
+- `/api/timelines` - Timeline management (create, update, view milestones)
+- `/api/announcements` - Announcement management (create, edit, delete)
+- `/api/worksheets` - Worksheet submission & validation
+- `/api/learning-paths` - Learning path management
+- `/api/usecases` - Use case management
 - `/api/learning-groups` - Learning group management
-- `/api/timelines` - Timeline management
-- `/api/usecases` - Usecase management
-- `/api/users` - User management
+- `/api/dashboard` - Dashboard statistics & overview
 
 ## 🗄️ Database
 
@@ -153,6 +199,7 @@ npm test
 ## 📚 API Documentation
 
 API documentation will be added using:
+
 - Postman collection
 - Swagger/OpenAPI (optional)
 
@@ -174,6 +221,7 @@ railway up
 ### Environment Variables (Production)
 
 Set these in Railway dashboard:
+
 - `NODE_ENV=production`
 - `MONGODB_URI=<your-mongodb-atlas-uri>`
 - `JWT_SECRET=<strong-secret-key>`
@@ -185,7 +233,15 @@ Tim A25-CS246 - Dicoding Indonesia x Accenture
 
 **Happy Testing! 🧪**
 
-**Last Updated:** 11 November 2025
+**Last Updated:** 29 November 2025
 
 **Maintained by:** Tim A25-CS246
 
+---
+
+## 📚 Additional Resources
+
+- [API Reference](../docs/03-api/API_REFERENCE.md) - Complete API documentation
+- [Database Schema](../docs/02-architecture/DATABASE_SCHEMA.md) - Database models & relationships
+- [Developer Setup](../docs/01-getting-started/DEVELOPER_SETUP.md) - Detailed setup guide
+- [Roadmap](../ROADMAP.md) - Project roadmap & timeline

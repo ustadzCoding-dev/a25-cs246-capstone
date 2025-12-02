@@ -85,7 +85,7 @@
               </div>
               <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Learning Path:</span>
-                <span class="font-medium text-gray-900">{{ user?.learningPath }}</span>
+                <span class="font-medium text-gray-900">{{ user?.learningPathName || user?.learningPath || '-' }}</span>
               </div>
             </div>
           </div>
@@ -243,6 +243,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useTeamStore } from '../../stores/teamStore'
+import { useStudentMenu } from '../../composables/useStudentMenu'
 import DashboardLayout from '../../components/layout/DashboardLayout.vue'
 import BaseInput from '../../components/base/BaseInput.vue'
 import BaseSelect from '../../components/base/BaseSelect.vue'
@@ -312,13 +313,7 @@ watch(
   }
 )
 
-const studentMenuItems = [
-  { name: 'Dashboard', icon: 'dashboard', path: '/dashboard', roles: ['student'] },
-  { name: 'Tim Saya', icon: 'team', path: '/team', roles: ['student'] },
-  { name: 'Dokumen', icon: 'document', path: '/documents', roles: ['student'] },
-  { name: 'Timeline', icon: 'timeline', path: '/timeline', roles: ['student'] },
-  { name: 'Pengumuman', icon: 'announcement', path: '/announcements', roles: ['student'] },
-]
+const { studentMenuItems } = useStudentMenu()
 
 const validateForm = () => {
   // Reset errors
@@ -491,10 +486,14 @@ const handleSubmit = async () => {
         router.push('/team')
       }, 2000)
     } else {
+      // Handle error response
       console.log('Team creation failed - response.success is false or missing')
-      error.value = response?.message || 'Gagal mendaftarkan tim'
+      const errorMessage = response?.message || 'Gagal mendaftarkan tim'
+      error.value = errorMessage
+      console.error('Error message:', errorMessage)
     }
   } catch (err) {
+    // This shouldn't happen now since teamStore returns response instead of throwing
     console.error('Team creation error:', err)
     error.value = err.message || 'Gagal mendaftarkan tim. Silakan coba lagi.'
   } finally {
@@ -576,8 +575,24 @@ const fetchUseCases = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   console.log('TeamRegistrationForm mounted!')
+
+  // Refresh user data from backend to get latest learningPathName
+  try {
+    console.log('Refreshing user profile...')
+    await authStore.fetchProfile()
+    console.log('User profile refreshed:', {
+      name: user.value?.name,
+      email: user.value?.email,
+      learningPathName: user.value?.learningPathName,
+      learningPath: user.value?.learningPath
+    })
+  } catch (err) {
+    console.warn('Failed to refresh user profile:', err.message)
+    // Continue anyway - form can still work with cached data
+  }
+
   fetchUseCases()
 })
 </script>

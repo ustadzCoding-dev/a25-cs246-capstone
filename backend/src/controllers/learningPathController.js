@@ -1,6 +1,37 @@
 import LearningPath from '../models/LearningPath.js';
 import { asyncHandler } from '../utils/errorHandler.js';
 
+// ========== MIGRATION: Update existing students with learningPathId ==========
+export const migrateStudentLearningPathIds = asyncHandler(async (req, res) => {
+  const User = (await import('../models/User.js')).default;
+
+  // Find all students with learningPathName but no learningPathId
+  const studentsToUpdate = await User.find({
+    role: 'student',
+    learningPathName: { $exists: true, $ne: null },
+    learningPathId: { $exists: false }
+  });
+
+  console.log('[Migration] Found students to update:', studentsToUpdate.length);
+
+  let updated = 0;
+  for (const student of studentsToUpdate) {
+    try {
+      const learningPathRecord = await LearningPath.findOne({ name: student.learningPathName });
+      if (learningPathRecord) {
+        student.learningPathId = learningPathRecord._id;
+        await student.save();
+        updated++;
+        console.log(`[Migration] Updated student ${student.email} with learningPathId`);
+      }
+    } catch (err) {
+      console.error(`[Migration] Error updating student ${student.email}:`, err.message);
+    }
+  }
+
+  res.success({ updated, total: studentsToUpdate.length }, `Migration complete: ${updated}/${studentsToUpdate.length} students updated`, 200);
+});
+
 // ========== GET ALL LEARNING PATHS (Admin) ==========
 export const getAllLearningPaths = asyncHandler(async (req, res) => {
   const paths = await LearningPath.find().sort({ name: 1 });
@@ -20,7 +51,36 @@ export const getLearningPathById = asyncHandler(async (req, res) => {
     });
   }
 
-  res.success(path, 'Learning path retrieved', 200);
+  // Fetch members (users) who have this learning path
+  const User = (await import('../models/User.js')).default;
+
+  // Debug: log the query
+  console.log('[getLearningPathById] Fetching members with learningPathId:', id);
+
+  const members = await User.find({
+    learningPathId: id,
+    role: 'student' // Only get student members
+  }).select('-password');
+
+  console.log('[getLearningPathById] Found members:', members.length, 'Members:', members.map(m => ({ name: m.name, learningPathId: m.learningPathId, learningPathName: m.learningPathName })));
+
+  // Fetch teams/groups for this learning path
+  const CapstoneGroup = (await import('../models/CapstoneGroup.js')).default;
+  const teams = await CapstoneGroup.find({
+    learningPathId: id
+  });
+
+  // Calculate completion rate (if applicable)
+  const completionRate = members.length > 0 ? Math.round((members.filter(m => m.memberStatus === 'active').length / members.length) * 100) : 0;
+
+  res.success({
+    ...path.toObject(),
+    members: members,
+    teams: teams,
+    totalMembers: members.length,
+    totalTeams: teams.length,
+    completionRate: completionRate
+  }, 'Learning path retrieved', 200);
 });
 
 // ========== CREATE LEARNING PATH ==========

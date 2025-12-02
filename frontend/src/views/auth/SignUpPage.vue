@@ -277,7 +277,7 @@ const handleSignUp = async () => {
   oauthError.value = "";
 
   try {
-    await authStore.register({
+    const response = await authStore.register({
       name: form.name,
       email: form.email,
       password: form.password,
@@ -285,8 +285,19 @@ const handleSignUp = async () => {
       university: form.university,
     });
 
-    // Redirect to dashboard
-    router.push(authStore.isAdmin ? "/admin/dashboard" : "/dashboard");
+    // Check if user is admin (first user) - check from response data
+    const userRole = response?.user?.role || authStore.userRole;
+    console.log('[SignUp] User role:', userRole, 'Response:', response);
+
+    if (userRole === 'admin') {
+      // Show success message
+      alert("Anda adalah admin pertama! Selamat datang.");
+      // Redirect to admin dashboard
+      await router.push("/admin/dashboard");
+    } else {
+      // Student: redirect to dashboard (route guard will handle profile completion if needed)
+      await router.push("/dashboard");
+    }
   } catch (err) {
     error.value = err.message || "Pendaftaran gagal. Silakan coba lagi.";
   } finally {

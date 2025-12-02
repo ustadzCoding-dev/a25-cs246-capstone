@@ -30,7 +30,7 @@ async function fixAdminRole() {
       await adminUser.save();
       logger.info(`✅ Updated role to: ${adminUser.role}`);
     } else {
-      logger.info(`✅ Role already set to admin`);
+      logger.info('✅ Role already set to admin');
     }
 
     logger.info('✅ Admin role fix complete!');

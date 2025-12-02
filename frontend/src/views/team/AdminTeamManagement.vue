@@ -7,20 +7,38 @@
           <h1 class="text-3xl font-bold text-gray-900">Kelola Tim</h1>
           <p class="mt-2 text-gray-600">Kelola semua tim capstone</p>
         </div>
-        <button
-          @click="showAutoCreateModal = true"
-          class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-          Randomize Tim Otomatis
-        </button>
+        <div class="flex items-center space-x-3">
+          <button
+            @click="exportTeamsCSV"
+            :disabled="teamStore.teams.length === 0 || exporting"
+            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Export tim ke CSV"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            {{ exporting ? 'Mengunduh...' : 'Export CSV' }}
+          </button>
+          <button
+            @click="showAutoCreateModal = true"
+            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            Randomize Tim Otomatis
+          </button>
+        </div>
       </div>
 
       <!-- Stats Cards -->
@@ -107,24 +125,66 @@
           <p class="mt-2 text-sm text-gray-500">Tidak ada tim ditemukan</p>
         </div>
 
+        <!-- Bulk Actions Bar -->
+        <div v-if="selectedTeams.size > 0" class="bg-primary-50 border-b border-primary-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+          <div class="flex items-center space-x-4">
+            <span class="text-sm font-medium text-primary-900">
+              {{ selectedTeams.size }} tim dipilih
+            </span>
+            <div class="flex space-x-2">
+              <button
+                @click="bulkApproveTeams"
+                class="px-3 py-1 text-sm bg-success-600 text-white rounded hover:bg-success-700 transition-colors"
+              >
+                Setujui Semua
+              </button>
+              <button
+                @click="bulkRejectTeams"
+                class="px-3 py-1 text-sm bg-danger-600 text-white rounded hover:bg-danger-700 transition-colors"
+              >
+                Tolak Semua
+              </button>
+              <button
+                @click="bulkDeleteTeams"
+                class="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+              >
+                Hapus Semua
+              </button>
+            </div>
+          </div>
+          <button
+            @click="clearSelection"
+            class="text-sm text-primary-700 hover:text-primary-900"
+          >
+            Batal Pilih
+          </button>
+        </div>
+
         <div v-else class="divide-y divide-gray-200">
           <div
             v-for="team in filteredTeams"
             :key="team._id"
-            class="p-6 hover:bg-gray-50 transition-colors"
+            class="p-6 hover:bg-gray-50 transition-colors flex items-center"
           >
-            <div class="flex items-center justify-between">
-              <div class="flex-1">
-                <h3 class="text-base font-semibold text-gray-900">{{ team.teamName }}</h3>
-                <p class="text-sm text-gray-600 mt-1">
-                  ID Tim: {{ team.capstoneGroupId || '(Belum di-assign)' }}
-                </p>
-                <p class="text-sm text-gray-600">
-                  Anggota: {{ team.membersUserId?.length || 0 }} | Status:
-                  {{ getStatusLabel(team.status) }}
-                </p>
-              </div>
-              <div class="flex items-center space-x-2 ml-4">
+            <!-- Checkbox -->
+            <input
+              type="checkbox"
+              :checked="selectedTeams.has(team._id)"
+              @change="toggleTeamSelection(team._id)"
+              class="mr-4 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+
+            <div class="flex-1">
+              <h3 class="text-base font-semibold text-gray-900">{{ team.teamName }}</h3>
+              <p class="text-sm text-gray-600 mt-1">
+                ID Tim: {{ team.capstoneGroupId || '(Belum di-assign)' }}
+              </p>
+              <p class="text-sm text-gray-600">
+                Anggota: {{ team.membersUserId?.length || 0 }} | Status:
+                {{ getStatusLabel(team.status) }}
+              </p>
+            </div>
+            <div class="flex items-center space-x-2 ml-4">
                 <button
                   @click="viewTeamDetails(team)"
                   class="text-primary-600 hover:text-primary-700 p-2"
@@ -197,7 +257,6 @@
           </div>
         </div>
       </div>
-    </div>
 
     <!-- Team Details Modal -->
     <BaseModal v-model="showDetailsModal" title="Detail Tim" size="lg">
@@ -253,19 +312,37 @@
               <p class="text-sm font-medium text-gray-700">
                 Anggota ({{ selectedTeam.membersUserId?.length || 0 }})
               </p>
-              <ul class="text-sm text-gray-600 space-y-1 mt-2">
-                <li v-for="(member, idx) in selectedTeam.membersUserId" :key="idx">
-                  •
-                  <span class="font-medium">{{
-                    typeof member === 'object' ? member.name || member.studentId : member
-                  }}</span>
-                  <span
-                    v-if="
-                      typeof member === 'object' && (member.learningPathName || member.learningPath)
-                    "
-                    class="ml-2 text-xs text-gray-500"
-                    >— {{ member.learningPathName || member.learningPath }}</span
-                  >
+              <ul class="text-sm text-gray-600 space-y-2 mt-2">
+                <li v-for="(member, idx) in selectedTeam.membersUserId" :key="idx" class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div class="flex-1">
+                    <span class="font-medium">{{
+                      typeof member === 'object' ? member.name || member.studentId : member
+                    }}</span>
+                    <span
+                      v-if="
+                        typeof member === 'object' && (member.learningPathName || member.learningPath)
+                      "
+                      class="ml-2 text-xs text-gray-500"
+                      >— {{ member.learningPathName || member.learningPath }}</span
+                    >
+                  </div>
+                  <!-- Member action buttons (only for approved teams) -->
+                  <div v-if="selectedTeam.status === 'approved'" class="flex space-x-2 ml-2">
+                    <button
+                      @click="openRemoveMemberModal(member)"
+                      class="px-2 py-1 text-xs bg-danger-100 text-danger-700 rounded hover:bg-danger-200 transition-colors"
+                      title="Hapus anggota"
+                    >
+                      Hapus
+                    </button>
+                    <button
+                      @click="openReplaceMemberModal(member)"
+                      class="px-2 py-1 text-xs bg-primary-100 text-primary-700 rounded hover:bg-primary-200 transition-colors"
+                      title="Ganti anggota"
+                    >
+                      Ganti
+                    </button>
+                  </div>
                 </li>
               </ul>
             </div>
@@ -464,6 +541,99 @@
         </div>
       </template>
     </BaseModal>
+
+    <!-- Remove Member Modal -->
+    <RemoveMemberModal
+      v-model="showRemoveMemberModal"
+      :team="selectedTeam"
+      :member="selectedMember"
+      @confirm="handleRemoveMember"
+    />
+
+    <!-- Replace Member Modal -->
+    <ReplaceMemberModal
+      v-model="showReplaceMemberModal"
+      :team="selectedTeam"
+      :old-member="selectedMember"
+      :available-members="getAvailableMembersForReplacement()"
+      :use-cases="teamStore.useCases"
+      @confirm="handleReplaceMember"
+    />
+
+    <!-- Bulk Approve Modal -->
+    <BaseModal v-model="showBulkApproveModal" title="Konfirmasi Setujui Semua" size="md">
+      <div class="space-y-4">
+        <p class="text-gray-700">
+          Apakah Anda yakin ingin menyetujui <strong>{{ selectedTeams.size }} tim</strong>?
+        </p>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p class="text-sm text-blue-700">
+            💡 Semua anggota tim akan menerima email notifikasi persetujuan.
+          </p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <BaseButton variant="outline" @click="showBulkApproveModal = false"> Batal </BaseButton>
+          <BaseButton variant="success" :loading="bulkProcessing" @click="confirmBulkApprove">
+            Ya, Setujui {{ selectedTeams.size }} Tim
+          </BaseButton>
+        </div>
+      </template>
+    </BaseModal>
+
+    <!-- Bulk Reject Modal -->
+    <BaseModal v-model="showBulkRejectModal" title="Konfirmasi Tolak Semua" size="md">
+      <div class="space-y-4">
+        <p class="text-gray-700">
+          Apakah Anda yakin ingin menolak <strong>{{ selectedTeams.size }} tim</strong>?
+        </p>
+        <BaseTextarea
+          v-model="bulkRejectReason"
+          label="Alasan Penolakan (Opsional)"
+          placeholder="Masukkan alasan penolakan..."
+          :rows="4"
+        />
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p class="text-sm text-blue-700">
+            💡 Semua anggota tim akan menerima email notifikasi penolakan dengan alasan ini.
+          </p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <BaseButton variant="outline" @click="showBulkRejectModal = false"> Batal </BaseButton>
+          <BaseButton variant="danger" :loading="bulkProcessing" @click="confirmBulkReject">
+            Ya, Tolak {{ selectedTeams.size }} Tim
+          </BaseButton>
+        </div>
+      </template>
+    </BaseModal>
+
+    <!-- Bulk Delete Modal -->
+    <BaseModal v-model="showBulkDeleteModal" title="Konfirmasi Hapus Semua" size="md">
+      <div class="space-y-4">
+        <p class="text-gray-700">
+          Apakah Anda yakin ingin menghapus <strong>{{ selectedTeams.size }} tim</strong>?
+        </p>
+        <div class="bg-danger-50 border border-danger-200 rounded-lg p-3">
+          <p class="text-sm text-danger-700 font-semibold">
+            ⚠️ Tindakan ini tidak dapat dibatalkan. Semua data tim akan dihapus.
+          </p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <BaseButton variant="outline" @click="showBulkDeleteModal = false"> Batal </BaseButton>
+          <BaseButton variant="danger" :loading="bulkProcessing" @click="confirmBulkDelete">
+            Ya, Hapus {{ selectedTeams.size }} Tim
+          </BaseButton>
+        </div>
+      </template>
+    </BaseModal>
   </DashboardLayout>
 </template>
 
@@ -485,6 +655,8 @@ import BaseButton from '../../components/base/BaseButton.vue'
 import BaseSpinner from '../../components/base/BaseSpinner.vue'
 import BaseBadge from '../../components/base/BaseBadge.vue'
 import BaseModal from '../../components/base/BaseModal.vue'
+import RemoveMemberModal from '../../components/modals/RemoveMemberModal.vue'
+import ReplaceMemberModal from '../../components/modals/ReplaceMemberModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -501,11 +673,23 @@ const showDetailsModal = ref(false)
 const showRejectModal = ref(false)
 const showDeleteModal = ref(false)
 const showAutoCreateModal = ref(false)
+const showRemoveMemberModal = ref(false)
+const showReplaceMemberModal = ref(false)
+const showBulkApproveModal = ref(false)
+const showBulkRejectModal = ref(false)
+const showBulkDeleteModal = ref(false)
 const selectedTeam = ref(null)
+const selectedMember = ref(null)
+const selectedTeams = ref(new Set())
 const rejectReason = ref('')
+const bulkRejectReason = ref('')
 const newCapstoneGroupId = ref('')
 const autoCreating = ref(false)
 const unregisteredStats = ref(null)
+const removingMember = ref(false)
+const replacingMember = ref(false)
+const bulkProcessing = ref(false)
+const exporting = ref(false)
 const autoCreateForm = ref({
   useCaseId: '',
   teamSize: 4
@@ -1029,6 +1213,327 @@ watch(
     }
   }
 )
+
+/**
+ * Export teams to CSV
+ */
+const exportTeamsCSV = async () => {
+  exporting.value = true
+  try {
+    // Get filter options
+    const filters = {
+      status: filterStatus.value || undefined,
+      useCaseId: filterUseCase.value || undefined,
+      search: searchQuery.value || undefined
+    }
+
+    // Call API directly to get CSV
+    const response = await api.get('/capstone-group/export-csv', {
+      params: filters
+    })
+
+    // Create blob from response data
+    const blob = new Blob([response], { type: 'text/csv; charset=utf-8' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `teams-${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    link.parentNode.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'File CSV berhasil diunduh'
+    })
+  } catch (error) {
+    console.error('Failed to export teams:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: error.message || 'Gagal mengunduh file CSV'
+    })
+  } finally {
+    exporting.value = false
+  }
+}
+
+/**
+ * Toggle team selection
+ */
+const toggleTeamSelection = (teamId) => {
+  if (selectedTeams.value.has(teamId)) {
+    selectedTeams.value.delete(teamId)
+  } else {
+    selectedTeams.value.add(teamId)
+  }
+}
+
+/**
+ * Clear all selections
+ */
+const clearSelection = () => {
+  selectedTeams.value.clear()
+}
+
+/**
+ * Show bulk approve modal
+ */
+const bulkApproveTeams = () => {
+  if (selectedTeams.value.size === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Pilih Tim',
+      text: 'Pilih minimal 1 tim untuk disetujui'
+    })
+    return
+  }
+  showBulkApproveModal.value = true
+}
+
+/**
+ * Show bulk reject modal
+ */
+const bulkRejectTeams = () => {
+  if (selectedTeams.value.size === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Pilih Tim',
+      text: 'Pilih minimal 1 tim untuk ditolak'
+    })
+    return
+  }
+  bulkRejectReason.value = ''
+  showBulkRejectModal.value = true
+}
+
+/**
+ * Show bulk delete modal
+ */
+const bulkDeleteTeams = () => {
+  if (selectedTeams.value.size === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Pilih Tim',
+      text: 'Pilih minimal 1 tim untuk dihapus'
+    })
+    return
+  }
+  showBulkDeleteModal.value = true
+}
+
+/**
+ * Confirm bulk approve
+ */
+const confirmBulkApprove = async () => {
+  bulkProcessing.value = true
+  try {
+    const teamIds = Array.from(selectedTeams.value)
+    const response = await teamStore.bulkApproveTeams(teamIds)
+
+    if (response.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: `${teamIds.length} tim berhasil disetujui`
+      })
+
+      showBulkApproveModal.value = false
+      selectedTeams.value.clear()
+      await fetchTeams()
+    }
+  } catch (error) {
+    console.error('Failed to bulk approve teams:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: error.message || 'Gagal menyetujui tim'
+    })
+  } finally {
+    bulkProcessing.value = false
+  }
+}
+
+/**
+ * Confirm bulk reject
+ */
+const confirmBulkReject = async () => {
+  bulkProcessing.value = true
+  try {
+    const teamIds = Array.from(selectedTeams.value)
+    const response = await teamStore.bulkRejectTeams(teamIds, bulkRejectReason.value)
+
+    if (response.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: `${teamIds.length} tim berhasil ditolak`
+      })
+
+      showBulkRejectModal.value = false
+      selectedTeams.value.clear()
+      bulkRejectReason.value = ''
+      await fetchTeams()
+    }
+  } catch (error) {
+    console.error('Failed to bulk reject teams:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: error.message || 'Gagal menolak tim'
+    })
+  } finally {
+    bulkProcessing.value = false
+  }
+}
+
+/**
+ * Confirm bulk delete
+ */
+const confirmBulkDelete = async () => {
+  bulkProcessing.value = true
+  try {
+    const teamIds = Array.from(selectedTeams.value)
+    const response = await teamStore.bulkDeleteTeams(teamIds)
+
+    if (response.success) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: `${teamIds.length} tim berhasil dihapus`
+      })
+
+      showBulkDeleteModal.value = false
+      selectedTeams.value.clear()
+      await fetchTeams()
+    }
+  } catch (error) {
+    console.error('Failed to bulk delete teams:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: error.message || 'Gagal menghapus tim'
+    })
+  } finally {
+    bulkProcessing.value = false
+  }
+}
+
+/**
+ * Open remove member modal
+ */
+const openRemoveMemberModal = (member) => {
+  selectedMember.value = member
+  showRemoveMemberModal.value = true
+}
+
+/**
+ * Open replace member modal
+ */
+const openReplaceMemberModal = (member) => {
+  selectedMember.value = member
+  showReplaceMemberModal.value = true
+}
+
+/**
+ * Get available members for replacement (all students except current team members)
+ */
+const getAvailableMembersForReplacement = () => {
+  if (!selectedTeam.value) return []
+
+  // Get current team member IDs
+  const currentMemberIds = new Set(
+    selectedTeam.value.membersUserId?.map(m => m._id || m.id || m.studentId) || []
+  )
+
+  // For now, return empty array - in real implementation, fetch from API
+  // This would be: GET /api/students/available or similar
+  return []
+}
+
+/**
+ * Handle remove member confirmation
+ */
+const handleRemoveMember = async (data) => {
+  if (!selectedTeam.value) return
+
+  removingMember.value = true
+  try {
+    const response = await teamStore.removeTeamMember(selectedTeam.value._id, data.memberId)
+
+    if (response.success) {
+      // Update selected team with new data
+      selectedTeam.value = response.data
+
+      // Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Anggota berhasil dihapus dari tim'
+      })
+
+      showRemoveMemberModal.value = false
+      selectedMember.value = null
+
+      // Refresh teams list
+      await fetchTeams()
+    }
+  } catch (error) {
+    console.error('Failed to remove member:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: error.message || 'Gagal menghapus anggota'
+    })
+  } finally {
+    removingMember.value = false
+  }
+}
+
+/**
+ * Handle replace member confirmation
+ */
+const handleReplaceMember = async (data) => {
+  if (!selectedTeam.value) return
+
+  replacingMember.value = true
+  try {
+    const response = await teamStore.replaceTeamMember(
+      selectedTeam.value._id,
+      data.oldMemberId,
+      data.newMemberId
+    )
+
+    if (response.success) {
+      // Update selected team with new data
+      selectedTeam.value = response.data
+
+      // Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Anggota berhasil diganti'
+      })
+
+      showReplaceMemberModal.value = false
+      selectedMember.value = null
+
+      // Refresh teams list
+      await fetchTeams()
+    }
+  } catch (error) {
+    console.error('Failed to replace member:', error)
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: error.message || 'Gagal mengganti anggota'
+    })
+  } finally {
+    replacingMember.value = false
+  }
+}
 
 onMounted(() => {
   // Fetch use cases for filter dropdown

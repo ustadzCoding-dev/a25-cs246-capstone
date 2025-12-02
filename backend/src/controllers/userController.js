@@ -1,6 +1,17 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import Counter from '../models/Counter.js';
 import { uploadProfilePicture, deleteProfilePicture } from '../services/CloudinaryService.js';
+
+// Helper function to get next sequence number
+async function getNextSequence(counterName) {
+  const counter = await Counter.findByIdAndUpdate(
+    counterName,
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+  return counter.seq;
+}
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -29,6 +40,8 @@ export const getAllUsers = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .select('-password'); // sembunyikan password
+
+    console.log('[getAllUsers] Users returned:', users.length, 'First user:', users[0] ? { _id: users[0]._id, name: users[0].name, email: users[0].email } : null);
 
     res.status(200).json({
       success: true,
@@ -228,6 +241,107 @@ export const uploadProfilePictureController = async (req, res) => {
   } catch (error) {
     console.error('Error in uploadProfilePictureController:', error);
     res.status(500).json({ success: false, message: error.message || 'Internal Server Error' });
+  }
+};
+
+export const changeUserRole = async (req, res) => {
+  try {
+    // Check: hanya admin yang bisa ubah role
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Admins only'
+      });
+    }
+
+    const { id } = req.params;
+    const { role } = req.body;
+
+    // Validate ID
+    if (!id || id === 'undefined') {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+
+    // Validate role
+    if (!['student', 'admin'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role. Must be "student" or "admin"'
+      });
+    }
+
+    // Get user
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const oldRole = user.role;
+
+    // Update role
+    user.role = role;
+
+    // CLEAR/SET fields based on new role
+    if (role === 'admin') {
+      // CLEAR student-specific fields
+      user.memberStatus = null;
+      user.capstoneGroupId = null;
+      user.learningPathId = null;
+      user.learningPathName = null;
+      user.university = null;
+
+      // Generate new dicodingId with ADMIN format (if changing from student to admin)
+      if (oldRole === 'student') {
+        try {
+          const newSeqNumber = await getNextSequence('dicodingId');
+          user.dicodingId = `ADMIN-${newSeqNumber.toString().padStart(3, '0')}`;
+          console.log(`[CHANGE_ROLE] Generated new dicodingId for admin: ${user.dicodingId}`);
+        } catch (err) {
+          console.warn(`[CHANGE_ROLE] Could not generate new dicodingId: ${err.message}`);
+          // Keep existing dicodingId if sequence generation fails
+        }
+      }
+      console.log(`[CHANGE_ROLE] User ${id} changed from ${oldRole} to admin. Fields cleared.`);
+    } else if (role === 'student') {
+      // SET student-specific fields
+      user.memberStatus = 'active';
+      user.learningPathId = null;
+      user.learningPathName = null;
+      user.university = null;
+
+      // Generate new dicodingId with student format (if changing from admin to student)
+      if (oldRole === 'admin') {
+        try {
+          const newSeqNumber = await getNextSequence('dicodingId');
+          user.dicodingId = `FEBE${newSeqNumber.toString().padStart(6, '0')}AI`;
+          console.log(`[CHANGE_ROLE] Generated new dicodingId for student: ${user.dicodingId}`);
+        } catch (err) {
+          console.warn(`[CHANGE_ROLE] Could not generate new dicodingId: ${err.message}`);
+          // Keep existing dicodingId if sequence generation fails
+        }
+      }
+      console.log(`[CHANGE_ROLE] User ${id} changed from ${oldRole} to student. Fields set.`);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Role berhasil diubah dari ${oldRole} ke ${role}`,
+      data: user
+    });
+  } catch (error) {
+    console.error('Error changing user role:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to change role'
+    });
   }
 };
 

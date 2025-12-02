@@ -467,17 +467,17 @@ class WorksheetService {
           },
           worksheet: worksheet
             ? {
-                id: worksheet._id,
-                activityDescription: worksheet.activityDescription || '',
-                evidence: worksheet.evidence || [],
-                evidenceCount: worksheet.evidence ? worksheet.evidence.length : 0,
-                isSubmitted: worksheet.isSubmitted || false,
-                submittedAt: worksheet.submittedAt,
-                isLate: worksheet.isLate || false,
-                validationStatus: worksheet.validationStatus || 'pending',
-                validationStatusLabel: worksheet.validationStatusLabel || 'Menunggu Validasi',
-                adminNotes: worksheet.adminNotes || null
-              }
+              id: worksheet._id,
+              activityDescription: worksheet.activityDescription || '',
+              evidence: worksheet.evidence || [],
+              evidenceCount: worksheet.evidence ? worksheet.evidence.length : 0,
+              isSubmitted: worksheet.isSubmitted || false,
+              submittedAt: worksheet.submittedAt,
+              isLate: worksheet.isLate || false,
+              validationStatus: worksheet.validationStatus || 'pending',
+              validationStatusLabel: worksheet.validationStatusLabel || 'Menunggu Validasi',
+              adminNotes: worksheet.adminNotes || null
+            }
             : null
         };
       });

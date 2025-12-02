@@ -588,15 +588,15 @@ class EmailService {
                 </div>
 
                 ${
-                  adminNotes
-                    ? `
+  adminNotes
+    ? `
                 <div class="notes-box">
                   <p style="margin: 0 0 5px 0; font-weight: bold;">📝 Catatan dari Admin:</p>
                   <p style="margin: 0;">${adminNotes}</p>
                 </div>
                 `
-                    : ''
-                }
+    : ''
+}
 
                 <p>Terima kasih telah berpartisipasi dalam program Dicoding Capstone!</p>
               </div>

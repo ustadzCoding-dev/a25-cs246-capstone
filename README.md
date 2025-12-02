@@ -1,7 +1,7 @@
 # 🎓 Dicoding Academic Dashboard - Capstone Project Features
 
-**Tim Capstone Project:** A25-CS246  
-**Use Case:** DC-09 - Enhancing Academic Dashboard with Capstone Project Features  
+**Tim Capstone Project:** A25-CS246
+**Use Case:** DC-09 - Enhancing Academic Dashboard with Capstone Project Features
 **Program:** Asah - Dicoding Indonesia x Accenture
 
 ## 📋 Deskripsi Project
@@ -10,37 +10,62 @@ Sistem dashboard terintegrasi untuk manajemen Capstone Project Dicoding yang mel
 
 ## 👥 Tim Pengembang
 
-| Nama | ID | Role | Learning Path |
-|------|-----|------|---------------|
-| Afrizal Ilza Munadhif | F886D5Y0069 | Project Manager + Full Stack | Front-End & Back-End with AI |
-| Deby Maulida | F891D5X0445 | Front-End Lead + UI/UX Designer | Front-End & Back-End with AI |
+| Nama                    | ID          | Role                               | Learning Path                |
+| ----------------------- | ----------- | ---------------------------------- | ---------------------------- |
+| Afrizal Ilza Munadhif   | F886D5Y0069 | Project Manager + Full Stack       | Front-End & Back-End with AI |
+| Deby Maulida            | F891D5X0445 | Front-End Lead + UI/UX Designer    | Front-End & Back-End with AI |
 | Ganza Wajendra Ekasakti | F268D5Y0679 | Back-End Lead + Database Architect | Front-End & Back-End with AI |
-| Marsa Ardita | F891D5X1077 | Full Stack Developer | Front-End & Back-End with AI |
-| Muhammad Rizky | F295D5Y1370 | Full Stack Developer + DevOps | Front-End & Back-End with AI |
+| Marsa Ardita            | F891D5X1077 | Full Stack Developer               | Front-End & Back-End with AI |
+| Muhammad Rizky          | F295D5Y1370 | Full Stack Developer + DevOps      | Front-End & Back-End with AI |
 
 ## ✨ Fitur Utama (MVP)
 
 ### 1. 📝 Registrasi Tim Capstone
+
 - Form pendaftaran tim dengan validasi otomatis
 - Validasi komposisi learning path sesuai ketentuan
 - Admin dashboard untuk approve/reject tim
 - Status tracking pengajuan tim
 
 ### 2. 📚 Informasi Dokumen Capstone
+
 - Repository terpusat untuk dokumen panduan
 - Upload/download dokumen (admin/siswa)
 - Kategorisasi dokumen berdasarkan jenis
 - Search dan filter dokumen
 
 ### 3. 📅 Timeline Capstone
+
 - Visualisasi milestone dan deadline
 - Highlight deadline terdekat
 - Status overdue tracking
 - Calendar view untuk semua aktivitas
 
-## 🛠️ Tech Stack
+### 4. 👤 Profile Management
+
+- Google OAuth authentication
+- Profile picture upload ke Cloudinary
+- Learning path management
+- University information
+
+### 5. 📧 Team Invitations
+
+- Automatic invitation creation
+- Email notifications
+- Accept/reject workflow
+- Invitation tracking
+
+### 6. � Worksheet/Check-in
+
+- Bi-weekly progress check-in
+- Evidence submission
+- Admin validation
+- Status tracking
+
+## �🛠️ Tech Stack
 
 ### Front-End
+
 - **Framework:** Vue.js 3 (Composition API)
 - **Build Tool:** Vite 5
 - **Routing:** Vue Router 4
@@ -52,6 +77,7 @@ Sistem dashboard terintegrasi untuk manajemen Capstone Project Dicoding yang mel
 - **Testing:** Vitest + @vue/test-utils
 
 ### Back-End
+
 - **Framework:** Express.js 4
 - **Database:** MongoDB 7
 - **ODM:** Mongoose 8
@@ -61,6 +87,7 @@ Sistem dashboard terintegrasi untuk manajemen Capstone Project Dicoding yang mel
 - **CORS:** CORS middleware
 
 ### DevOps & Tools
+
 - **Version Control:** GitHub
 - **CI/CD:** GitHub Actions
 - **Front-End Hosting:** Vercel
@@ -123,6 +150,7 @@ A25-CS246/
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js >= 18.x
 - npm >= 9.x
 - MongoDB >= 7.x
@@ -131,12 +159,14 @@ A25-CS246/
 ### Installation
 
 #### 1. Clone Repository
+
 ```bash
 git clone https://github.com/[username]/A25-CS246.git
 cd A25-CS246
 ```
 
 #### 2. Setup Front-End
+
 ```bash
 cd frontend
 npm install
@@ -148,6 +178,7 @@ npm run dev
 Front-end akan berjalan di `http://localhost:5173`
 
 #### 3. Setup Back-End
+
 ```bash
 cd backend
 npm install
@@ -161,11 +192,13 @@ Back-end akan berjalan di `http://localhost:3000`
 ## 📝 Environment Variables
 
 ### Front-End (.env)
+
 ```env
 VITE_API_BASE_URL=http://localhost:3000/api
 ```
 
 ### Back-End (.env)
+
 ```env
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017/dicoding-capstone
@@ -190,6 +223,7 @@ Lihat [BRANCHING_STRATEGY.md](./BRANCHING_STRATEGY.md) untuk detail lengkap.
 ## 🧪 Testing
 
 ### Front-End Testing
+
 ```bash
 cd frontend
 npm run test          # Run unit tests
@@ -198,6 +232,7 @@ npm run coverage      # Generate coverage report
 ```
 
 ### Back-End Testing
+
 ```bash
 cd backend
 npm run test          # Run API tests
@@ -207,6 +242,7 @@ npm run test:watch    # Run tests in watch mode
 ## 📦 Build & Deployment
 
 ### Build Front-End
+
 ```bash
 cd frontend
 npm run build         # Build untuk production
@@ -214,6 +250,7 @@ npm run preview       # Preview production build
 ```
 
 ### Build Back-End
+
 ```bash
 cd backend
 npm run build         # Jika menggunakan TypeScript
@@ -221,21 +258,26 @@ npm start             # Run production server
 ```
 
 ### Deployment
+
 - **Front-End:** Auto-deploy ke Vercel via GitHub integration
 - **Back-End:** Auto-deploy ke Railway via GitHub integration
 
 ## 📚 Documentation
 
 - [Project Plan](./ProjectPlan.md) - Rencana lengkap proyek
-- [API Documentation](./docs/api/README.md) - API endpoints & usage
+- [Roadmap](./ROADMAP.md) - Project roadmap & timeline
+- [API Documentation](./docs/api/API_REFERENCE.md) - Complete API reference
+- [Developer Setup](./docs/01-getting-started/DEVELOPER_SETUP.md) - Local development guide
 - [Branching Strategy](./BRANCHING_STRATEGY.md) - Git workflow
 - [Design Files](./docs/design/) - Figma wireframes & mockups
+- [Full Documentation](./docs/README.md) - Complete documentation index
 
 ## 🤝 Contributing
 
 ### Pull Request Process
 
 1. Create feature branch dari `develop`
+
    ```bash
    git checkout develop
    git pull origin develop
@@ -243,11 +285,13 @@ npm start             # Run production server
    ```
 
 2. Commit changes dengan conventional commits
+
    ```bash
    git commit -m "feat: add registration form validation"
    ```
 
 3. Push dan create Pull Request
+
    ```bash
    git push origin feature/nama-fitur
    ```
@@ -269,16 +313,17 @@ Gunakan [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## 📅 Timeline
 
-| Week | Periode | Fokus |
-|------|---------|-------|
-| W1 | 31 Okt - 6 Nov | Planning & Setup |
-| W2 | 7 Nov - 13 Nov | Registrasi Tim Feature |
-| W3 | 14 Nov - 20 Nov | Informasi Dokumen Feature |
-| W4 | 21 Nov - 27 Nov | Timeline Feature |
-| W5 | 28 Nov - 4 Des | Testing & Deployment |
-| W6 | 5 Des - 15 Des | Finalisasi & Deliverables |
+| Week | Periode         | Fokus                     |
+| ---- | --------------- | ------------------------- |
+| W1   | 31 Okt - 6 Nov  | Planning & Setup          |
+| W2   | 7 Nov - 13 Nov  | Registrasi Tim Feature    |
+| W3   | 14 Nov - 20 Nov | Informasi Dokumen Feature |
+| W4   | 21 Nov - 27 Nov | Timeline Feature          |
+| W5   | 28 Nov - 4 Des  | Testing & Deployment      |
+| W6   | 5 Des - 15 Des  | Finalisasi & Deliverables |
 
 **Submission Deadlines:**
+
 - ✅ Project Plan: 31 Oktober 2025
 - 📝 Laporan Kemajuan: 18 November 2025
 - 🔄 360 Feedback: 13-15 Desember 2025
@@ -286,8 +331,8 @@ Gunakan [Conventional Commits](https://www.conventionalcommits.org/):
 
 ## 📞 Contact
 
-**Ketua Tim:** Afrizal Ilza Munadhif  
-**Email:** asah@dicoding.com  
+**Ketua Tim:** Afrizal Ilza Munadhif
+**Email:** asah@dicoding.com
 **WhatsApp:** 0856-5945-2688
 
 ## 📄 License
@@ -296,5 +341,5 @@ This project is developed for educational purposes as part of Dicoding's Asah Pr
 
 ---
 
-**Made with ❤️ by Tim A25-CS246**  
-*Dicoding Indonesia x Accenture - Asah Program 2025*
+**Made with ❤️ by Tim A25-CS246**
+_Dicoding Indonesia x Accenture - Asah Program 2025_

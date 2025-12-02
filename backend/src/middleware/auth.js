@@ -10,9 +10,14 @@ import { verifyAccessToken } from '../utils/jwt.js';
  */
 export const protect = async (req, res, next) => {
   try {
+    console.log('[protect] Protecting route:', req.path);
+
     // Get token from header Authorization
     const authHeader = req.headers.authorization;
+    console.log('[protect] Auth header present:', !!authHeader);
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('[protect] No valid token provided');
       return res.status(401).json({
         success: false,
         error: {
@@ -22,6 +27,7 @@ export const protect = async (req, res, next) => {
       });
     }
     const token = authHeader.split(' ')[1];
+    console.log('[protect] Token extracted, length:', token.length);
 
     let userId;
 
@@ -60,9 +66,11 @@ export const protect = async (req, res, next) => {
 
     // Add user data to request object
     req.user = user;
+    console.log('[protect] User set successfully, calling next()');
     next();
-  } catch (error) {
-    console.error('Auth error:', error.message);
+  } catch (err) {
+    console.error('[protect] Auth error:', err.message);
+    console.error('[protect] Error stack:', err.stack);
     return res.status(401).json({
       success: false,
       error: {

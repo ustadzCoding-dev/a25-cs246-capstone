@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ForbiddenError } from '../utils/errorHandler.js';
+import * as announcementController from './announcementController.js';
 
 // Mock models
-vi.mock('../../models/Announcement.js');
-vi.mock('../../models/User.js');
+vi.mock('../models/Announcement.js');
+vi.mock('../models/User.js');
 
 describe('Announcement Controller', () => {
   let req, res;
@@ -24,53 +25,39 @@ describe('Announcement Controller', () => {
   });
 
   describe('Authorization Tests', () => {
-    it('should verify admin role is required for create', () => {
-      // Test that ForbiddenError is thrown for non-admin
-      expect(() => {
-        if (req.user.role !== 'admin') {
-          throw new ForbiddenError('Only admins can create announcements');
-        }
-      }).not.toThrow();
+    it('should allow admin to create announcement', async () => {
+      req.validatedBody = { title: 'Test', content: 'Content', priority: 'high' };
+
+      await announcementController.createAnnouncement(req, res);
+
+      expect(res.success).toHaveBeenCalled();
     });
 
-    it('should throw ForbiddenError for non-admin user', () => {
+    it('should throw ForbiddenError for non-admin user on create', async () => {
       req.user.role = 'student';
-      expect(() => {
-        if (req.user.role !== 'admin') {
-          throw new ForbiddenError('Only admins can create announcements');
-        }
-      }).toThrow(ForbiddenError);
+      req.validatedBody = { title: 'Test', content: 'Content' };
+
+      await expect(announcementController.createAnnouncement(req, res))
+        .rejects
+        .toThrow(ForbiddenError);
     });
 
-    it('should verify authentication is required', () => {
-      // Test that error is thrown when user is null
-      expect(() => {
-        if (!req.user) {
-          throw new Error('User not authenticated');
-        }
-      }).not.toThrow();
-    });
-
-    it('should throw error when user is not authenticated', () => {
+    it('should throw error when user is not authenticated on create', async () => {
       req.user = null;
-      expect(() => {
-        if (!req.user) {
-          throw new Error('User not authenticated');
-        }
-      }).toThrow();
+      req.validatedBody = { title: 'Test', content: 'Content' };
+
+      await expect(announcementController.createAnnouncement(req, res))
+        .rejects
+        .toThrow(ForbiddenError);
     });
 
-    it('should verify input validation', () => {
-      // Test that validation works
-      const validateInput = (title, content) => {
-        if (!title || !content) {
-          throw new Error('Title and content are required');
-        }
-      };
+    it('should verify getAnnouncementById requires authentication', async () => {
+      req.user = null;
+      req.params = { id: '123' };
 
-      expect(() => validateInput('Title', 'Content')).not.toThrow();
-      expect(() => validateInput('', 'Content')).toThrow();
-      expect(() => validateInput('Title', '')).toThrow();
+      await announcementController.getAnnouncementById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
     });
   });
 });

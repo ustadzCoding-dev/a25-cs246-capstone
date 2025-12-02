@@ -62,6 +62,24 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true, title: 'Learning Paths' },
     },
     {
+      path: '/admin/learning-paths/:id',
+      name: 'admin-learning-paths-detail',
+      component: () => import('../views/admin/AdminLearningPathDetail.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Learning Path Detail' },
+    },
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: () => import('../views/admin/AdminUsers.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Kelola User' },
+    },
+    {
+      path: '/admin/timeline/stats',
+      name: 'admin-timeline-stats',
+      component: () => import('../views/admin/AdminTimelineStats.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true, title: 'Timeline Analytics' },
+    },
+    {
       path: '/admin/documents',
       name: 'admin-documents',
       component: () => import('../views/documents/AdminDocuments.vue'),

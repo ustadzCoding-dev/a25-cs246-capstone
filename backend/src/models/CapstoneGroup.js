@@ -59,6 +59,11 @@ const capstoneGroupSchema = new mongoose.Schema({
   rejectionReason: {
     type: String,
     default: null
+  },
+  // FIX CASE 30: Version field for optimistic locking (prevent race conditions)
+  version: {
+    type: Number,
+    default: 0
   }
 });
 

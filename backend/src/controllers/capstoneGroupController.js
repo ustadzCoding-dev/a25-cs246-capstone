@@ -1,5 +1,7 @@
 import { asyncHandler } from '../utils/errorHandler.js';
 import TeamService from '../services/TeamService.js';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 /**
  * Register a new capstone team
@@ -197,3 +199,218 @@ export const autoCreateTeams = asyncHandler(async (req, res) => {
 
   res.success(result, result.message, 201);
 });
+
+/**
+ * FIX CASE 31: Remove member from approved team (Admin)
+ * PUT /api/capstone-group/:id/remove-member
+ */
+export const removeTeamMember = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { memberId } = req.body;
+  const adminId = req.user._id;
+
+  if (!memberId) {
+    return res.error('Member ID is required', 400);
+  }
+
+  const team = await TeamService.removeTeamMember(id, memberId, adminId);
+
+  res.success(team, 'Member removed from team successfully', 200);
+});
+
+/**
+ * FIX CASE 31: Replace member in approved team (Admin)
+ * PUT /api/capstone-group/:id/replace-member
+ */
+export const replaceTeamMember = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { removeMemberId, addMemberId } = req.body;
+  const adminId = req.user._id;
+
+  if (!removeMemberId || !addMemberId) {
+    return res.error('Both removeMemberId and addMemberId are required', 400);
+  }
+
+  const team = await TeamService.replaceTeamMember(id, removeMemberId, addMemberId, adminId);
+
+  res.success(team, 'Member replaced successfully', 200);
+});
+
+/**
+ * PRIORITY 2.2: Bulk approve multiple teams (Admin)
+ * POST /api/capstone-group/bulk-approve
+ */
+export const bulkApproveTeams = asyncHandler(async (req, res) => {
+  const { teamIds } = req.body;
+  const adminId = req.user._id;
+
+  if (!teamIds || !Array.isArray(teamIds) || teamIds.length === 0) {
+    return res.error('teamIds array is required and must not be empty', 400);
+  }
+
+  const result = await TeamService.bulkApproveTeams(teamIds, adminId);
+
+  res.success(result, `Approved ${result.approved.length}/${result.totalRequested} teams`, 200);
+});
+
+/**
+ * PRIORITY 2.3: Bulk reject multiple teams (Admin)
+ * POST /api/capstone-group/bulk-reject
+ */
+export const bulkRejectTeams = asyncHandler(async (req, res) => {
+  const { teamIds, reason } = req.body;
+  const adminId = req.user._id;
+
+  if (!teamIds || !Array.isArray(teamIds) || teamIds.length === 0) {
+    return res.error('teamIds array is required and must not be empty', 400);
+  }
+
+  const result = await TeamService.bulkRejectTeams(teamIds, reason || 'Tim tidak memenuhi kriteria', adminId);
+
+  res.success(result, `Rejected ${result.rejected.length}/${result.totalRequested} teams`, 200);
+});
+
+/**
+ * PRIORITY 2.3: Bulk delete multiple teams (Admin)
+ * POST /api/capstone-group/bulk-delete
+ */
+export const bulkDeleteTeams = asyncHandler(async (req, res) => {
+  const { teamIds } = req.body;
+  const adminId = req.user._id;
+
+  if (!teamIds || !Array.isArray(teamIds) || teamIds.length === 0) {
+    return res.error('teamIds array is required and must not be empty', 400);
+  }
+
+  const result = await TeamService.bulkDeleteTeams(teamIds, adminId);
+
+  res.success(result, `Deleted ${result.deleted.length}/${result.totalRequested} teams`, 200);
+});
+
+/**
+ * PRIORITY 3.1: Export teams to CSV (Admin)
+ * GET /api/capstone-group/export-csv
+ * NOTE: Not using asyncHandler because we need to send raw CSV data
+ */
+export const exportTeamsCSV = async (req, res) => {
+  console.log('[exportTeamsCSV] CONTROLLER CALLED - Starting export');
+  try {
+    console.log('[exportTeamsCSV] Starting export');
+
+    // Get token from header (no middleware, so manual auth)
+    const authHeader = req.headers.authorization;
+    console.log('[exportTeamsCSV] Auth header present:', !!authHeader);
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('[exportTeamsCSV] No token provided');
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'No token provided'
+        }
+      });
+    }
+
+    // Extract and verify token
+    const token = authHeader.split(' ')[1];
+    let userId;
+
+    try {
+      // Try to verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.id;
+      console.log('[exportTeamsCSV] Token verified, userId:', userId);
+    } catch (tokenErr) {
+      console.error('[exportTeamsCSV] Token verification failed:', tokenErr.message);
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Invalid or expired token'
+        }
+      });
+    }
+
+    // Fetch user from database
+    const user = await User.findById(userId);
+
+    if (!user) {
+      console.log('[exportTeamsCSV] User not found');
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found'
+        }
+      });
+    }
+
+    console.log('[exportTeamsCSV] User:', { id: user._id, role: user.role });
+
+    // Check admin role
+    if (user.role !== 'admin') {
+      console.log('[exportTeamsCSV] User is not admin:', user.role);
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'This action requires admin role'
+        }
+      });
+    }
+
+    console.log('[exportTeamsCSV] Admin check passed');
+
+    const { status, useCaseId } = req.query;
+    console.log('[exportTeamsCSV] Export filters:', { status, useCaseId });
+
+    // Generate CSV
+    let csv;
+    try {
+      csv = await TeamService.exportTeamsCSV({ status, useCaseId });
+      console.log('[exportTeamsCSV] CSV generated successfully, length:', csv.length);
+    } catch (serviceErr) {
+      console.error('[exportTeamsCSV] Service error:', serviceErr.message);
+      console.error('[exportTeamsCSV] Service error stack:', serviceErr.stack);
+      throw serviceErr;
+    }
+
+    // Check if response is still writable
+    if (res.writableEnded) {
+      console.error('[exportTeamsCSV] Response already ended!');
+      return;
+    }
+
+    console.log('[exportTeamsCSV] Setting headers and sending CSV');
+
+    // Send CSV as downloadable file using Express download method
+    // This properly handles the response without middleware interference
+    const filename = 'teams-export.csv';
+
+    // Write CSV to response
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', csv.length);
+
+    // Send data and end response
+    return res.end(csv, 'utf8');
+
+    // Note: return statement ensures no further middleware runs
+  } catch (err) {
+    console.error('[exportTeamsCSV] Caught error:', err.message);
+    console.error('[exportTeamsCSV] Error stack:', err.stack);
+
+    // Only send error response if response hasn't been sent yet
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: {
+          message: 'Failed to export teams',
+          code: 'EXPORT_ERROR',
+          details: err.message
+        }
+      });
+    }
+  }
+};

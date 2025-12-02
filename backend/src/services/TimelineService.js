@@ -240,43 +240,91 @@ export class TimelineService {
    * @returns {Promise<Object>} Timeline stats
    */
   async getTimelineStats() {
-    const stats = await Timeline.aggregate([
-      {
-        $group: {
-          _id: null,
-          total: { $sum: 1 },
-          byStatus: {
-            $push: {
-              status: '$status',
-              count: 1
-            }
-          },
-          byType: {
-            $push: {
-              type: '$type',
-              count: 1
-            }
-          },
-          byPriority: {
-            $push: {
-              priority: '$priority',
-              count: 1
-            }
-          }
-        }
+    const timelines = await Timeline.find();
+
+    // Calculate status for each timeline
+    const now = new Date();
+    const timelinesWithStatus = timelines.map(t => {
+      let status = 'upcoming';
+      let isOverdue = false;
+
+      const startDate = new Date(t.startDate);
+      const endDate = new Date(t.endDate);
+
+      if (now >= startDate && now <= endDate) {
+        status = 'ongoing';
+      } else if (now > endDate) {
+        status = 'completed';
+        isOverdue = false;
+      } else {
+        status = 'upcoming';
       }
-    ]);
 
-    if (stats.length === 0) {
       return {
-        total: 0,
-        byStatus: [],
-        byType: [],
-        byPriority: []
+        ...t.toObject(),
+        status,
+        isOverdue,
+        daysRemaining: Math.ceil((endDate - now) / (1000 * 60 * 60 * 24))
       };
-    }
+    });
 
-    return stats[0];
+    // Calculate statistics
+    const totalTimelines = timelinesWithStatus.length;
+    const activeTimelines = timelinesWithStatus.filter(t => t.status === 'ongoing').length;
+    const completedTimelines = timelinesWithStatus.filter(t => t.status === 'completed').length;
+    const overdueTimelines = timelinesWithStatus.filter(t => t.isOverdue).length;
+
+    const completionRate = totalTimelines > 0 ? Math.round((completedTimelines / totalTimelines) * 100) : 0;
+    const onTimeRate = totalTimelines > 0 ? Math.round(((totalTimelines - overdueTimelines) / totalTimelines) * 100) : 0;
+
+    // Calculate average duration
+    const avgDuration = timelinesWithStatus.length > 0
+      ? Math.round(
+        timelinesWithStatus.reduce((sum, t) => {
+          const duration = Math.ceil((new Date(t.endDate) - new Date(t.startDate)) / (1000 * 60 * 60 * 24));
+          return sum + duration;
+        }, 0) / timelinesWithStatus.length
+      )
+      : 0;
+
+    // Get upcoming deadlines (next 7 days)
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const upcomingDeadlines = timelinesWithStatus
+      .filter(t => {
+        const endDate = new Date(t.endDate);
+        return endDate >= now && endDate <= sevenDaysFromNow;
+      })
+      .sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+
+    // Get at-risk timelines (>80% duration used)
+    const atRiskTimelines = timelinesWithStatus
+      .filter(t => {
+        if (t.status !== 'ongoing') {
+          return false;
+        }
+        const startDate = new Date(t.startDate);
+        const endDate = new Date(t.endDate);
+        const totalDuration = endDate - startDate;
+        const elapsedDuration = now - startDate;
+        const progress = (elapsedDuration / totalDuration) * 100;
+        return progress > 80;
+      })
+      .map(t => ({
+        ...t,
+        progress: Math.round(((now - new Date(t.startDate)) / (new Date(t.endDate) - new Date(t.startDate))) * 100)
+      }));
+
+    return {
+      totalTimelines,
+      activeTimelines,
+      completedTimelines,
+      overdueTimelines,
+      completionRate,
+      onTimeRate,
+      avgDuration,
+      upcomingDeadlines: upcomingDeadlines.slice(0, 5), // Top 5
+      atRiskTimelines: atRiskTimelines.slice(0, 5) // Top 5
+    };
   }
 
   /**

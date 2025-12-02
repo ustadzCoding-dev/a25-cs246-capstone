@@ -1,5 +1,3 @@
-import { ForbiddenError } from '../utils/errorHandler.js';
-
 /**
  * Authorization middleware factory
  * Checks if user has required role
@@ -8,17 +6,41 @@ import { ForbiddenError } from '../utils/errorHandler.js';
  */
 export const authorize = (requiredRoles) => {
   return (req, res, next) => {
-    if (!req.user) {
-      throw new ForbiddenError('User not authenticated');
+    try {
+      console.log('[authorize] Checking authorization for path:', req.path);
+      console.log('[authorize] User:', req.user ? { id: req.user._id, role: req.user.role } : 'NOT SET');
+      console.log('[authorize] Required roles:', requiredRoles);
+
+      if (!req.user) {
+        console.log('[authorize] User not authenticated');
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User not authenticated'
+          }
+        });
+      }
+
+      const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+
+      if (!roles.includes(req.user.role)) {
+        console.log('[authorize] User role not in required roles:', { userRole: req.user.role, requiredRoles: roles });
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: `This action requires one of these roles: ${roles.join(', ')}`
+          }
+        });
+      }
+
+      console.log('[authorize] Authorization passed');
+      next();
+    } catch (err) {
+      console.error('[authorize] Error:', err.message);
+      next(err);
     }
-
-    const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
-
-    if (!roles.includes(req.user.role)) {
-      throw new ForbiddenError(`This action requires one of these roles: ${roles.join(', ')}`);
-    }
-
-    next();
   };
 };
 

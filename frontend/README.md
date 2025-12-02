@@ -10,6 +10,8 @@ Platform manajemen tim Kampus Merdeka Dicoding Indonesia - Tim A25-CS246
 - **Pinia 3.0.4** - Intuitive state management
 - **Axios 1.13.2** - Promise-based HTTP client
 - **Tailwind CSS 3.4.1** - Utility-first CSS framework
+- **SweetAlert2** - Beautiful alerts & modals
+- **VueUse** - Vue 3 composition utilities
 
 ## 📦 Installation
 
@@ -43,40 +45,102 @@ npm run preview
 frontend/
 ├── public/                 # Static assets (logo, favicon)
 ├── src/
-│   ├── components/
-│   │   ├── base/          # Base components (13 components)
+│   ├── components/ (26 components)
+│   │   ├── base/          # Base components (13)
 │   │   │   ├── BaseInput.vue
 │   │   │   ├── BaseButton.vue
 │   │   │   ├── BaseModal.vue
 │   │   │   ├── BaseSelect.vue
 │   │   │   ├── BaseTable.vue
-│   │   │   └── ...
-│   │   ├── display/       # Display components (9 components)
+│   │   │   ├── BaseCard.vue
+│   │   │   ├── BaseAlert.vue
+│   │   │   ├── BaseLoader.vue
+│   │   │   ├── BaseCheckbox.vue
+│   │   │   ├── BaseRadio.vue
+│   │   │   ├── BaseTextarea.vue
+│   │   │   ├── BaseFile.vue
+│   │   │   └── BasePagination.vue
+│   │   ├── display/       # Display components (9)
 │   │   │   ├── StatsCard.vue
 │   │   │   ├── TeamInfoCard.vue
 │   │   │   ├── DocumentCard.vue
-│   │   │   └── ...
-│   │   └── layout/        # Layout components (3 components)
+│   │   │   ├── TimelineCard.vue
+│   │   │   ├── AnnouncementCard.vue
+│   │   │   ├── WorksheetCard.vue
+│   │   │   ├── UserAvatar.vue
+│   │   │   ├── StatusBadge.vue
+│   │   │   └── EmptyState.vue
+│   │   ├── modals/        # Modal components (4)
+│   │   │   ├── EditTeamModal.vue
+│   │   │   ├── ConfirmModal.vue
+│   │   │   ├── FormModal.vue
+│   │   │   └── ImagePreviewModal.vue
+│   │   └── layout/        # Layout components (3)
 │   │       ├── AuthLayout.vue
 │   │       ├── DashboardLayout.vue
 │   │       └── Sidebar.vue
-│   ├── views/             # Page components
-│   │   ├── auth/          # Login, Signup
-│   │   ├── dashboard/     # Admin & Student Dashboard
-│   │   ├── team/          # Team Management
-│   │   ├── documents/     # Document Management
-│   │   ├── timeline/      # Timeline Management
-│   │   ├── announcements/ # Announcements
-│   │   ├── profile/       # User Profile
+│   ├── views/ (22 pages)
+│   │   ├── auth/
+│   │   │   ├── LoginPage.vue
+│   │   │   ├── SignUpPage.vue
+│   │   │   └── AuthCallback.vue
+│   │   ├── dashboard/
+│   │   │   ├── AdminDashboard.vue
+│   │   │   └── StudentDashboard.vue
+│   │   ├── team/
+│   │   │   ├── StudentTeam.vue
+│   │   │   ├── AdminTeamManagement.vue
+│   │   │   └── TeamRegistrationForm.vue
+│   │   ├── documents/
+│   │   │   ├── StudentDocuments.vue
+│   │   │   └── AdminDocuments.vue
+│   │   ├── timeline/
+│   │   │   ├── StudentTimeline.vue
+│   │   │   └── AdminTimeline.vue
+│   │   ├── announcements/
+│   │   │   ├── StudentAnnouncements.vue
+│   │   │   └── AdminAnnouncements.vue
+│   │   ├── worksheet/
+│   │   │   ├── StudentWorksheet.vue
+│   │   │   └── AdminWorksheet.vue
+│   │   ├── profile/
+│   │   │   ├── ProfilePage.vue
+│   │   │   └── ProfileComplete.vue
+│   │   ├── usecase/
+│   │   │   └── AdminUseCase.vue
+│   │   ├── admin/
+│   │   │   └── AdminLearningPaths.vue
+│   │   ├── invitations/
+│   │   │   └── InvitationResponse.vue
 │   │   └── NotFound.vue
 │   ├── router/
 │   │   └── index.js       # Vue Router with auth guards
-│   ├── stores/
+│   ├── stores/ (8 stores)
 │   │   ├── authStore.js   # Authentication state
+│   │   ├── teamStore.js   # Team management state
+│   │   ├── documentStore.js
+│   │   ├── timelineStore.js
+│   │   ├── announcementStore.js
+│   │   ├── worksheetStore.js
+│   │   ├── usecaseStore.js
 │   │   └── index.js       # Pinia instance
-│   ├── services/
+│   ├── services/ (10 services)
 │   │   ├── api.js         # Axios instance with interceptors
-│   │   └── authService.js # Auth API calls
+│   │   ├── authService.js # Auth API calls
+│   │   ├── teamService.js # Team API calls
+│   │   ├── documentService.js
+│   │   ├── timelineService.js
+│   │   ├── announcementService.js
+│   │   ├── worksheetService.js
+│   │   ├── usecaseService.js
+│   │   ├── profilePictureService.js
+│   │   └── learningPathService.js
+│   ├── composables/ (5 composables)
+│   │   ├── useStudentMenu.js
+│   │   ├── useAdminMenu.js
+│   │   ├── useAuth.js
+│   │   ├── useForm.js
+│   │   └── useNotification.js
 │   ├── App.vue            # Root component
 │   ├── main.js            # Entry point
 │   └── style.css          # Global styles (Tailwind)
@@ -120,6 +184,7 @@ theme: {
 ```
 
 **After editing:**
+
 1. Save the file
 2. Refresh browser (Ctrl + R)
 3. Changes will apply automatically (hot reload)
@@ -137,19 +202,32 @@ Authentication state is managed by Pinia (`authStore.js`).
 ## 🌐 Available Pages
 
 ### Student Pages
-- **Dashboard:** `/dashboard`
-- **Tim Saya:** `/team`
-- **Dokumen:** `/documents`
-- **Timeline:** `/timeline`
-- **Pengumuman:** `/announcements`
-- **Profil:** `/profile`
+
+- **Dashboard:** `/dashboard` - Overview & statistics
+- **Tim Saya:** `/team` - Team management & invitations
+- **Dokumen:** `/documents` - Document repository
+- **Timeline:** `/timeline` - Milestones & deadlines
+- **Pengumuman:** `/announcements` - Announcements
+- **Worksheet:** `/worksheet` - Progress check-in
+- **Profil:** `/profile` - User profile & settings
 
 ### Admin Pages
-- **Admin Dashboard:** `/admin/dashboard`
-- **Kelola Tim:** `/admin/teams`
-- **Kelola Dokumen:** `/admin/documents`
-- **Kelola Timeline:** `/admin/timeline`
-- **Kelola Pengumuman:** `/admin/announcements`
+
+- **Admin Dashboard:** `/admin/dashboard` - System overview
+- **Kelola Tim:** `/admin/teams` - Team approval & management
+- **Kelola Dokumen:** `/admin/documents` - Document management
+- **Kelola Timeline:** `/admin/timeline` - Timeline management
+- **Kelola Pengumuman:** `/admin/announcements` - Announcement management
+- **Kelola Worksheet:** `/admin/worksheet` - Worksheet validation
+- **Kelola Learning Path:** `/admin/learning-paths` - Learning path setup
+- **Kelola Use Case:** `/admin/usecase` - Use case management
+
+### Authentication Pages
+
+- **Login:** `/login` - User login
+- **Sign Up:** `/signup` - User registration
+- **Auth Callback:** `/auth/callback` - Google OAuth callback
+- **Profile Complete:** `/profile/complete` - Google user profile completion
 
 ## 📚 Documentation
 
@@ -163,6 +241,7 @@ Authentication state is managed by Pinia (`authStore.js`).
 ## 🐛 Troubleshooting
 
 ### Port already in use
+
 ```bash
 # Kill all node processes
 taskkill /F /IM node.exe
@@ -171,6 +250,7 @@ taskkill /F /IM node.exe
 ```
 
 ### Tailwind CSS not working
+
 ```bash
 # Reinstall dependencies
 npm install
@@ -180,6 +260,7 @@ npm run dev
 ```
 
 ### Browser showing old cached content
+
 - Hard refresh: `Ctrl + Shift + R`
 - Clear browser cache
 - Use incognito mode
@@ -202,4 +283,13 @@ npm run dev
 
 ---
 
-**Last Updated:** November 11, 2025
+**Last Updated:** November 29, 2025
+
+---
+
+## 📚 Additional Resources
+
+- [API Reference](../docs/03-api/API_REFERENCE.md) - Complete API documentation
+- [Developer Setup](../docs/01-getting-started/DEVELOPER_SETUP.md) - Detailed setup guide
+- [Roadmap](../ROADMAP.md) - Project roadmap & timeline
+- [User Guide](../docs/06-user-guides/STUDENT_GUIDE.md) - Student workflow guide

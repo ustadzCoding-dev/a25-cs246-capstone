@@ -163,6 +163,12 @@ export const acceptInvitation = asyncHandler(async (req, res) => {
       return res.error(`Invitation already ${invitation.status}`, 400);
     }
 
+    // PRIORITY 3.2: Check if invitation expired
+    if (invitation.expiresAt && new Date() > new Date(invitation.expiresAt)) {
+      console.log('[acceptInvitation] Invitation has expired');
+      return res.error('Undangan telah kadaluarsa (lebih dari 30 hari)', 400);
+    }
+
     // Update invitation status
     invitation.status = 'accepted';
     await invitation.save();
@@ -172,13 +178,21 @@ export const acceptInvitation = asyncHandler(async (req, res) => {
     try {
       const team = await CapstoneGroup.findById(invitation.teamId);
       console.log('[acceptInvitation] Team found:', team ? 'yes' : 'no');
-      if (team && !team.members.includes(userId)) {
-        team.members.push(userId);
+
+      // FIX CASE 18: Check if team exists (prevent orphaned invitations)
+      if (!team) {
+        console.error('[acceptInvitation] Team not found - orphaned invitation detected');
+        return res.error('Team tidak ditemukan. Tim mungkin telah ditolak atau dihapus.', 404);
+      }
+
+      if (!team.membersUserId.includes(userId)) {
+        team.membersUserId.push(userId);
         await team.save();
         console.log('[acceptInvitation] Member added to team');
       }
     } catch (teamErr) {
       console.error('[acceptInvitation] Error adding member to team:', teamErr.message);
+      return res.error('Gagal menambahkan member ke tim', 500);
     }
 
     try {

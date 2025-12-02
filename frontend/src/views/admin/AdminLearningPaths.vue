@@ -212,6 +212,12 @@
                 </span>
               </td>
               <td class="px-6 py-4 text-sm space-x-3">
+                <router-link
+                  :to="`/admin/learning-paths/${path._id}`"
+                  class="text-primary-600 hover:text-primary-900 font-medium"
+                >
+                  Lihat Detail
+                </router-link>
                 <button
                   @click="toggleStatus(path._id)"
                   :disabled="loading"

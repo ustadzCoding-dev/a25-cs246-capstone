@@ -65,12 +65,23 @@ export const getCurrentTeam = async () => {
  */
 export const createTeam = async teamData => {
   try {
+    console.log('[teamService.createTeam] Sending request:', teamData)
     const response = await api.post('/capstone-group/register', teamData)
     // API interceptor returns response.data directly
     // response = { success, message, data, requestId, timestamp }
+    console.log('[teamService.createTeam] Response:', response)
     return response
   } catch (error) {
-    throw error.response?.data || error
+    console.error('[teamService.createTeam] Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      details: error.details,
+    })
+
+    // Error is already formatted by API interceptor
+    // Just re-throw it so it propagates to the component
+    throw error
   }
 }
 
@@ -203,6 +214,115 @@ export const getUseCaseById = async id => {
   }
 }
 
+/**
+ * Remove team member (Admin only)
+ * @param {string} teamId - Team ID
+ * @param {string} memberId - Member ID to remove
+ * @returns {Promise} Updated team data
+ */
+export const removeTeamMember = async (teamId, memberId) => {
+  try {
+    console.log('[teamService.removeTeamMember] Removing member:', { teamId, memberId })
+    const response = await api.put(`/capstone-group/${teamId}/remove-member`, { memberId })
+    console.log('[teamService.removeTeamMember] Response:', response)
+    return response
+  } catch (error) {
+    console.error('[teamService.removeTeamMember] Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Replace team member (Admin only)
+ * @param {string} teamId - Team ID
+ * @param {string} oldMemberId - Member ID to replace
+ * @param {string} newMemberId - New member ID
+ * @returns {Promise} Updated team data
+ */
+export const replaceTeamMember = async (teamId, oldMemberId, newMemberId) => {
+  try {
+    console.log('[teamService.replaceTeamMember] Replacing member:', { teamId, oldMemberId, newMemberId })
+    const response = await api.put(`/capstone-group/${teamId}/replace-member`, {
+      oldMemberId,
+      newMemberId
+    })
+    console.log('[teamService.replaceTeamMember] Response:', response)
+    return response
+  } catch (error) {
+    console.error('[teamService.replaceTeamMember] Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Bulk approve teams (Admin only)
+ * @param {Array} teamIds - Array of team IDs
+ * @returns {Promise} Result data
+ */
+export const bulkApproveTeams = async (teamIds) => {
+  try {
+    console.log('[teamService.bulkApproveTeams] Approving teams:', teamIds)
+    const response = await api.post('/capstone-group/bulk-approve', { teamIds })
+    console.log('[teamService.bulkApproveTeams] Response:', response)
+    return response
+  } catch (error) {
+    console.error('[teamService.bulkApproveTeams] Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Bulk reject teams (Admin only)
+ * @param {Array} teamIds - Array of team IDs
+ * @param {string} reason - Rejection reason
+ * @returns {Promise} Result data
+ */
+export const bulkRejectTeams = async (teamIds, reason) => {
+  try {
+    console.log('[teamService.bulkRejectTeams] Rejecting teams:', { teamIds, reason })
+    const response = await api.post('/capstone-group/bulk-reject', { teamIds, reason })
+    console.log('[teamService.bulkRejectTeams] Response:', response)
+    return response
+  } catch (error) {
+    console.error('[teamService.bulkRejectTeams] Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Bulk delete teams (Admin only)
+ * @param {Array} teamIds - Array of team IDs
+ * @returns {Promise} Result data
+ */
+export const bulkDeleteTeams = async (teamIds) => {
+  try {
+    console.log('[teamService.bulkDeleteTeams] Deleting teams:', teamIds)
+    const response = await api.post('/capstone-group/bulk-delete', { teamIds })
+    console.log('[teamService.bulkDeleteTeams] Response:', response)
+    return response
+  } catch (error) {
+    console.error('[teamService.bulkDeleteTeams] Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Export teams to CSV (Admin only)
+ * @param {Object} filters - Filter options
+ * @returns {Promise} CSV file blob
+ */
+export const exportTeamsCSV = async (filters = {}) => {
+  try {
+    console.log('[teamService.exportTeamsCSV] Exporting with filters:', filters)
+    const response = await api.get('/capstone-group/export-csv', { params: filters })
+    console.log('[teamService.exportTeamsCSV] Response received')
+    return response
+  } catch (error) {
+    console.error('[teamService.exportTeamsCSV] Error:', error)
+    throw error
+  }
+}
+
 export default {
   getAllTeams,
   getTeamById,
@@ -215,4 +335,10 @@ export default {
   deleteTeam,
   getAllUseCases,
   getUseCaseById,
+  removeTeamMember,
+  replaceTeamMember,
+  bulkApproveTeams,
+  bulkRejectTeams,
+  bulkDeleteTeams,
+  exportTeamsCSV,
 }

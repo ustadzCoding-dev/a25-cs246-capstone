@@ -33,10 +33,19 @@ export const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // CHECK: Apakah ini user pertama (admin pertama)?
+    const totalUsers = await User.countDocuments();
+    let userRole = role || 'student';
+
+    // JIKA website kosong (totalUsers = 0), user pertama jadi ADMIN
+    if (totalUsers === 0) {
+      userRole = 'admin';
+      console.log('[REGISTER] First user detected! Auto-promoting to ADMIN');
+    }
+
     // Generate ID berdasarkan role dan learningpath
     const newSeqNumber = await getNextSequence('dicodingId');
     let generateDicodingId;
-    const userRole = role || 'student';
 
     // Handle admin/mentor registration (no learning path required)
     if (userRole === 'admin' || userRole === 'mentor') {
@@ -52,20 +61,30 @@ export const registerUser = async (req, res) => {
       }
 
       switch (learningPath) {
-        case 'Front-End Web & Back-End with AI':
-          generateDicodingId = `FEBE${newSeqNumber.toString().padStart(5, '0')}AI`;
-          break;
-        case 'React & Back-End with AI':
-          generateDicodingId = `REBE${newSeqNumber.toString().padStart(5, '0')}AI`;
-          break;
-        case 'Machine Learning':
-          generateDicodingId = `ML${newSeqNumber.toString().padStart(5, '0')}`;
-          break;
-        default:
-          return res.status(400).json({
-            success: false,
-            message: 'Learning Path tidak valid.'
-          });
+      case 'Front-End Web & Back-End with AI':
+        generateDicodingId = `FEBE${newSeqNumber.toString().padStart(5, '0')}AI`;
+        break;
+      case 'React & Back-End with AI':
+        generateDicodingId = `REBE${newSeqNumber.toString().padStart(5, '0')}AI`;
+        break;
+      case 'Machine Learning':
+        generateDicodingId = `ML${newSeqNumber.toString().padStart(5, '0')}`;
+        break;
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Learning Path tidak valid.'
+        });
+      }
+    }
+
+    // Fetch learning path ID if student
+    let learningPathId = null;
+    if (userRole === 'student' && learningPath) {
+      const LearningPath = (await import('../models/LearningPath.js')).default;
+      const learningPathRecord = await LearningPath.findOne({ name: learningPath.trim() });
+      if (learningPathRecord) {
+        learningPathId = learningPathRecord._id;
       }
     }
 
@@ -75,11 +94,16 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      learningPathName: userRole === 'student' ? learningPath : null, // Admin/Mentor tidak perlu learning path
       role: userRole,
-      university: userRole === 'student' ? university : null,
       provider: 'local',
-      lastLogin: new Date()
+      lastLogin: new Date(),
+
+      // STUDENT FIELDS:
+      learningPathName: userRole === 'student' ? learningPath : null,
+      learningPathId: userRole === 'student' ? learningPathId : null,
+      university: userRole === 'student' ? university : null,
+      memberStatus: userRole === 'student' ? 'active' : null,
+      capstoneGroupId: null
     });
 
     // Menyimpan user baru ke database
@@ -94,10 +118,15 @@ export const registerUser = async (req, res) => {
     const userResponse = newUser.toObject();
     delete userResponse.password;
 
+    // Determine message based on role
+    const message = userRole === 'admin'
+      ? 'Anda adalah admin pertama! Registrasi berhasil.'
+      : 'User registered successfully';
+
     // Mengirimkan response dengan token
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: message,
       data: {
         user: userResponse,
         token: token
