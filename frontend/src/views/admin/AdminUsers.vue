@@ -122,7 +122,7 @@
         <!-- Pagination -->
         <div v-if="totalPages > 1" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
           <div class="text-sm text-gray-600">
-            Menampilkan {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} dari {{ filteredUsers.length }} users
+            Menampilkan {{ (pagination.currentPage - 1) * pagination.limit + 1 }} - {{ Math.min(pagination.currentPage * pagination.limit, pagination.totalItems) }} dari {{ pagination.totalItems }} users
           </div>
           <div class="flex space-x-2">
             <BaseButton
@@ -243,7 +243,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 import { useAdminMenu } from '../../composables/useAdminMenu'
@@ -271,6 +271,12 @@ const searchQuery = ref('')
 const filterRole = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 10
+const pagination = ref({
+  currentPage: 1,
+  totalItems: 0,
+  limit: 10,
+  totalPages: 1
+})
 
 const showDetailModal = ref(false)
 const showChangeRoleModal = ref(false)
@@ -285,35 +291,20 @@ const roleOptions = [
 ]
 
 // Computed
+// Note: Filtering and pagination now handled by backend
+// Frontend just displays the data received from backend
 const filteredUsers = computed(() => {
-  if (!Array.isArray(users.value)) return []
-
-  let result = users.value
-
-  // Filter by role
-  if (filterRole.value) {
-    result = result.filter(u => u.role === filterRole.value)
-  }
-
-  // Search
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(u =>
-      u.name.toLowerCase().includes(query) ||
-      u.email.toLowerCase().includes(query) ||
-      (u.dicodingId && u.dicodingId.toLowerCase().includes(query))
-    )
-  }
-
-  return result
+  return Array.isArray(users.value) ? users.value : []
 })
 
-const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage))
+const totalPages = computed(() => {
+  // Use totalPages from backend pagination info
+  return pagination.value?.totalPages || 1
+})
 
 const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  const end = start + itemsPerPage
-  return filteredUsers.value.slice(start, end)
+  // Backend already returns paginated data, so just return as-is
+  return filteredUsers.value
 })
 
 const stats = computed(() => {
@@ -361,18 +352,39 @@ const fetchUsers = async () => {
   error.value = ''
 
   try {
-    const response = await api.get('/users')
+    // Build query parameters
+    const params = {
+      page: currentPage.value,
+      limit: itemsPerPage
+    }
+
+    // Add role filter if selected
+    if (filterRole.value) {
+      params.role = filterRole.value
+    }
+
+    // Add search query if provided
+    if (searchQuery.value) {
+      params.search = searchQuery.value
+    }
+
+    const response = await api.get('/users', { params })
     console.log('[AdminUsers] fetchUsers response:', response)
 
     if (response.success) {
       // Backend returns { success: true, data: { users: [...], pagination: {...} } }
       const usersData = response.data?.users || response.data || []
       users.value = Array.isArray(usersData) ? usersData : []
-      console.log('[AdminUsers] users loaded:', users.value.length, 'users:', users.value)
+
+      // Store pagination info from backend
+      if (response.data?.pagination) {
+        pagination.value = response.data.pagination
+      }
+
+      console.log('[AdminUsers] users loaded:', users.value.length, 'pagination:', pagination.value)
       if (users.value.length > 0) {
         console.log('[AdminUsers] First user _id:', users.value[0]._id, 'First user:', users.value[0])
       }
-      currentPage.value = 1
     } else {
       error.value = response.message || 'Gagal memuat users'
     }
@@ -451,6 +463,16 @@ const handleLogout = async () => {
   await authStore.logout()
   router.push('/login')
 }
+
+// Watchers - Trigger fetch when filters/search/page changes
+watch(currentPage, () => {
+  fetchUsers()
+})
+
+watch([filterRole, searchQuery], () => {
+  currentPage.value = 1 // Reset to page 1 when filter/search changes
+  fetchUsers()
+})
 
 // Lifecycle
 onMounted(() => {

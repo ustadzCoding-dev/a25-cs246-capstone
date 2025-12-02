@@ -133,8 +133,7 @@
                       v-for="(evidence, idx) in item.worksheet.evidence"
                       :key="idx"
                       :href="evidence.fileUrl || evidence.filePath"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      :download="evidence.originalName"
                       class="flex items-center bg-white border rounded-lg px-4 py-3 hover:bg-indigo-50 hover:border-indigo-300 transition-colors group cursor-pointer"
                     >
                       <svg
@@ -232,8 +231,7 @@
                     >
                       <a
                         :href="file.fileUrl || file.filePath"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        :download="file.originalName || file.name"
                         class="flex items-center flex-1 min-w-0 hover:text-indigo-600 group"
                       >
                         <svg

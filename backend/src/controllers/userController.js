@@ -21,7 +21,7 @@ export const getAllUsers = async (req, res) => {
     }
 
     // Ambil query parameter
-    const { role, learningPath, page = 1, limit = 10 } = req.query;
+    const { role, learningPath, search, page = 1, limit = 10 } = req.query;
 
     // Membangun filter berdasarkan query parameter
     const filter = {};
@@ -30,6 +30,15 @@ export const getAllUsers = async (req, res) => {
     }
     if (learningPath) {
       filter.learningPath = learningPath;
+    }
+
+    // Add search filter (search by name, email, or dicodingId)
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { dicodingId: { $regex: search, $options: 'i' } }
+      ];
     }
 
     // Hitung total user yang sesuai filter
@@ -41,7 +50,7 @@ export const getAllUsers = async (req, res) => {
       .limit(parseInt(limit))
       .select('-password'); // sembunyikan password
 
-    console.log('[getAllUsers] Users returned:', users.length, 'First user:', users[0] ? { _id: users[0]._id, name: users[0].name, email: users[0].email } : null);
+    console.log('[getAllUsers] Users returned:', users.length, 'Total:', totalUsers, 'Page:', page, 'Limit:', limit, 'First user:', users[0] ? { _id: users[0]._id, name: users[0].name, email: users[0].email } : null);
 
     res.status(200).json({
       success: true,
@@ -50,7 +59,8 @@ export const getAllUsers = async (req, res) => {
         pagination: {
           currentPage: parseInt(page),
           totalItems: totalUsers,
-          limit: parseInt(limit)
+          limit: parseInt(limit),
+          totalPages: Math.ceil(totalUsers / parseInt(limit))
         }
       }
     });
