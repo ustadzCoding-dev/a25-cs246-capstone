@@ -2,9 +2,15 @@
   <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard Admin</h1>
-        <p class="mt-2 text-gray-600">Selamat datang kembali, {{ user?.name }}!</p>
+      <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
+        <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+          Dashboard
+        </h1>
+        <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+          Selamat datang kembali,
+          <span class="text-primary-600 font-semibold">{{ user?.name }}</span
+          >
+        </p>
       </div>
 
       <!-- Stats Cards -->

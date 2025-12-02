@@ -1,9 +1,9 @@
 <template>
-  <div class="stats-card bg-gray-900 rounded-lg p-6 text-white">
+  <div class="stats-card bg-gray-300 border border-gray-500 rounded-lg p-6 text-white">
     <div class="flex items-center justify-between">
       <div class="flex-1">
-        <p class="text-sm font-medium text-gray-300">{{ label }}</p>
-        <p class="mt-2 text-3xl font-bold">{{ value }}</p>
+        <p class="text-md font-medium text-gray-500">{{ label }}</p>
+        <p class="mt-2 text-3xl text-gray-800">{{ value }}</p>
         <p v-if="change" :class="[
           'mt-2 text-sm flex items-center',
           trend === 'up' ? 'text-success-400' : 'text-danger-400'
@@ -17,12 +17,12 @@
           {{ change }}%
         </p>
       </div>
-      <div :class="[
+      <!-- <div :class="[
         'w-12 h-12 rounded-lg flex items-center justify-center',
         iconBgColor
       ]">
         <component :is="iconComponent" class="w-6 h-6" />
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
