@@ -144,6 +144,21 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'LearningGroup',
       default: null
+    },
+
+    // ========== PASSWORD RESET FIELDS ==========
+    // Reset Password Token (hashed)
+    resetPasswordToken: {
+      type: String,
+      default: null,
+      select: false
+    },
+
+    // Reset Password Token Expiry
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
+      select: false
     }
   },
   {

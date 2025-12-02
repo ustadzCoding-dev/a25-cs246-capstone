@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Counter from '../models/Counter.js';
 import { generateTokens, verifyRefreshToken } from '../utils/jwt.js';
+import EmailService from '../services/EmailService.js';
+import crypto from 'crypto';
 
 // ========== EXISTING FUNCTIONS (TETAP) ==========
 
@@ -654,6 +656,149 @@ export const refreshAccessToken = async (req, res) => {
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Server error'
       }
+    });
+  }
+};
+
+/**
+ * Forgot Password - Request Password Reset
+ * POST /api/auth/forgot-password
+ */
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    console.log('[forgotPassword] Request for email:', email);
+
+    // Validate email
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    // Find user by email (only local users)
+    const user = await User.findOne({ email, provider: 'local' });
+
+    if (!user) {
+      // Don't reveal if email exists (security best practice)
+      console.log('[forgotPassword] User not found:', email);
+      return res.status(200).json({
+        success: true,
+        message: 'Jika email terdaftar, Anda akan menerima link reset password'
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Set reset token and expiry (1 hour)
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await user.save();
+
+    console.log('[forgotPassword] Reset token generated for:', email);
+
+    // Send email
+    const emailSent = await EmailService.sendPasswordResetEmail({
+      userEmail: user.email,
+      userName: user.name,
+      resetToken: resetToken
+    });
+
+    if (!emailSent) {
+      console.error('[forgotPassword] Email failed to send');
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal mengirim email reset password'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Jika email terdaftar, Anda akan menerima link reset password'
+    });
+  } catch (error) {
+    console.error('[forgotPassword] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+};
+
+/**
+ * Reset Password - Confirm Password Reset with Token
+ * POST /api/auth/reset-password
+ */
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password, passwordConfirm } = req.body;
+
+    console.log('[resetPassword] Reset password request');
+
+    // Validate input
+    if (!token || !password || !passwordConfirm) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token, password, dan password confirmation wajib diisi'
+      });
+    }
+
+    // Validate password match
+    if (password !== passwordConfirm) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password tidak cocok'
+      });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password minimal 6 karakter'
+      });
+    }
+
+    // Hash the token to compare with database
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with valid reset token
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: new Date() }
+    }).select('+password');
+
+    if (!user) {
+      console.log('[resetPassword] Invalid or expired token');
+      return res.status(400).json({
+        success: false,
+        message: 'Link reset password tidak valid atau sudah expired'
+      });
+    }
+
+    // Update password
+    user.password = password;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+
+    await user.save();
+
+    console.log('[resetPassword] Password reset successful for:', user.email);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password berhasil direset. Silakan login dengan password baru Anda.'
+    });
+  } catch (error) {
+    console.error('[resetPassword] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
     });
   }
 };

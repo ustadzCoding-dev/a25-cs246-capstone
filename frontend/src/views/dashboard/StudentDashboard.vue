@@ -103,7 +103,7 @@
             <div class="grid grid-cols-7">
               <div class="col-span-5">
                 <h4 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold">
-                  {3} Dokumen Telah Ditambahkan
+                  {{ documentCount }} Dokumen Telah Ditambahkan
                 </h4>
                 <p class="lg:text-sm md:text-sm sm:text-xs text-xs text-gray-500">
                   Check dokumen terbaru untuk referensi capstone project Anda.
@@ -121,7 +121,7 @@
             <div class="grid grid-cols-7">
               <div class="col-span-5">
                 <h4 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold">
-                  {5} Timeline Aktif
+                  {{ timelineCount }} Timeline Aktif
                 </h4>
                 <p class="lg:text-sm md:text-sm sm:text-xs text-xs text-gray-500">
                   Pantau perkembangan capstone project Anda melalui timeline yang telah dibuat.
@@ -139,7 +139,7 @@
             <div class="grid grid-cols-7">
               <div class="col-span-5">
                 <h4 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold">
-                  {8} Pengumuman Baru
+                  {{ announcementCount }} Pengumuman Baru
                 </h4>
                 <p class="lg:text-sm md:text-sm sm:text-xs text-xs text-gray-500">
                   Jangan lewatkan pengumuman penting terkait capstone project Anda.
@@ -306,6 +306,10 @@ const teamInfo = computed(() => {
     members: team.members || [],
   }
 })
+
+const documentCount = computed(() => documentStore.documents?.length || 0)
+const timelineCount = computed(() => timelineStore.timelines?.length || 0)
+const announcementCount = computed(() => announcementStore.announcements?.length || 0)
 
 const { studentMenuItems } = useStudentMenu()
 

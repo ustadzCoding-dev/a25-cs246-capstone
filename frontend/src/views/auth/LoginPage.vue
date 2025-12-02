@@ -51,12 +51,12 @@
         <!-- Remember Me & Forgot Password -->
         <div class="flex items-center justify-between">
           <BaseCheckbox v-model="form.rememberMe" label="Ingat saya" />
-          <a
-            href="#"
+          <router-link
+            to="/forgot-password"
             class="text-sm font-medium text-primary-600 hover:text-primary-500"
           >
             Lupa password?
-          </a>
+          </router-link>
         </div>
 
         <!-- Submit Button -->

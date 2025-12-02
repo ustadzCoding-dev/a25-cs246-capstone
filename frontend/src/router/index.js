@@ -17,6 +17,18 @@ const router = createRouter({
       component: () => import('../views/auth/SignUpPage.vue'),
       meta: { requiresGuest: true },
     },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('../views/auth/ForgotPasswordPage.vue'),
+      meta: { requiresGuest: true },
+    },
+    {
+      path: '/reset-password/:token',
+      name: 'reset-password',
+      component: () => import('../views/auth/ResetPasswordPage.vue'),
+      meta: { requiresGuest: true },
+    },
     // Google OAuth Callback Route
     {
       path: '/auth/callback',

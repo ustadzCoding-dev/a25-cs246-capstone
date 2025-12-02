@@ -626,6 +626,94 @@ class EmailService {
   }
 
   /**
+   * Send password reset email
+   * @param {Object} options - Email options
+   * @param {string} options.userEmail - User email address
+   * @param {string} options.userName - User name
+   * @param {string} options.resetToken - Reset token
+   */
+  async sendPasswordResetEmail(options) {
+    try {
+      const { userEmail, userName, resetToken } = options;
+
+      const resetLink = `${this.frontendUrl}/reset-password/${resetToken}`;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #4F46E5; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+              .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+              .footer { background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #6b7280; }
+              .button { display: inline-block; padding: 12px 24px; margin: 20px 0; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
+              .warning-box { background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 15px 0; }
+              .info-box { background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 15px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>🔐 Reset Password</h1>
+              </div>
+
+              <div class="content">
+                <p>Halo <strong>${userName}</strong>,</p>
+
+                <p>Kami menerima permintaan untuk mereset password akun Anda. Klik tombol di bawah untuk membuat password baru.</p>
+
+                <div style="text-align: center;">
+                  <a href="${resetLink}" class="button">Reset Password</a>
+                </div>
+
+                <div class="info-box">
+                  <p><strong>Link ini akan berlaku selama 1 jam.</strong></p>
+                  <p>Jika Anda tidak meminta reset password, abaikan email ini. Akun Anda tetap aman.</p>
+                </div>
+
+                <div class="warning-box">
+                  <p><strong>⚠️ Keamanan:</strong> Jangan pernah bagikan link ini kepada siapapun. Tim Dicoding tidak akan pernah meminta password Anda melalui email.</p>
+                </div>
+
+                <p>Jika tombol di atas tidak berfungsi, salin dan tempel URL berikut di browser Anda:</p>
+                <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px; font-size: 12px;">
+                  ${resetLink}
+                </p>
+
+                <p>Terima kasih,<br><strong>Tim Dicoding</strong></p>
+              </div>
+
+              <div class="footer">
+                <p>© 2025 Dicoding Indonesia. Semua hak dilindungi.</p>
+                <p>Jangan balas email ini. Hubungi admin jika ada pertanyaan.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const mailOptions = {
+        from: this.fromEmail,
+        to: userEmail,
+        subject: '🔐 Reset Password - Dicoding Capstone',
+        html: htmlContent
+      };
+
+      console.log('[sendPasswordResetEmail] Sending reset email to:', userEmail);
+      await this.transporter.sendMail(mailOptions);
+      console.log('[sendPasswordResetEmail] Email sent successfully!');
+      logger.info(`Password reset email sent to ${userEmail}`);
+      return true;
+    } catch (error) {
+      logger.error(`Failed to send password reset email: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
    * Verify email configuration
    */
   async verifyConnection() {
@@ -687,5 +775,10 @@ export default {
 
   async sendWorksheetValidationEmail(options) {
     return this.getInstance().sendWorksheetValidationEmail(options);
+  },
+
+  // Password reset email method
+  async sendPasswordResetEmail(options) {
+    return this.getInstance().sendPasswordResetEmail(options);
   }
 };
