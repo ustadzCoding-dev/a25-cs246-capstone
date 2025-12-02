@@ -251,6 +251,7 @@
 <script setup>
 import { ref, onMounted, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 import { useAuthStore } from '../../stores/authStore';
 import { useAdminMenu } from '../../composables/useAdminMenu';
 import DashboardLayout from '../../components/layout/DashboardLayout.vue';

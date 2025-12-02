@@ -1,0 +1,459 @@
+<template>
+  <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
+    <div class="space-y-6">
+      <!-- Page Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Kelola User</h1>
+          <p class="mt-2 text-gray-600">Manage semua user di sistem</p>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatsCard
+          label="Total Users"
+          :value="stats.total"
+          icon="team"
+          color="primary"
+        />
+        <StatsCard
+          label="Students"
+          :value="stats.students"
+          icon="team"
+          color="success"
+        />
+        <StatsCard
+          label="Admins"
+          :value="stats.admins"
+          icon="settings"
+          color="warning"
+        />
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <BaseInput
+            v-model="searchQuery"
+            placeholder="Cari user (nama, email, student ID)..."
+          />
+
+          <BaseSelect
+            v-model="filterRole"
+            label="Filter by Role"
+            :options="roleOptions"
+          />
+
+          <BaseButton variant="outline" @click="resetFilters" class="mt-6">
+            Reset Filters
+          </BaseButton>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="loading" class="flex justify-center items-center py-12">
+        <BaseSpinner centered size="lg" label="Memuat users..." />
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="bg-danger-50 border border-danger-200 rounded-lg p-4">
+        <p class="text-danger-700">{{ error }}</p>
+        <BaseButton variant="outline" @click="fetchUsers" class="mt-4">
+          Coba Lagi
+        </BaseButton>
+      </div>
+
+      <!-- Users Table -->
+      <div v-else class="bg-white rounded-lg shadow overflow-hidden">
+        <div v-if="filteredUsers.length === 0" class="p-12 text-center">
+          <p class="text-gray-500">Tidak ada user yang sesuai dengan filter</p>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Nama</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Email</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Student ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Role</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Learning Path</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr v-for="user in paginatedUsers" :key="user._id" class="hover:bg-gray-50">
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ user.name }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ user.email }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ user.dicodingId || '-' }}</td>
+                <td class="px-6 py-4 text-sm">
+                  <BaseBadge :variant="getRoleVariant(user.role)">
+                    {{ getRoleLabel(user.role) }}
+                  </BaseBadge>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ user.learningPathName || '-' }}</td>
+                <td class="px-6 py-4 text-sm">
+                  <span v-if="user.role === 'admin'">-</span>
+                  <BaseBadge v-else :variant="user.memberStatus === 'active' ? 'success' : 'warning'">
+                    {{ user.memberStatus === 'active' ? 'Aktif' : user.memberStatus || 'Nonaktif' }}
+                  </BaseBadge>
+                </td>
+                <td class="px-6 py-4 text-sm space-x-2">
+                  <button
+                    @click="viewUserDetail(user)"
+                    class="text-primary-600 hover:text-primary-900 font-medium"
+                  >
+                    Lihat
+                  </button>
+                  <button
+                    @click="openChangeRoleModal(user)"
+                    class="text-blue-600 hover:text-blue-900 font-medium"
+                  >
+                    Ubah Role
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="totalPages > 1" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div class="text-sm text-gray-600">
+            Menampilkan {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} dari {{ filteredUsers.length }} users
+          </div>
+          <div class="flex space-x-2">
+            <BaseButton
+              variant="outline"
+              :disabled="currentPage === 1"
+              @click="currentPage--"
+            >
+              Sebelumnya
+            </BaseButton>
+            <div class="flex items-center space-x-1">
+              <span v-for="page in totalPages" :key="page">
+                <button
+                  @click="currentPage = page"
+                  :class="[
+                    'px-3 py-1 rounded',
+                    currentPage === page
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </span>
+            </div>
+            <BaseButton
+              variant="outline"
+              :disabled="currentPage === totalPages"
+              @click="currentPage++"
+            >
+              Selanjutnya
+            </BaseButton>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <BaseModal v-model="showDetailModal" :title="`Detail User: ${selectedUser?.name}`" size="lg">
+      <div v-if="selectedUser" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nama</label>
+            <p class="mt-1 text-gray-900">{{ selectedUser.name }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <p class="mt-1 text-gray-900">{{ selectedUser.email }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Student ID</label>
+            <p class="mt-1 text-gray-900">{{ selectedUser.dicodingId || '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Role</label>
+            <p class="mt-1 text-gray-900">{{ getRoleLabel(selectedUser.role) }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Learning Path</label>
+            <p class="mt-1 text-gray-900">{{ selectedUser.learningPathName || '-' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Status</label>
+            <p class="mt-1 text-gray-900">
+              <span v-if="selectedUser.role === 'admin'">-</span>
+              <span v-else>{{ selectedUser.memberStatus === 'active' ? 'Aktif' : selectedUser.memberStatus || 'Nonaktif' }}</span>
+            </p>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Dibuat</label>
+            <p class="mt-1 text-gray-900">{{ formatDate(selectedUser.createdAt) }}</p>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <BaseButton variant="outline" @click="showDetailModal = false">
+            Tutup
+          </BaseButton>
+        </div>
+      </template>
+    </BaseModal>
+
+    <!-- Change Role Modal -->
+    <BaseModal v-model="showChangeRoleModal" title="Ubah Role User" size="md">
+      <div v-if="selectedUser" class="space-y-4">
+        <p class="text-gray-700">
+          Ubah role untuk <strong>{{ selectedUser.name }}</strong>
+        </p>
+
+        <BaseSelect
+          v-model="newRole"
+          label="Role Baru"
+          :options="roleOptions"
+        />
+
+        <div v-if="changeRoleError" class="p-3 bg-danger-50 border border-danger-200 rounded-lg">
+          <p class="text-sm text-danger-700">{{ changeRoleError }}</p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-3">
+          <BaseButton variant="outline" @click="showChangeRoleModal = false">
+            Batal
+          </BaseButton>
+          <BaseButton
+            variant="primary"
+            :loading="changingRole"
+            @click="handleChangeRole"
+          >
+            Ubah Role
+          </BaseButton>
+        </div>
+      </template>
+    </BaseModal>
+  </DashboardLayout>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/authStore'
+import { useAdminMenu } from '../../composables/useAdminMenu'
+import api from '../../services/api'
+import DashboardLayout from '../../components/layout/DashboardLayout.vue'
+import StatsCard from '../../components/display/StatsCard.vue'
+import BaseInput from '../../components/base/BaseInput.vue'
+import BaseSelect from '../../components/base/BaseSelect.vue'
+import BaseButton from '../../components/base/BaseButton.vue'
+import BaseSpinner from '../../components/base/BaseSpinner.vue'
+import BaseBadge from '../../components/base/BaseBadge.vue'
+import BaseModal from '../../components/base/BaseModal.vue'
+
+const router = useRouter()
+const authStore = useAuthStore()
+const { adminMenuItems } = useAdminMenu()
+
+const user = computed(() => authStore.user)
+
+// State
+const loading = ref(false)
+const error = ref('')
+const users = ref([])
+const searchQuery = ref('')
+const filterRole = ref('')
+const currentPage = ref(1)
+const itemsPerPage = 10
+
+const showDetailModal = ref(false)
+const showChangeRoleModal = ref(false)
+const selectedUser = ref(null)
+const newRole = ref('')
+const changingRole = ref(false)
+const changeRoleError = ref('')
+
+const roleOptions = [
+  { value: 'student', label: 'Student' },
+  { value: 'admin', label: 'Admin' }
+]
+
+// Computed
+const filteredUsers = computed(() => {
+  if (!Array.isArray(users.value)) return []
+
+  let result = users.value
+
+  // Filter by role
+  if (filterRole.value) {
+    result = result.filter(u => u.role === filterRole.value)
+  }
+
+  // Search
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(u =>
+      u.name.toLowerCase().includes(query) ||
+      u.email.toLowerCase().includes(query) ||
+      (u.dicodingId && u.dicodingId.toLowerCase().includes(query))
+    )
+  }
+
+  return result
+})
+
+const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage))
+
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredUsers.value.slice(start, end)
+})
+
+const stats = computed(() => {
+  if (!Array.isArray(users.value)) {
+    return { total: 0, students: 0, admins: 0 }
+  }
+
+  return {
+    total: users.value.length,
+    students: users.value.filter(u => u.role === 'student').length,
+    admins: users.value.filter(u => u.role === 'admin').length
+  }
+})
+
+// Methods
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('id-ID', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+const getRoleLabel = (role) => {
+  const labels = {
+    student: 'Student',
+    admin: 'Admin',
+    instructor: 'Instructor'
+  }
+  return labels[role] || role
+}
+
+const getRoleVariant = (role) => {
+  const variants = {
+    student: 'primary',
+    admin: 'warning',
+    instructor: 'success'
+  }
+  return variants[role] || 'secondary'
+}
+
+const fetchUsers = async () => {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const response = await api.get('/users')
+    console.log('[AdminUsers] fetchUsers response:', response)
+
+    if (response.success) {
+      // Backend returns { success: true, data: { users: [...], pagination: {...} } }
+      const usersData = response.data?.users || response.data || []
+      users.value = Array.isArray(usersData) ? usersData : []
+      console.log('[AdminUsers] users loaded:', users.value.length, 'users:', users.value)
+      if (users.value.length > 0) {
+        console.log('[AdminUsers] First user _id:', users.value[0]._id, 'First user:', users.value[0])
+      }
+      currentPage.value = 1
+    } else {
+      error.value = response.message || 'Gagal memuat users'
+    }
+  } catch (err) {
+    error.value = err.message || 'Gagal memuat users'
+    console.error('[AdminUsers] Error fetching users:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  filterRole.value = ''
+  currentPage.value = 1
+}
+
+const viewUserDetail = (userItem) => {
+  selectedUser.value = userItem
+  showDetailModal.value = true
+}
+
+const openChangeRoleModal = (userItem) => {
+  selectedUser.value = userItem
+  newRole.value = userItem.role
+  changeRoleError.value = ''
+  console.log('[AdminUsers] openChangeRoleModal - selectedUser:', selectedUser.value)
+  showChangeRoleModal.value = true
+}
+
+const handleChangeRole = async () => {
+  if (!newRole.value || !selectedUser.value) {
+    changeRoleError.value = 'User atau role tidak valid'
+    return
+  }
+
+  // Validate user ID (use 'id' not '_id' - backend transforms _id to id)
+  const userId = selectedUser.value.id || selectedUser.value._id
+  if (!userId) {
+    changeRoleError.value = 'User ID tidak ditemukan'
+    console.error('Error: selectedUser.id is undefined', selectedUser.value)
+    return
+  }
+
+  changingRole.value = true
+  changeRoleError.value = ''
+
+  try {
+    console.log('[AdminUsers] Changing role for user:', userId, 'to:', newRole.value)
+
+    const response = await api.put(`/users/${userId}/role`, {
+      role: newRole.value
+    })
+
+    console.log('[AdminUsers] Change role response:', response)
+
+    if (response.success) {
+      // Update local user
+      const index = users.value.findIndex(u => (u.id || u._id) === userId)
+      if (index !== -1) {
+        users.value[index] = response.data
+      }
+      showChangeRoleModal.value = false
+    } else {
+      changeRoleError.value = response.message || 'Gagal mengubah role'
+    }
+  } catch (err) {
+    changeRoleError.value = err.message || 'Gagal mengubah role'
+    console.error('Error changing role:', err)
+  } finally {
+    changingRole.value = false
+  }
+}
+
+const handleLogout = async () => {
+  await authStore.logout()
+  router.push('/login')
+}
+
+// Lifecycle
+onMounted(() => {
+  fetchUsers()
+})
+</script>
