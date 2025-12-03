@@ -3,8 +3,12 @@
     <div class="space-y-6">
       <!-- Page Header -->
       <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
-        <h1 class="text-2xl font-semibold text-gray-900">Timeline Capstone</h1>
-        <p class="text-gray-600 text-lg">Pantau progres dan deadline project Anda</p>
+        <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+          Timelines Capstone
+        </h1>
+        <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+          Pantau progres dan deadline project Anda
+        </p>
       </div>
 
       <!-- Current Week Highlight -->
@@ -14,16 +18,29 @@
           <!-- Timeline Active -->
           <div
             v-if="currentTimeline"
-            class="rounded-lg shadow-lg text-white col-span-1 overflow-hidden border border-gray-200 max-h-max">
+            class="rounded-lg shadow-lg text-white overflow-hidden border border-gray-200 max-h-max lg:col-span-1 col-span-3">
               <div class="bg-blue-500 text-center py-3 shadow-md">
-                <span class="text-md font-semibold uppercase tracking-wide text-gray-200"
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-200
+                lg:text-md
+                md:text-md
+                sm:text-sm
+                xs:text-sm"
                   >Timeline Aktif</span
                 >
               </div>
               <div class="p-6">
-                <h2 class="text-xl font-semibold text-gray-700">{{ currentTimeline.title }}</h2>
-                <p class="text-gray-500">{{ currentTimeline.description }}</p>
-                <div class="flex justify-between mt-10">
+                <h2 class="text-md font-semibold text-gray-700
+                lg:text-xl
+                md:text-lg
+                sm:text-md
+                xs:text-md">{{ currentTimeline.title }}</h2>
+                <p class="text-gray-500
+                lg:text-md
+                md:text-md
+                sm:text-sm
+                xs:text-sm
+                ">{{ currentTimeline.description }}</p>
+                <div class="flex flex-col items-end gap-3 mt-10">
                   <div class="flex items-center space-x-2">
                     <svg class="size-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -33,7 +50,11 @@
                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
-                    <span class="text-gray-700 font-medium">{{
+                    <span class="text-gray-700 font-medium
+                    lg:text-md
+                md:text-md
+                sm:text-sm
+                xs:text-sm">{{
                       formatDateRange(currentTimeline.startDate, currentTimeline.endDate)
                     }}</span>
                   </div>
@@ -46,7 +67,11 @@
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <span class="font-semibold text-red-600"
+                    <span class="font-semibold text-red-600
+                    lg:text-md
+                md:text-md
+                sm:text-sm
+                xs:text-sm"
                       >{{ getDaysRemaining(currentTimeline.endDate) }} hari tersisa</span
                     >
                   </div>
@@ -55,11 +80,15 @@
           </div>
 
           <!-- Progress Overview -->
-          <div class="col-span-2 flex flex-col gap-5">
+          <div class="col-span-3 flex gap-5 lg:col-span-2 lg:flex-col md:flex-row flex-col">
             <div class="bg-white rounded-lg shadow-md p-6 w-full border-gray-200 border">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-lg text-gray-500">Selesai</p>
+                  <p class="text-sm text-gray-500
+                  lg:text-lg
+                md:text-md
+                sm:text-sm
+                xs:text-sm">Selesai</p>
                   <p class="text-2xl text-success-600 font-medium">{{ stats.completed }}</p>
                 </div>
                 <div class="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center">
@@ -83,7 +112,11 @@
             <div class="bg-white rounded-lg shadow-md p-6 w-full border border-gray-200">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-lg text-gray-600">Sedang Berjalan</p>
+                  <p class="text-sm text-gray-600
+                  lg:text-lg
+                md:text-md
+                sm:text-sm
+                xs:text-sm">Sedang Berjalan</p>
                   <p class="text-2xl text-warning-600 font-medium">{{ stats.active }}</p>
                 </div>
                 <div class="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center">
@@ -107,7 +140,11 @@
             <div class="bg-white rounded-lg shadow-md p-6 w-full border border-gray-200">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-lg text-gray-600">Mendatang</p>
+                  <p class="text-sm text-gray-600
+                  lg:text-lg
+                md:text-md
+                sm:text-sm
+                xs:text-sm">Mendatang</p>
                   <p class="text-2xl text-gray-600 font-medium">{{ stats.upcoming }}</p>
                 </div>
                 <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
@@ -131,9 +168,10 @@
         </div>
 
         <!-- Timeline Visualization -->
-        <div class="bg-white rounded-lg shadow">
+        <div class="bg-white rounded-lg shadow mt-5 lg:mt-0">
           <div class="px-6 py-4 border-b border-gray-300">
-            <h2 class="text-lg font-semibold text-gray-900">Timeline Project</h2>
+            <h2 class="font-semibold text-gray-900
+            lg:text-lg md:text-base sm:text-base text-sm">Timeline Project</h2>
           </div>
 
           <div v-if="loading" class="flex justify-center items-center py-12">
@@ -142,7 +180,7 @@
 
           <div v-else-if="timelineItems.length === 0" class="p-12 text-center">
             <svg
-              class="mx-auto h-12 w-12 text-gray-400"
+              class="mx-auto size-12 text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -236,8 +274,16 @@
               />
             </svg>
             <div class="flex-1">
-              <h3 class="text-lg font-semibold text-blue-700 mb-2">Tips Mengelola Timeline</h3>
-              <ul class="text-sm text-primary-700 space-y-1 list-disc list-inside">
+              <h3 class="text-md font-semibold text-blue-700 mb-2
+              lg:text-lg
+              md:text-lg
+              sm:text-md
+              xs:text-md">Tips Mengelola Timeline</h3>
+              <ul class="text-xs text-primary-700 space-y-1 list-disc list-inside
+              lg:text-sm
+              md:text-sm
+              sm:text-xs
+              xs:text-xs">
                 <li class="font-medium">Pantau deadline secara berkala agar tidak terlewat</li>
                 <li class="font-medium">
                   Koordinasi dengan tim untuk pembagian tugas yang efektif
