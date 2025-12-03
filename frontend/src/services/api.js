@@ -38,6 +38,8 @@ api.interceptors.request.use(
       config.timeout = 60000 // 60 seconds for password change (bcrypt hashing takes time)
     } else if (config.url?.includes('/upload') || config.url?.includes('/import')) {
       config.timeout = 120000 // 120 seconds for file uploads
+    } else if (config.url?.includes('/capstone-group/register')) {
+      config.timeout = 60000 // 60 seconds for team registration (includes email sending)
     }
 
     return config

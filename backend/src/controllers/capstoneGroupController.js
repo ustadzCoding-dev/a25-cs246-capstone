@@ -209,13 +209,23 @@ export const removeTeamMember = asyncHandler(async (req, res) => {
   const { memberId } = req.body;
   const adminId = req.user._id;
 
+  console.log('[removeTeamMember] Controller called with:', { id, memberId, adminId });
+
   if (!memberId) {
+    console.log('[removeTeamMember] Error: memberId is required');
     return res.error('Member ID is required', 400);
   }
 
-  const team = await TeamService.removeTeamMember(id, memberId, adminId);
-
-  res.success(team, 'Member removed from team successfully', 200);
+  try {
+    console.log('[removeTeamMember] Calling TeamService.removeTeamMember');
+    const team = await TeamService.removeTeamMember(id, memberId, adminId);
+    console.log('[removeTeamMember] Success, team:', team._id);
+    res.success(team, 'Member removed from team successfully', 200);
+  } catch (error) {
+    console.error('[removeTeamMember] Error caught:', error.message);
+    console.error('[removeTeamMember] Error stack:', error.stack);
+    throw error;
+  }
 });
 
 /**

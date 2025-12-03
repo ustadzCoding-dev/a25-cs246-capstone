@@ -132,6 +132,35 @@ const worksheetSchema = new mongoose.Schema(
     isLate: {
       type: Boolean,
       default: false
+    },
+
+    // Rejection Status & Reason
+    // - null: tidak di-reject
+    // - 'rejected': di-reject oleh admin, student bisa resubmit
+    rejectionStatus: {
+      type: String,
+      enum: [null, 'rejected'],
+      default: null
+    },
+
+    // Alasan reject dari admin
+    rejectionReason: {
+      type: String,
+      trim: true,
+      default: null
+    },
+
+    // Admin yang melakukan reject
+    rejectedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+
+    // Tanggal reject
+    rejectedAt: {
+      type: Date,
+      default: null
     }
   },
   {
@@ -188,6 +217,30 @@ worksheetSchema.methods.setValidation = async function (adminId, status, notes =
   if (notes) {
     this.adminNotes = notes;
   }
+  return this.save();
+};
+
+// Reject worksheet (by admin) - student can resubmit
+worksheetSchema.methods.reject = async function (adminId, reason = null) {
+  this.rejectionStatus = 'rejected';
+  this.rejectedBy = adminId;
+  this.rejectedAt = new Date();
+  if (reason) {
+    this.rejectionReason = reason;
+  }
+  // Reset validation status to pending so student can resubmit
+  this.validationStatus = 'pending';
+  this.validatedBy = null;
+  this.validatedAt = null;
+  return this.save();
+};
+
+// Clear rejection (allow resubmit)
+worksheetSchema.methods.clearRejection = async function () {
+  this.rejectionStatus = null;
+  this.rejectionReason = null;
+  this.rejectedBy = null;
+  this.rejectedAt = null;
   return this.save();
 };
 

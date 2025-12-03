@@ -442,14 +442,22 @@ const validateForm = () => {
 }
 
 const handleSubmit = async () => {
+  error.value = ''
+  success.value = ''
+
   if (!validateForm()) {
     console.log('Form validation failed')
+    // Find first error and display it
+    const firstError = Object.values(errors).find(err => err !== '')
+    if (firstError) {
+      error.value = firstError
+    } else {
+      error.value = 'Silakan periksa kembali form Anda'
+    }
     return
   }
 
   loading.value = true
-  error.value = ''
-  success.value = ''
 
   try {
     // Filter out empty members and paths

@@ -105,6 +105,7 @@ import {
   getWorksheetsByPeriod,
   getValidationStats,
   validateWorksheet,
+  rejectWorksheet,
   runAutoValidation,
   exportWorksheetData,
   exportWorksheetCSV,
@@ -519,6 +520,12 @@ router.put(
   adminOnly,
   validate(worksheetSchema.validate),
   validateWorksheet
+);
+router.put(
+  '/worksheet/admin/reject/:worksheetId',
+  protect,
+  adminOnly,
+  rejectWorksheet
 );
 router.post(
   '/worksheet/admin/period/:periodId/auto-validate',

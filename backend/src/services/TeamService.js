@@ -417,14 +417,33 @@ export class TeamService {
     const Invitation = (await import('../models/Invitation.js')).default;
     const invitations = await Invitation.find({ teamId: team._id });
 
-    const rejectedInvitations = invitations.filter(inv => inv.status === 'rejected');
-    if (rejectedInvitations.length > 0) {
-      throw new ValidationError(`Ada ${rejectedInvitations.length} member yang menolak undangan`);
-    }
+    // Group invitations by member to handle replacements
+    const invitationsByMember = {};
+    invitations.forEach(inv => {
+      const memberId = inv.memberId.toString();
+      if (!invitationsByMember[memberId]) {
+        invitationsByMember[memberId] = [];
+      }
+      invitationsByMember[memberId].push(inv);
+    });
 
-    const pendingInvitations = invitations.filter(inv => inv.status === 'pending');
-    if (pendingInvitations.length > 0) {
-      throw new ValidationError(`Ada ${pendingInvitations.length} member yang belum merespons undangan`);
+    // Check each member has at least one accepted invitation
+    for (const memberId in invitationsByMember) {
+      const memberInvitations = invitationsByMember[memberId];
+      const hasAccepted = memberInvitations.some(inv => inv.status === 'accepted');
+
+      if (!hasAccepted) {
+        // Check if member is still in team
+        const isMemberInTeam = team.membersUserId.some(m => m._id.toString() === memberId);
+        if (isMemberInTeam) {
+          const hasPending = memberInvitations.some(inv => inv.status === 'pending');
+          if (hasPending) {
+            throw new ValidationError('Ada member yang belum merespons undangan');
+          } else {
+            throw new ValidationError('Ada member yang menolak undangan');
+          }
+        }
+      }
     }
 
     console.log('[approveTeam] All validations passed!');
@@ -621,19 +640,34 @@ export class TeamService {
     console.log('[removeTeamMember] Starting removal for team:', teamId, 'member:', memberId);
 
     const team = await this.findTeamById(teamId);
+    console.log('[removeTeamMember] Team found:', {
+      teamId: team._id,
+      status: team.status,
+      membersCount: team.membersUserId.length
+    });
 
     // Only allow removal from approved teams
     if (team.status !== 'approved') {
       throw new ValidationError('Hanya member dari tim yang sudah disetujui yang bisa dihapus');
     }
 
-    // Check member exists in team
-    if (!team.membersUserId.some(m => m.toString() === memberId.toString())) {
+    // Check member exists in team (handle both populated objects and raw IDs)
+    const memberExists = team.membersUserId.some(m => {
+      const mId = m._id ? m._id.toString() : m.toString();
+      return mId === memberId.toString();
+    });
+
+    if (!memberExists) {
+      console.log('[removeTeamMember] Member NOT found in team!');
       throw new ValidationError('Member tidak ditemukan di tim ini');
     }
+    console.log('[removeTeamMember] Member found in team');
 
-    // Remove member from team
-    team.membersUserId = team.membersUserId.filter(m => m.toString() !== memberId.toString());
+    // Remove member from team (handle both populated objects and raw IDs)
+    team.membersUserId = team.membersUserId.filter(m => {
+      const mId = m._id ? m._id.toString() : m.toString();
+      return mId !== memberId.toString();
+    });
     await team.save();
     console.log('[removeTeamMember] Member removed from team');
 
@@ -648,7 +682,6 @@ export class TeamService {
     // Send notification email
     try {
       const member = await User.findById(memberId);
-      const { default: EmailService } = await import('./EmailService.js');
       await EmailService.sendMemberRemovedNotification(
         member.email,
         member.name,
@@ -1147,6 +1180,7 @@ export class TeamService {
 
   /**
    * Validate members exist and convert emails to IDs
+   * IMPORTANT: Preserves order of memberIds to ensure leader is first
    * @private
    */
   async validateMembers(memberIds) {
@@ -1165,8 +1199,21 @@ export class TeamService {
         throw new NotFoundError('One or more members not found');
       }
 
-      // Return members for later use (to get their actual IDs)
-      return members;
+      // IMPORTANT: Preserve order of memberIds (first one is leader!)
+      // Map each input ID to its corresponding user object
+      const orderedMembers = memberIds.map(inputId => {
+        const member = members.find(m =>
+          m._id.toString() === inputId.toString() ||
+          m.email === inputId
+        );
+        if (!member) {
+          throw new NotFoundError(`Member ${inputId} not found`);
+        }
+        return member;
+      });
+
+      console.log('[validateMembers] Ordered members:', orderedMembers.map(m => m.email));
+      return orderedMembers;
     } catch (err) {
       if (err.name === 'CastError') {
         console.log('[validateMembers] CastError - trying email-only search');
@@ -1180,7 +1227,17 @@ export class TeamService {
           throw new NotFoundError('One or more members not found');
         }
 
-        return members;
+        // IMPORTANT: Preserve order of memberIds
+        const orderedMembers = memberIds.map(inputId => {
+          const member = members.find(m => m.email === inputId);
+          if (!member) {
+            throw new NotFoundError(`Member ${inputId} not found`);
+          }
+          return member;
+        });
+
+        console.log('[validateMembers] Ordered members (email-only):', orderedMembers.map(m => m.email));
+        return orderedMembers;
       }
       throw err;
     }

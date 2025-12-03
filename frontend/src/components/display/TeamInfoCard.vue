@@ -23,7 +23,11 @@
       <!-- Team Name -->
       <div>
         <p class="text-sm font-medium text-gray-900">{{ team.teamName || 'N/A' }}</p>
-        <p class="text-sm text-gray-600">ID Tim: {{ team.capstoneGroupId || 'N/A' }}</p>
+        <p class="text-sm text-gray-600">
+          ID Tim:
+          <span v-if="team.capstoneGroupId" class="font-medium">{{ team.capstoneGroupId }}</span>
+          <span v-else class="text-yellow-700 font-medium">⏳ Menunggu Admin Assign</span>
+        </p>
         <p class="text-sm text-gray-600">Use Case: {{ team.useCaseId?.title || team.useCaseId?.name || 'N/A' }}</p>
         <p class="text-sm text-gray-600">Status: {{ team.status || 'N/A' }}</p>
       </div>

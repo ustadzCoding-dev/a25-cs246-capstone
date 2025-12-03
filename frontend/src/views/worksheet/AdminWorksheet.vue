@@ -155,10 +155,10 @@
 
                 <!-- Delete Button -->
                 <button
-                  v-if="period.status === 'draft'"
                   @click="handleDelete(period)"
                   class="p-2 text-red-500 hover:text-red-700"
                   :disabled="submitting"
+                  title="Hapus periode"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -410,10 +410,10 @@
                     {{ getValidationStatusLabel(worksheet.validationStatus) }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                   <button
                     @click="openDetailModal(worksheet)"
-                    class="text-indigo-600 hover:text-indigo-900 mr-3"
+                    class="text-indigo-600 hover:text-indigo-900"
                   >
                     Detail
                   </button>
@@ -423,6 +423,13 @@
                     class="text-green-600 hover:text-green-900"
                   >
                     Validasi
+                  </button>
+                  <button
+                    v-if="worksheet.validationStatus === 'pending'"
+                    @click="openRejectModal(worksheet)"
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    Reject
                   </button>
                 </td>
               </tr>
@@ -802,6 +809,59 @@
       </div>
     </div>
 
+    <!-- Reject Modal -->
+    <div v-if="showRejectModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="fixed inset-0 bg-black opacity-50" @click="showRejectModal = false"></div>
+        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Reject Worksheet</h3>
+
+          <div v-if="worksheetToReject" class="mb-4 p-3 bg-red-50 rounded-lg">
+            <p class="font-medium text-gray-900">{{ worksheetToReject.userId?.name }}</p>
+            <p class="text-sm text-gray-500">{{ worksheetToReject.userId?.email }}</p>
+            <p class="text-xs text-red-600 mt-2">Peserta akan diminta untuk mengisi ulang worksheet</p>
+          </div>
+
+          <form @submit.prevent="submitReject">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1"
+                  >Alasan Reject *</label
+                >
+                <textarea
+                  v-model="rejectForm.reason"
+                  rows="4"
+                  required
+                  class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  placeholder="Jelaskan mengapa worksheet ini di-reject..."
+                ></textarea>
+                <p class="text-xs text-gray-500 mt-1">
+                  {{ rejectForm.reason.length }} / 500 karakter
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+              <button
+                type="button"
+                @click="showRejectModal = false"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                :disabled="!rejectForm.reason || submitting"
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+              >
+                {{ submitting ? 'Mengirim...' : 'Reject Worksheet' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast Notification -->
     <div v-if="toast.show" class="fixed bottom-4 right-4 z-50">
       <div
@@ -864,10 +924,12 @@ const statusFilter = ref('')
 const showPeriodModal = ref(false)
 const showDetailModal = ref(false)
 const showValidateModal = ref(false)
+const showRejectModal = ref(false)
 const showExportMenu = ref(false)
 const editingPeriod = ref(null)
 const selectedWorksheet = ref(null)
 const worksheetToValidate = ref(null)
+const worksheetToReject = ref(null)
 const exportDropdown = ref(null)
 
 const periodForm = reactive({
@@ -882,6 +944,10 @@ const periodForm = reactive({
 const validateForm = reactive({
   status: '',
   notes: '',
+})
+
+const rejectForm = reactive({
+  reason: '',
 })
 
 const toast = reactive({
@@ -1184,6 +1250,28 @@ const submitValidation = async () => {
     await loadWorksheets()
   } catch (err) {
     showToast(err.message || 'Gagal menyimpan validasi', 'error')
+  }
+}
+
+const openRejectModal = worksheet => {
+  worksheetToReject.value = worksheet
+  rejectForm.reason = ''
+  showRejectModal.value = true
+}
+
+const submitReject = async () => {
+  if (!worksheetToReject.value || !rejectForm.reason) return
+
+  try {
+    await worksheetStore.rejectWorksheet(
+      worksheetToReject.value.id || worksheetToReject.value._id,
+      rejectForm.reason
+    )
+    showRejectModal.value = false
+    showToast('Worksheet berhasil di-reject', 'success')
+    await loadWorksheets()
+  } catch (err) {
+    showToast(err.message || 'Gagal reject worksheet', 'error')
   }
 }
 

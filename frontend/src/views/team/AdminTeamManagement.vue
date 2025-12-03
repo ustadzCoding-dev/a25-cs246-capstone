@@ -82,25 +82,67 @@
         </div>
       </div>
 
-      <!-- Filters & Search -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <BaseSearch v-model="searchQuery" placeholder="Cari nama tim atau ketua..." />
+      <!-- Tabs Navigation -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="flex border-b border-gray-200">
+          <button
+            v-for="tab in ['pending', 'approved']"
+            :key="tab"
+            @click="activeTab = tab"
+            :class="[
+              'px-6 py-4 font-medium text-sm transition-colors',
+              activeTab === tab
+                ? 'border-b-2 border-primary-600 text-primary-600'
+                : 'text-gray-600 hover:text-gray-900'
+            ]"
+          >
+            <span v-if="tab === 'pending'" class="flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Pending ({{ pendingCount }})</span>
+            </span>
+            <span v-else class="flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Approved ({{ approvedCount }})</span>
+            </span>
+          </button>
+        </div>
 
-          <BaseSelect v-model="filterStatus" :options="statusOptions" placeholder="Semua Status" />
+        <!-- Filters & Search -->
+        <div class="px-6 py-4 border-b border-gray-200">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <BaseSearch v-model="searchQuery" placeholder="Cari nama tim atau ketua..." />
 
-          <BaseSelect
-            v-model="filterUseCase"
-            :options="useCaseOptions"
-            placeholder="Semua Use Case"
-          />
+            <BaseSelect
+              v-model="filterUseCase"
+              :options="useCaseOptions"
+              placeholder="Semua Use Case"
+            />
+          </div>
         </div>
       </div>
 
       <!-- Teams Table -->
       <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 class="text-xl font-semibold text-gray-900">Daftar Tim</h2>
+          <!-- Select All Checkbox -->
+          <div v-if="filteredTeams.length > 0" class="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              :checked="isAllSelected"
+              :indeterminate="isSomeSelected"
+              @change="toggleSelectAll"
+              class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+              :title="isAllSelected ? 'Deselect all' : 'Select all'"
+            />
+            <span class="text-sm text-gray-600">
+              {{ isAllSelected ? `Semua ${filteredTeams.length} tim dipilih` : isSomeSelected ? `${selectedTeams.size} dari ${filteredTeams.length} tim dipilih` : `Pilih semua ${filteredTeams.length} tim` }}
+            </span>
+          </div>
         </div>
 
         <!-- Teams List -->
@@ -132,15 +174,23 @@
               {{ selectedTeams.size }} tim dipilih
             </span>
             <div class="flex space-x-2">
+              <!-- Approve button - only show on Pending tab -->
               <button
+                v-if="activeTab === 'pending'"
                 @click="bulkApproveTeams"
-                class="px-3 py-1 text-sm bg-success-600 text-white rounded hover:bg-success-700 transition-colors"
+                :disabled="selectedTeamsHasPendingInvitations"
+                :class="selectedTeamsHasPendingInvitations ? 'px-3 py-1 text-sm bg-gray-400 text-white rounded cursor-not-allowed' : 'px-3 py-1 text-sm bg-success-600 text-white rounded hover:bg-success-700 transition-colors'"
+                :title="selectedTeamsHasPendingInvitations ? 'Ada tim dengan anggota yang belum accept undangan' : 'Setujui semua tim yang dipilih'"
               >
                 Setujui Semua
               </button>
+              <!-- Reject button - only show on Pending tab -->
               <button
+                v-if="activeTab === 'pending'"
                 @click="bulkRejectTeams"
-                class="px-3 py-1 text-sm bg-danger-600 text-white rounded hover:bg-danger-700 transition-colors"
+                :disabled="selectedTeamsHasPendingInvitations"
+                :class="selectedTeamsHasPendingInvitations ? 'px-3 py-1 text-sm bg-gray-400 text-white rounded cursor-not-allowed' : 'px-3 py-1 text-sm bg-danger-600 text-white rounded hover:bg-danger-700 transition-colors'"
+                :title="selectedTeamsHasPendingInvitations ? 'Ada tim dengan anggota yang belum accept undangan' : 'Tolak semua tim yang dipilih'"
               >
                 Tolak Semua
               </button>
@@ -160,7 +210,7 @@
           </button>
         </div>
 
-        <div v-else class="divide-y divide-gray-200">
+        <div class="divide-y divide-gray-200">
           <div
             v-for="team in filteredTeams"
             :key="team._id"
@@ -209,8 +259,9 @@
                 <button
                   v-if="team.status === 'pending'"
                   @click="approveTeam(team)"
-                  class="text-success-600 hover:text-success-700 p-2"
-                  title="Setujui"
+                  :disabled="isTeamInvitationsIncomplete(team._id)"
+                  :class="isTeamInvitationsIncomplete(team._id) ? 'text-gray-400 cursor-not-allowed p-2' : 'text-success-600 hover:text-success-700 p-2'"
+                  :title="getTeamInvitationsDisabledReason(team._id) || 'Setujui'"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -225,8 +276,9 @@
                 <button
                   v-if="team.status === 'pending'"
                   @click="rejectTeam(team)"
-                  class="text-danger-600 hover:text-danger-700 p-2"
-                  title="Tolak"
+                  :disabled="isTeamInvitationsIncomplete(team._id)"
+                  :class="isTeamInvitationsIncomplete(team._id) ? 'text-gray-400 cursor-not-allowed p-2' : 'text-danger-600 hover:text-danger-700 p-2'"
+                  :title="getTeamInvitationsDisabledReason(team._id) || 'Tolak'"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -347,6 +399,35 @@
               </ul>
             </div>
 
+            <!-- Pending Invitations Status -->
+            <div v-if="selectedTeam.status === 'pending' && teamInvitations.length > 0">
+              <p class="text-sm font-medium text-gray-700">Status Undangan</p>
+              <ul class="text-sm space-y-2 mt-2">
+                <li v-for="inv in teamInvitations" :key="inv._id" class="flex items-center justify-between p-2 bg-yellow-50 rounded border border-yellow-200">
+                  <div class="flex-1">
+                    <span class="font-medium">{{ inv.memberId?.name || 'Unknown' }}</span>
+                    <span class="ml-2 text-xs text-gray-500">{{ inv.memberId?.email }}</span>
+                  </div>
+                  <div class="flex items-center space-x-2 ml-2">
+                    <span v-if="inv.status === 'pending'" class="px-2 py-1 text-xs bg-yellow-200 text-yellow-800 rounded font-medium">
+                      ⏳ Menunggu
+                    </span>
+                    <span v-else-if="inv.status === 'accepted'" class="px-2 py-1 text-xs bg-green-200 text-green-800 rounded font-medium">
+                      ✓ Diterima
+                    </span>
+                    <span v-else-if="inv.status === 'rejected'" class="px-2 py-1 text-xs bg-red-200 text-red-800 rounded font-medium">
+                      ✗ Ditolak
+                    </span>
+                  </div>
+                </li>
+              </ul>
+              <div v-if="teamInvitations.some(inv => inv.status === 'pending')" class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                <p class="text-xs text-yellow-800">
+                  ⚠️ Tim tidak bisa disetujui karena ada {{ teamInvitations.filter(inv => inv.status === 'pending').length }} anggota yang belum menerima undangan.
+                </p>
+              </div>
+            </div>
+
             <!-- Show use case composition requirements and actual composition -->
             <div
               v-if="
@@ -372,15 +453,6 @@
               </p>
             </div>
           </div>
-        </div>
-
-        <div v-if="selectedTeam.status === 'pending'" class="flex space-x-3 pt-4">
-          <BaseButton variant="success" class="flex-1" @click="approveTeam(selectedTeam)">
-            Setujui Tim
-          </BaseButton>
-          <BaseButton variant="danger" class="flex-1" @click="rejectTeam(selectedTeam)">
-            Tolak Tim
-          </BaseButton>
         </div>
       </div>
       <div v-else class="text-center text-gray-500">Tidak ada data tim yang dipilih</div>
@@ -668,6 +740,7 @@ const processing = ref(false)
 const searchQuery = ref('')
 const filterStatus = ref('')
 const filterUseCase = ref('')
+const activeTab = ref('pending') // 'pending' | 'approved' | 'rejected'
 
 const showDetailsModal = ref(false)
 const showRejectModal = ref(false)
@@ -690,6 +763,9 @@ const removingMember = ref(false)
 const replacingMember = ref(false)
 const bulkProcessing = ref(false)
 const exporting = ref(false)
+const teamInvitations = ref([])
+const loadingInvitations = ref(false)
+const teamInvitationsCache = ref({}) // Cache invitations per team ID
 const autoCreateForm = ref({
   useCaseId: '',
   teamSize: 4
@@ -763,6 +839,10 @@ const stats = computed(() => ({
   approvedTeams: teamStore.approvedTeams.length,
   rejectedTeams: teamStore.rejectedTeams.length,
 }))
+
+// Tab counts
+const pendingCount = computed(() => teams.value.filter(t => t.status === 'pending').length)
+const approvedCount = computed(() => teams.value.filter(t => t.status === 'approved').length)
 
 const tableColumns = [
   { key: 'teamName', label: 'Nama Tim', sortable: true },
@@ -839,7 +919,10 @@ const filteredTeams = computed(() => {
   let result = teams.value || []
 
   console.log('[filteredTeams] Initial teams:', result)
-  console.log('[filteredTeams] filterUseCase.value:', filterUseCase.value)
+  console.log('[filteredTeams] activeTab:', activeTab.value)
+
+  // Filter by active tab (status)
+  result = result.filter(team => team.status === activeTab.value)
 
   // Filter by search query
   if (searchQuery.value && searchQuery.value.trim()) {
@@ -849,11 +932,6 @@ const filteredTeams = computed(() => {
         team.teamName?.toLowerCase().includes(query) ||
         team.capstoneGroupId?.toLowerCase().includes(query)
     )
-  }
-
-  // Filter by status
-  if (filterStatus.value && filterStatus.value.trim()) {
-    result = result.filter(team => team.status === filterStatus.value)
   }
 
   // Filter by use case
@@ -877,6 +955,104 @@ const filteredTeams = computed(() => {
   return result
 })
 
+/**
+ * Check if team invitations are incomplete
+ * Team is complete ONLY if:
+ * 1. All members have at least ONE accepted invitation
+ * 2. No member has ONLY pending/rejected invitations
+ */
+const isTeamInvitationsIncomplete = teamId => {
+  const invitations = teamInvitationsCache.value[teamId] || []
+
+  // Group invitations by member
+  const memberInvitations = {}
+  invitations.forEach(inv => {
+    const memberId = inv.memberId?._id || inv.memberId
+    if (!memberInvitations[memberId]) {
+      memberInvitations[memberId] = []
+    }
+    memberInvitations[memberId].push(inv)
+  })
+
+  // Check if each member has at least one accepted invitation
+  for (const memberId in memberInvitations) {
+    const memberInvs = memberInvitations[memberId]
+    const hasAccepted = memberInvs.some(inv => inv.status === 'accepted')
+    if (!hasAccepted) {
+      // Member has no accepted invitation (only pending/rejected)
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * Get reason why team invitations are incomplete
+ */
+const getTeamInvitationsDisabledReason = teamId => {
+  const invitations = teamInvitationsCache.value[teamId] || []
+
+  // Group invitations by member
+  const memberInvitations = {}
+  invitations.forEach(inv => {
+    const memberId = inv.memberId?._id || inv.memberId
+    if (!memberInvitations[memberId]) {
+      memberInvitations[memberId] = []
+    }
+    memberInvitations[memberId].push(inv)
+  })
+
+  // Find members without accepted invitation
+  const incompleteMembers = []
+  for (const memberId in memberInvitations) {
+    const memberInvs = memberInvitations[memberId]
+    const hasAccepted = memberInvs.some(inv => inv.status === 'accepted')
+    if (!hasAccepted) {
+      const memberName = memberInvs[0]?.memberId?.name || memberInvs[0]?.memberId?.email || 'Unknown'
+      const statuses = memberInvs.map(inv => inv.status).join(', ')
+      incompleteMembers.push(`${memberName} (${statuses})`)
+    }
+  }
+
+  if (incompleteMembers.length > 0) {
+    return `Anggota belum accept: ${incompleteMembers.join(', ')}`
+  }
+
+  return null
+}
+
+/**
+ * Check if any selected team has incomplete invitations
+ */
+const selectedTeamsHasPendingInvitations = computed(() => {
+  return Array.from(selectedTeams.value).some(teamId => {
+    return isTeamInvitationsIncomplete(teamId)
+  })
+})
+
+/**
+ * Check if all visible teams are selected
+ */
+const isAllSelected = computed(() => {
+  return filteredTeams.value.length > 0 &&
+         filteredTeams.value.every(t => selectedTeams.value.has(t._id))
+})
+
+/**
+ * Check if some (but not all) visible teams are selected
+ */
+const isSomeSelected = computed(() => {
+  return selectedTeams.value.size > 0 && !isAllSelected.value
+})
+
+/**
+ * Clear selection when tab changes
+ */
+watch(activeTab, () => {
+  selectedTeams.value.clear()
+})
+
 const getStatusVariant = status => {
   const variants = {
     pending: 'warning',
@@ -895,9 +1071,28 @@ const getStatusLabel = status => {
   return labels[status] || status
 }
 
-const viewTeamDetails = team => {
+/**
+ * Check if team has pending invitations (members belum accept)
+ */
+const hasPendingInvitations = async team => {
+  if (team.status !== 'pending') return false
+
+  try {
+    const response = await api.get(`/invitations/team/${team._id}`)
+    if (response.success) {
+      const invitations = response.data || []
+      return invitations.some(inv => inv.status === 'pending')
+    }
+  } catch (error) {
+    console.error('[hasPendingInvitations] Error:', error)
+  }
+  return false
+}
+
+const viewTeamDetails = async team => {
   selectedTeam.value = team
   showDetailsModal.value = true
+  teamInvitations.value = []
 
   // If team belum punya capstoneGroupId, prefill input dengan ID yang digenerate
   if (!team.capstoneGroupId) {
@@ -911,6 +1106,22 @@ const viewTeamDetails = team => {
     }
   } else {
     newCapstoneGroupId.value = ''
+  }
+
+  // Fetch team invitations to show pending status
+  if (team.status === 'pending') {
+    try {
+      loadingInvitations.value = true
+      const response = await api.get(`/invitations/team/${team._id}`)
+      if (response.success) {
+        teamInvitations.value = response.data || []
+        console.log('[viewTeamDetails] Invitations loaded:', teamInvitations.value.length)
+      }
+    } catch (error) {
+      console.error('[viewTeamDetails] Failed to load invitations:', error)
+    } finally {
+      loadingInvitations.value = false
+    }
   }
 }
 
@@ -952,6 +1163,12 @@ const approveTeam = async team => {
     teamStore.setSuccess('Tim berhasil disetujui')
     showDetailsModal.value = false
 
+    // Clear invitation cache for approved team
+    delete teamInvitationsCache.value[team._id || team.id]
+
+    // Auto-switch to approved tab
+    activeTab.value = 'approved'
+
     // Refresh teams list
     await fetchTeams()
   } catch (err) {
@@ -983,6 +1200,9 @@ const confirmReject = async () => {
     showRejectModal.value = false
     rejectReason.value = ''
 
+    // Clear invitation cache for rejected team
+    delete teamInvitationsCache.value[selectedTeam.value._id || selectedTeam.value.id]
+
     // Refresh teams list
     await fetchTeams()
   } catch (err) {
@@ -1006,6 +1226,9 @@ const confirmDelete = async () => {
     await teamStore.deleteTeam(selectedTeam.value._id || selectedTeam.value.id)
     teamStore.setSuccess('Tim berhasil dihapus')
     showDeleteModal.value = false
+
+    // Clear invitation cache for deleted team
+    delete teamInvitationsCache.value[selectedTeam.value._id || selectedTeam.value.id]
 
     // Refresh teams list
     await fetchTeams()
@@ -1042,6 +1265,19 @@ const fetchTeams = async () => {
     }
 
     await teamStore.fetchTeams(params)
+
+    // Fetch invitations for all pending teams
+    const pendingTeams = teams.value.filter(t => t.status === 'pending')
+    for (const team of pendingTeams) {
+      try {
+        const response = await api.get(`/invitations/team/${team._id}`)
+        if (response.success) {
+          teamInvitationsCache.value[team._id] = response.data || []
+        }
+      } catch (error) {
+        console.error(`[fetchTeams] Failed to load invitations for team ${team._id}:`, error)
+      }
+    }
   } catch (err) {
     console.error('Failed to fetch teams:', err)
   }
@@ -1279,6 +1515,19 @@ const clearSelection = () => {
 }
 
 /**
+ * Toggle select all visible teams
+ */
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    // Deselect all visible teams
+    filteredTeams.value.forEach(t => selectedTeams.value.delete(t._id))
+  } else {
+    // Select all visible teams
+    filteredTeams.value.forEach(t => selectedTeams.value.add(t._id))
+  }
+}
+
+/**
  * Show bulk approve modal
  */
 const bulkApproveTeams = () => {
@@ -1340,8 +1589,20 @@ const confirmBulkApprove = async () => {
         text: `${teamIds.length} tim berhasil disetujui`
       })
 
+      // Clear invitation cache for approved teams
+      teamIds.forEach(id => {
+        delete teamInvitationsCache.value[id]
+      })
+
       showBulkApproveModal.value = false
       selectedTeams.value.clear()
+
+      // Reset filter to show all teams (including approved ones)
+      filterStatus.value = ''
+
+      // Auto-switch to approved tab
+      activeTab.value = 'approved'
+
       await fetchTeams()
     }
   } catch (error) {
@@ -1372,9 +1633,18 @@ const confirmBulkReject = async () => {
         text: `${teamIds.length} tim berhasil ditolak`
       })
 
+      // Clear invitation cache for rejected teams
+      teamIds.forEach(id => {
+        delete teamInvitationsCache.value[id]
+      })
+
       showBulkRejectModal.value = false
       selectedTeams.value.clear()
       bulkRejectReason.value = ''
+
+      // Reset filter to show all teams
+      filterStatus.value = ''
+
       await fetchTeams()
     }
   } catch (error) {
@@ -1405,8 +1675,17 @@ const confirmBulkDelete = async () => {
         text: `${teamIds.length} tim berhasil dihapus`
       })
 
+      // Clear invitation cache for deleted teams
+      teamIds.forEach(id => {
+        delete teamInvitationsCache.value[id]
+      })
+
       showBulkDeleteModal.value = false
       selectedTeams.value.clear()
+
+      // Reset filter to show remaining teams
+      filterStatus.value = ''
+
       await fetchTeams()
     }
   } catch (error) {

@@ -403,34 +403,6 @@
       </div>
     </div>
 
-    <!-- Submit Confirmation Modal -->
-    <div v-if="showSubmitModal" class="fixed inset-0 z-50 overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen px-4">
-        <div class="fixed inset-0 bg-black opacity-50" @click="showSubmitModal = false"></div>
-        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Konfirmasi Submit</h3>
-          <p class="text-gray-600 mb-6">
-            Apakah Anda yakin ingin submit worksheet ini? Setelah disubmit, Anda tidak dapat
-            mengubah isinya lagi.
-          </p>
-          <div class="flex justify-end space-x-3">
-            <button
-              @click="showSubmitModal = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Batal
-            </button>
-            <button
-              @click="confirmSubmit"
-              :disabled="submitting"
-              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {{ submitting ? 'Mengirim...' : 'Ya, Submit' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Toast Notification -->
     <div v-if="toast.show" class="fixed bottom-4 right-4 z-50">
@@ -484,7 +456,6 @@ const user = computed(() => authStore.user)
 // State
 const formData = reactive({})
 const uploadedEvidence = reactive({})
-const showSubmitModal = ref(false)
 const selectedPeriodId = ref(null)
 const toast = reactive({
   show: false,
@@ -673,6 +644,18 @@ const handleFileUpload = async (event, periodId) => {
 }
 
 const removeFile = async (periodId, index, file) => {
+  // Show confirmation dialog
+  const result = await Swal.fire({
+    title: 'Hapus Bukti',
+    text: `Hapus file "${file.originalName || file.name}"?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Hapus',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) return
+
   try {
     // Debug: log the file object to see its structure
     console.log('[removeFile] File object:', JSON.stringify(file, null, 2))
@@ -709,13 +692,31 @@ const saveDraft = async periodId => {
   }
 }
 
-const openSubmitModal = period => {
+const openSubmitModal = async period => {
   if (!canSubmit(period.id)) {
     showToast('Deskripsi aktivitas minimal 50 karakter', 'error')
     return
   }
-  selectedPeriodId.value = period.id
-  showSubmitModal.value = true
+
+  // Show SweetAlert confirmation
+  const result = await Swal.fire({
+    title: 'Konfirmasi Submit',
+    text: 'Anda yakin ingin submit worksheet ini? Setelah submit, Anda tidak bisa mengubahnya lagi.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Submit',
+    cancelButtonText: 'Batal'
+  })
+
+  if (!result.isConfirmed) return
+
+  try {
+    await worksheetStore.submitWorksheet(period.id, formData[period.id])
+    showToast('Worksheet berhasil disubmit!', 'success')
+    await fetchData()
+  } catch (err) {
+    showToast(err.message || 'Gagal submit worksheet', 'error')
+  }
 }
 
 const confirmSubmit = async () => {

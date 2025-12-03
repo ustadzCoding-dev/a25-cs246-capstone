@@ -213,16 +213,43 @@
               </p>
 
               <div class="space-y-3">
+                <!-- Accepted Members (Green) -->
                 <div
                   v-for="(m, idx) in acceptedMembers"
                   :key="`acc-${idx}`"
-                  class="flex items-center justify-between bg-white p-3 rounded border border-gray-200"
+                  class="flex items-center justify-between bg-white p-3 rounded border border-green-200"
                 >
                   <div>
                     <p class="text-sm font-medium">{{ m.name || m.studentId || m }}</p>
                     <p v-if="m.learningPath" class="text-xs text-gray-500">{{ m.learningPath }}</p>
                   </div>
-                  <span class="text-xs text-green-700">Diterima</span>
+                  <span class="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded">✓ Diterima</span>
+                </div>
+
+                <!-- Pending Members (Yellow) -->
+                <div
+                  v-for="(m, idx) in pendingMembers"
+                  :key="`pending-${idx}`"
+                  class="flex items-center justify-between bg-yellow-50 p-3 rounded border border-yellow-200"
+                >
+                  <div>
+                    <p class="text-sm font-medium">{{ m.name || m.studentId || m }}</p>
+                    <p v-if="m.learningPath" class="text-xs text-gray-500">{{ m.learningPath }}</p>
+                  </div>
+                  <span class="text-xs font-medium text-yellow-700 bg-yellow-100 px-2 py-1 rounded">⏳ Menunggu</span>
+                </div>
+
+                <!-- Rejected Members (Red) -->
+                <div
+                  v-for="(m, idx) in rejectedMembers"
+                  :key="`rejected-${idx}`"
+                  class="flex items-center justify-between bg-red-50 p-3 rounded border border-red-200"
+                >
+                  <div>
+                    <p class="text-sm font-medium">{{ m.name || m.studentId || m }}</p>
+                    <p v-if="m.learningPath" class="text-xs text-gray-500">{{ m.learningPath }}</p>
+                  </div>
+                  <span class="text-xs font-medium text-red-700 bg-red-100 px-2 py-1 rounded">✗ Ditolak</span>
                 </div>
 
                 <div
@@ -480,6 +507,7 @@ const acceptingInvitation = ref(null)
 const rejectingInvitation = ref(null)
 const showRejectConfirm = ref(false)
 const selectedRejectInvitation = ref(null)
+const teamInvitationsCache = ref([]) // Cache invitations for current team
 
 // Get data from store
 const loading = computed(() => teamStore.loading)
@@ -543,7 +571,40 @@ const totalTeamSize = computed(() => {
 
 const acceptedMembers = computed(() => {
   const members = activeTeam.value?.membersUserId || []
-  return members.filter(m => typeof m === 'object' && (m.name || m.learningPath))
+  return members.filter((m, idx) => {
+    if (!(typeof m === 'object' && (m.name || m.learningPath))) return false
+    // Leader (first member) always accepted
+    if (idx === 0) return true
+    // For other members, check invitation status
+    const invitation = teamInvitationsCache.value.find(inv =>
+      inv.memberId?._id === m._id || inv.memberId?.email === m.email
+    )
+    return !invitation || invitation.status === 'accepted'
+  })
+})
+
+const pendingMembers = computed(() => {
+  const members = activeTeam.value?.membersUserId || []
+  return members.filter((m, idx) => {
+    if (!(typeof m === 'object' && (m.name || m.learningPath))) return false
+    if (idx === 0) return false // Skip leader
+    const invitation = teamInvitationsCache.value.find(inv =>
+      inv.memberId?._id === m._id || inv.memberId?.email === m.email
+    )
+    return invitation && invitation.status === 'pending'
+  })
+})
+
+const rejectedMembers = computed(() => {
+  const members = activeTeam.value?.membersUserId || []
+  return members.filter((m, idx) => {
+    if (!(typeof m === 'object' && (m.name || m.learningPath))) return false
+    if (idx === 0) return false // Skip leader
+    const invitation = teamInvitationsCache.value.find(inv =>
+      inv.memberId?._id === m._id || inv.memberId?.email === m.email
+    )
+    return invitation && invitation.status === 'rejected'
+  })
 })
 
 const placeholders = computed(() => {
@@ -554,7 +615,8 @@ const placeholders = computed(() => {
 const vacancies = computed(() => {
   // vacancies computed relative to accepted members (leader included if in list)
   const acc = acceptedMembers.value.length
-  return Math.max(0, totalTeamSize.value - acc)
+  const pending = pendingMembers.value.length
+  return Math.max(0, totalTeamSize.value - acc - pending)
 })
 
 const replacementInputs = ref([])
@@ -903,6 +965,19 @@ const handleRejectInvitation = async invitationId => {
   }
 }
 
+const fetchTeamInvitations = async () => {
+  if (!activeTeam.value?._id) return
+  try {
+    const response = await api.get(`/invitations/team/${activeTeam.value._id}`)
+    if (response.success) {
+      teamInvitationsCache.value = response.data || []
+      console.log('[fetchTeamInvitations] Loaded:', teamInvitationsCache.value.length, 'invitations')
+    }
+  } catch (error) {
+    console.error('[fetchTeamInvitations] Error:', error)
+  }
+}
+
 const fetchTeamData = async () => {
   try {
     console.log('[fetchTeamData] Starting fetch...');
@@ -942,6 +1017,9 @@ const fetchTeamData = async () => {
       teamStore.currentTeam = transformedTeam;
 
       console.log('[fetchTeamData] teamStore.currentTeam updated:', teamStore.currentTeam);
+
+      // Fetch team invitations to show member status
+      await fetchTeamInvitations();
     } else {
       console.log('[fetchTeamData] No team data in response');
       teamStore.currentTeam = null;
@@ -1027,6 +1105,9 @@ const rejectInvitation = async invitationId => {
       // Remove from list
       pendingInvitations.value = pendingInvitations.value.filter(inv => inv._id !== invitationId)
       console.log('Invitation rejected')
+
+      // Refresh team data to update UI (user may no longer be in a team)
+      await fetchTeamData()
     } else {
       console.error('Reject API responded with error:', response)
     }

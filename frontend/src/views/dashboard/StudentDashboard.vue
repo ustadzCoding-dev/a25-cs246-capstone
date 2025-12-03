@@ -288,15 +288,15 @@ const announcementStore = useAnnouncementStore()
 const user = computed(() => authStore.user)
 
 const hasTeam = computed(() => {
-  // Fixed logic: Check if user has an approved team
-  // Previously was just checking if currentTeam exists
+  // Check if user has a team (pending or approved)
+  // Hide "Belum Terdaftar" card if student has any team
   const team = teamStore.currentTeam
-  return team && team.status === 'approved'
+  return team && (team.status === 'approved' || team.status === 'pending')
 })
 
 const teamInfo = computed(() => {
   const team = teamStore.currentTeam
-  if (!team || team.status !== 'approved') return null
+  if (!team || (team.status !== 'approved' && team.status !== 'pending')) return null
 
   return {
     teamName: team.teamName,

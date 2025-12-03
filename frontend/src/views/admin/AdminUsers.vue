@@ -11,41 +11,19 @@
 
       <!-- Statistics -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard
-          label="Total Users"
-          :value="stats.total"
-          icon="team"
-          color="primary"
-        />
-        <StatsCard
-          label="Students"
-          :value="stats.students"
-          icon="team"
-          color="success"
-        />
-        <StatsCard
-          label="Admins"
-          :value="stats.admins"
-          icon="settings"
-          color="warning"
-        />
+        <StatsCard label="Total Users" :value="stats.total" icon="team" color="primary" />
+        <StatsCard label="Students" :value="stats.students" icon="team" color="success" />
+        <StatsCard label="Admins" :value="stats.admins" icon="settings" color="warning" />
       </div>
 
       <!-- Filters & Search -->
       <div class="bg-white rounded-lg shadow p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <BaseInput
-            v-model="searchQuery"
-            placeholder="Cari user (nama, email, student ID)..."
-          />
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <BaseInput v-model="searchQuery" placeholder="Cari user (nama, email, student ID)..." />
 
-          <BaseSelect
-            v-model="filterRole"
-            label="Filter by Role"
-            :options="roleOptions"
-          />
+          <BaseSelect v-model="filterRole" label="Filter by Role" :options="roleOptions" />
 
-          <BaseButton variant="outline" @click="resetFilters" class="mt-6">
+          <BaseButton variant="outline" @click="resetFilters">
             Reset Filters
           </BaseButton>
         </div>
@@ -59,9 +37,7 @@
       <!-- Error State -->
       <div v-else-if="error" class="bg-danger-50 border border-danger-200 rounded-lg p-4">
         <p class="text-danger-700">{{ error }}</p>
-        <BaseButton variant="outline" @click="fetchUsers" class="mt-4">
-          Coba Lagi
-        </BaseButton>
+        <BaseButton variant="outline" @click="fetchUsers" class="mt-4"> Coba Lagi </BaseButton>
       </div>
 
       <!-- Users Table -->
@@ -74,13 +50,27 @@
           <table class="w-full">
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Nama</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Email</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Student ID</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Role</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Learning Path</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Aksi</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Nama
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Email
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Student ID
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Role
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Learning Path
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Status
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  Aksi
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -96,7 +86,10 @@
                 <td class="px-6 py-4 text-sm text-gray-600">{{ user.learningPathName || '-' }}</td>
                 <td class="px-6 py-4 text-sm">
                   <span v-if="user.role === 'admin'">-</span>
-                  <BaseBadge v-else :variant="user.memberStatus === 'active' ? 'success' : 'warning'">
+                  <BaseBadge
+                    v-else
+                    :variant="user.memberStatus === 'active' ? 'success' : 'warning'"
+                  >
                     {{ user.memberStatus === 'active' ? 'Aktif' : user.memberStatus || 'Nonaktif' }}
                   </BaseBadge>
                 </td>
@@ -120,16 +113,17 @@
         </div>
 
         <!-- Pagination -->
-        <div v-if="totalPages > 1" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div
+          v-if="totalPages > 1"
+          class="px-6 py-4 border-t border-gray-200 flex items-center justify-between"
+        >
           <div class="text-sm text-gray-600">
-            Menampilkan {{ (pagination.currentPage - 1) * pagination.limit + 1 }} - {{ Math.min(pagination.currentPage * pagination.limit, pagination.totalItems) }} dari {{ pagination.totalItems }} users
+            Menampilkan {{ (pagination.currentPage - 1) * pagination.limit + 1 }} -
+            {{ Math.min(pagination.currentPage * pagination.limit, pagination.totalItems) }} dari
+            {{ pagination.totalItems }} users
           </div>
           <div class="flex space-x-2">
-            <BaseButton
-              variant="outline"
-              :disabled="currentPage === 1"
-              @click="currentPage--"
-            >
+            <BaseButton variant="outline" :disabled="currentPage === 1" @click="currentPage--">
               Sebelumnya
             </BaseButton>
             <div class="flex items-center space-x-1">
@@ -140,7 +134,7 @@
                     'px-3 py-1 rounded',
                     currentPage === page
                       ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
                   ]"
                 >
                   {{ page }}
@@ -187,7 +181,11 @@
             <label class="block text-sm font-medium text-gray-700">Status</label>
             <p class="mt-1 text-gray-900">
               <span v-if="selectedUser.role === 'admin'">-</span>
-              <span v-else>{{ selectedUser.memberStatus === 'active' ? 'Aktif' : selectedUser.memberStatus || 'Nonaktif' }}</span>
+              <span v-else>{{
+                selectedUser.memberStatus === 'active'
+                  ? 'Aktif'
+                  : selectedUser.memberStatus || 'Nonaktif'
+              }}</span>
             </p>
           </div>
           <div class="col-span-2">
@@ -199,9 +197,7 @@
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="showDetailModal = false">
-            Tutup
-          </BaseButton>
+          <BaseButton variant="outline" @click="showDetailModal = false"> Tutup </BaseButton>
         </div>
       </template>
     </BaseModal>
@@ -213,11 +209,7 @@
           Ubah role untuk <strong>{{ selectedUser.name }}</strong>
         </p>
 
-        <BaseSelect
-          v-model="newRole"
-          label="Role Baru"
-          :options="roleOptions"
-        />
+        <BaseSelect v-model="newRole" label="Role Baru" :options="roleOptions" />
 
         <div v-if="changeRoleError" class="p-3 bg-danger-50 border border-danger-200 rounded-lg">
           <p class="text-sm text-danger-700">{{ changeRoleError }}</p>
@@ -226,14 +218,8 @@
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="showChangeRoleModal = false">
-            Batal
-          </BaseButton>
-          <BaseButton
-            variant="primary"
-            :loading="changingRole"
-            @click="handleChangeRole"
-          >
+          <BaseButton variant="outline" @click="showChangeRoleModal = false"> Batal </BaseButton>
+          <BaseButton variant="primary" :loading="changingRole" @click="handleChangeRole">
             Ubah Role
           </BaseButton>
         </div>
@@ -275,7 +261,7 @@ const pagination = ref({
   currentPage: 1,
   totalItems: 0,
   limit: 10,
-  totalPages: 1
+  totalPages: 1,
 })
 
 const showDetailModal = ref(false)
@@ -287,7 +273,7 @@ const changeRoleError = ref('')
 
 const roleOptions = [
   { value: 'student', label: 'Student' },
-  { value: 'admin', label: 'Admin' }
+  { value: 'admin', label: 'Admin' },
 ]
 
 // Computed
@@ -308,41 +294,41 @@ const paginatedUsers = computed(() => {
 })
 
 const stats = computed(() => {
-  if (!Array.isArray(users.value)) {
-    return { total: 0, students: 0, admins: 0 }
-  }
+  // Backend now returns stats with total counts by role
+  // This ensures stats show TOTAL KESELURUHAN, not just current page
+  const backendStats = pagination.value?.stats || {}
 
   return {
-    total: users.value.length,
-    students: users.value.filter(u => u.role === 'student').length,
-    admins: users.value.filter(u => u.role === 'admin').length
+    total: backendStats.total || 0,
+    students: backendStats.students || 0,
+    admins: backendStats.admins || 0
   }
 })
 
 // Methods
-const formatDate = (date) => {
+const formatDate = date => {
   if (!date) return '-'
   return new Date(date).toLocaleDateString('id-ID', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
-const getRoleLabel = (role) => {
+const getRoleLabel = role => {
   const labels = {
     student: 'Student',
     admin: 'Admin',
-    instructor: 'Instructor'
+    instructor: 'Instructor',
   }
   return labels[role] || role
 }
 
-const getRoleVariant = (role) => {
+const getRoleVariant = role => {
   const variants = {
     student: 'primary',
     admin: 'warning',
-    instructor: 'success'
+    instructor: 'success',
   }
   return variants[role] || 'secondary'
 }
@@ -355,7 +341,7 @@ const fetchUsers = async () => {
     // Build query parameters
     const params = {
       page: currentPage.value,
-      limit: itemsPerPage
+      limit: itemsPerPage,
     }
 
     // Add role filter if selected
@@ -372,7 +358,7 @@ const fetchUsers = async () => {
     console.log('[AdminUsers] fetchUsers response:', response)
 
     if (response.success) {
-      // Backend returns { success: true, data: { users: [...], pagination: {...} } }
+      // Backend returns { success: true, data: { users: [...], pagination: {...}, stats: {...} } }
       const usersData = response.data?.users || response.data || []
       users.value = Array.isArray(usersData) ? usersData : []
 
@@ -381,9 +367,19 @@ const fetchUsers = async () => {
         pagination.value = response.data.pagination
       }
 
-      console.log('[AdminUsers] users loaded:', users.value.length, 'pagination:', pagination.value)
+      // Store stats from backend (if available)
+      if (response.data?.stats) {
+        pagination.value.stats = response.data.stats
+      }
+
+      console.log('[AdminUsers] users loaded:', users.value.length, 'pagination:', pagination.value, 'stats:', response.data?.stats)
       if (users.value.length > 0) {
-        console.log('[AdminUsers] First user _id:', users.value[0]._id, 'First user:', users.value[0])
+        console.log(
+          '[AdminUsers] First user _id:',
+          users.value[0]._id,
+          'First user:',
+          users.value[0]
+        )
       }
     } else {
       error.value = response.message || 'Gagal memuat users'
@@ -402,12 +398,12 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
-const viewUserDetail = (userItem) => {
+const viewUserDetail = userItem => {
   selectedUser.value = userItem
   showDetailModal.value = true
 }
 
-const openChangeRoleModal = (userItem) => {
+const openChangeRoleModal = userItem => {
   selectedUser.value = userItem
   newRole.value = userItem.role
   changeRoleError.value = ''
@@ -436,7 +432,7 @@ const handleChangeRole = async () => {
     console.log('[AdminUsers] Changing role for user:', userId, 'to:', newRole.value)
 
     const response = await api.put(`/users/${userId}/role`, {
-      role: newRole.value
+      role: newRole.value,
     })
 
     console.log('[AdminUsers] Change role response:', response)

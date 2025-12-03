@@ -2,11 +2,11 @@ import mongoose from 'mongoose';
 
 // MENYIMPAN DATA TIM
 const capstoneGroupSchema = new mongoose.Schema({
-  // Captone Group ID (Optional - can be assigned later)
+  // Captone Group ID (Optional - can be assigned later by admin)
   // Contoh: "A25-CS246"
+  // Note: Not unique here because it's assigned later. Will validate uniqueness in controller.
   capstoneGroupId: {
     type: String,
-    unique: true,
     sparse: true,
     default: null
   },
@@ -76,7 +76,7 @@ capstoneGroupSchema.set('toJSON', {
   }
 });
 
-capstoneGroupSchema.post('findOneAndDelete', async function (doc, next) {
+capstoneGroupSchema.post('findOneAndDelete', async function (doc, _next) {
   if (doc) {
     try {
       const User = mongoose.model('User');

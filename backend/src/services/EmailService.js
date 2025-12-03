@@ -626,6 +626,78 @@ class EmailService {
   }
 
   /**
+   * Send member removed notification email
+   * @param {string} memberEmail - Member email address
+   * @param {string} memberName - Member name
+   * @param {string} teamName - Team name
+   */
+  async sendMemberRemovedNotification(memberEmail, memberName, teamName) {
+    try {
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background-color: #F59E0B; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+              .content { background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+              .footer { background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #6b7280; }
+              .info-box { background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 15px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>⚠️ Anda Dihapus dari Tim</h1>
+              </div>
+
+              <div class="content">
+                <p>Halo <strong>${memberName}</strong>,</p>
+
+                <p>Kami ingin memberitahukan bahwa Anda telah dihapus dari tim <strong>${teamName}</strong> oleh admin.</p>
+
+                <div class="info-box">
+                  <p><strong>Apa yang terjadi?</strong></p>
+                  <ul>
+                    <li>Anda tidak lagi menjadi anggota tim ini</li>
+                    <li>Slot tim telah dikembalikan ke use case</li>
+                    <li>Anda dapat bergabung dengan tim lain atau membuat tim baru</li>
+                  </ul>
+                </div>
+
+                <p>Jika ada pertanyaan atau Anda merasa ini adalah kesalahan, silakan hubungi admin program capstone.</p>
+
+                <p>Terima kasih,<br><strong>Tim Capstone</strong></p>
+              </div>
+
+              <div class="footer">
+                <p>© 2025 Dicoding Capstone. Semua hak dilindungi.</p>
+                <p>Jangan balas email ini. Hubungi admin jika ada pertanyaan.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const mailOptions = {
+        from: this.fromEmail,
+        to: memberEmail,
+        subject: `⚠️ Anda Dihapus dari Tim: ${teamName}`,
+        html: htmlContent
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      logger.info(`Member removed notification sent to ${memberEmail}`);
+      return true;
+    } catch (error) {
+      logger.error(`Failed to send member removed notification: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
    * Send password reset email
    * @param {Object} options - Email options
    * @param {string} options.userEmail - User email address
@@ -780,5 +852,10 @@ export default {
   // Password reset email method
   async sendPasswordResetEmail(options) {
     return this.getInstance().sendPasswordResetEmail(options);
+  },
+
+  // Member removed notification method
+  async sendMemberRemovedNotification(memberEmail, memberName, teamName) {
+    return this.getInstance().sendMemberRemovedNotification(memberEmail, memberName, teamName);
   }
 };

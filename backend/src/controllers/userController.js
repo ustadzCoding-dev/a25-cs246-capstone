@@ -44,13 +44,17 @@ export const getAllUsers = async (req, res) => {
     // Hitung total user yang sesuai filter
     const totalUsers = await User.countDocuments(filter);
 
+    // Hitung total students dan admins (KESELURUHAN, tidak hanya current page)
+    const totalStudents = await User.countDocuments({ ...filter, role: 'student' });
+    const totalAdmins = await User.countDocuments({ ...filter, role: 'admin' });
+
     // Ambil data user dengan pagination
     const users = await User.find(filter)
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .select('-password'); // sembunyikan password
 
-    console.log('[getAllUsers] Users returned:', users.length, 'Total:', totalUsers, 'Page:', page, 'Limit:', limit, 'First user:', users[0] ? { _id: users[0]._id, name: users[0].name, email: users[0].email } : null);
+    console.log('[getAllUsers] Users returned:', users.length, 'Total:', totalUsers, 'Students:', totalStudents, 'Admins:', totalAdmins, 'Page:', page, 'Limit:', limit, 'First user:', users[0] ? { _id: users[0]._id, name: users[0].name, email: users[0].email } : null);
 
     res.status(200).json({
       success: true,
@@ -61,6 +65,11 @@ export const getAllUsers = async (req, res) => {
           totalItems: totalUsers,
           limit: parseInt(limit),
           totalPages: Math.ceil(totalUsers / parseInt(limit))
+        },
+        stats: {
+          total: totalUsers,
+          students: totalStudents,
+          admins: totalAdmins
         }
       }
     });

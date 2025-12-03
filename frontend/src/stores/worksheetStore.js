@@ -495,6 +495,35 @@ export const useWorksheetStore = defineStore('worksheet', {
     },
 
     /**
+     * Reject worksheet - student can resubmit (Admin)
+     */
+    async rejectWorksheet(worksheetId, reason) {
+      this.submitting = true
+      this.error = null
+
+      try {
+        const response = await api.put(`/worksheet/admin/reject/${worksheetId}`, {
+          reason,
+        })
+
+        // Update in periodWorksheets array
+        const index = this.periodWorksheets.findIndex(
+          w => w.id === worksheetId || w._id === worksheetId
+        )
+        if (index !== -1) {
+          this.periodWorksheets[index] = response.data
+        }
+
+        return response.data
+      } catch (error) {
+        this.error = error.message || 'Failed to reject worksheet'
+        throw error
+      } finally {
+        this.submitting = false
+      }
+    },
+
+    /**
      * Run auto-validation for a period (Admin)
      */
     async runAutoValidation(periodId) {

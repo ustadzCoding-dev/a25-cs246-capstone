@@ -307,6 +307,26 @@ export const validateWorksheet = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Reject a worksheet - student can resubmit
+ * @route   PUT /api/worksheet/admin/reject/:worksheetId
+ * @access  Private/Admin
+ */
+export const rejectWorksheet = asyncHandler(async (req, res) => {
+  const adminId = req.user._id || req.user.id;
+  const { worksheetId } = req.params;
+  const { reason } = req.body;
+
+  if (!reason) {
+    return res.error('Rejection reason is required', 400);
+  }
+
+  const worksheet = await worksheetService.rejectWorksheet(worksheetId, adminId, reason);
+  // Transform local file paths to HTTP URLs for evidence
+  const transformedWorksheet = transformWorksheetUrls(worksheet);
+  res.success(transformedWorksheet, 'Worksheet rejected successfully', 200);
+});
+
+/**
  * @desc    Run auto-validation for a period
  * @route   POST /api/worksheet/admin/period/:periodId/auto-validate
  * @access  Private/Admin

@@ -525,6 +525,35 @@ class WorksheetService {
   }
 
   /**
+   * Reject a worksheet - student can resubmit
+   * @param {string} worksheetId - Worksheet ID
+   * @param {string} adminId - Admin user ID
+   * @param {string} reason - Rejection reason
+   */
+  async rejectWorksheet(worksheetId, adminId, reason) {
+    try {
+      const worksheet = await Worksheet.findById(worksheetId);
+      if (!worksheet) {
+        throw new Error('Worksheet not found');
+      }
+
+      if (worksheet.validationStatus !== 'pending') {
+        throw new Error('Only pending worksheets can be rejected');
+      }
+
+      await worksheet.reject(adminId, reason);
+
+      logger.info(
+        `[WorksheetService] Worksheet ${worksheetId} rejected by admin ${adminId}. Reason: ${reason}`
+      );
+      return worksheet;
+    } catch (error) {
+      logger.error(`[WorksheetService] Failed to reject worksheet: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Run automatic validation for a period
    * @param {string} periodId - Period ID
    * @param {string} adminId - Admin user ID (system or manual trigger)
