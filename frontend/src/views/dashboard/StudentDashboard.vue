@@ -94,13 +94,13 @@
         <div
           class="lg:p-5 md:p-5 lg:border-l md:border-l border-gray-300 lg:col-span-1 lg:row-span-2 lg:col-start-3 lg:row-start-1 md:col-span-2 md:row-span-1 md:col-start-3 md:row-start-1"
         >
-          <div class="border-b border-gray-200 pb-3">
+          <div class="border-b border-gray-200">
             <h3 class="font-semibold text-gray-900 lg:text-lg md:text-base sm:text-base text-sm">
               Informasi
             </h3>
           </div>
           <div class="flex flex-col gap-5 lg:mt-4 md:mt-1">
-            <div class="grid grid-cols-7">
+            <div class="grid grid-cols-7 ml-4 md:ml-0 lg:ml-0">
               <div class="col-span-5">
                 <h4 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold">
                   {{ documentCount }} Dokumen Telah Ditambahkan
@@ -118,7 +118,7 @@
                 </router-link>
               </div>
             </div>
-            <div class="grid grid-cols-7">
+            <div class="grid grid-cols-7 ml-4 md:ml-0 lg:ml-0">
               <div class="col-span-5">
                 <h4 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold">
                   {{ timelineCount }} Timeline Aktif
@@ -136,7 +136,7 @@
                 </router-link>
               </div>
             </div>
-            <div class="grid grid-cols-7">
+            <div class="grid grid-cols-7 ml-4 md:ml-0 lg:ml-0">
               <div class="col-span-5">
                 <h4 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold">
                   {{ announcementCount }} Pengumuman Baru
@@ -159,7 +159,7 @@
 
         <!-- Quick Links -->
         <div
-          class="bg-white rounded-lg lg:p-5 md:p-5 border-t border-gray-300 lg:col-span-3 lg:row-start-3 md:col-span-4 md:row-start-3"
+          class="bg-white rounded-lg lg:p-5 lg:border-t border-gray-300 lg:col-span-3 lg:row-start-3 md:col-span-4 md:row-start-3"
         >
           <div class="mb-4">
             <h3 class="font-semibold text-gray-900 lg:text-lg md:text-base sm:text-base text-sm">
