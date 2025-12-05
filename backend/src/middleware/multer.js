@@ -1,32 +1,16 @@
 import multer from 'multer';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Define upload directory
-const uploadDir = path.join(__dirname, '../../uploads/documents');
-
-// Create upload directory if it doesn't exist
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, '../../uploads/temp');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
 }
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: timestamp-originalname
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext);
-    cb(null, `${name}-${uniqueSuffix}${ext}`);
-  }
-});
 
 // File filter to allow only certain file types
 const fileFilter = (req, file, cb) => {
@@ -51,6 +35,18 @@ const fileFilter = (req, file, cb) => {
     cb(new Error(`File type ${file.mimetype} is not allowed`), false);
   }
 };
+
+// Configure disk storage for temporary file storage
+// Files will be uploaded to Cloudinary in the service layer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    // Preserve original filename for Cloudinary upload
+    cb(null, file.originalname);
+  }
+});
 
 // Configure multer
 const upload = multer({

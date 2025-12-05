@@ -103,35 +103,26 @@ export const restoreDocument = asyncHandler(async (req, res) => {
 /**
  * Download a document
  * GET /api/document/:id/download
+ * Returns Cloudinary URL for frontend to handle download
  */
 export const downloadDocument = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const { document, filePath } = await DocumentService.downloadDocument(id);
+  const document = await DocumentService.downloadDocument(id);
 
-  // Check if file exists
-  const fs = await import('fs/promises');
-  try {
-    await fs.access(filePath);
-  } catch {
-    console.error('File not found:', filePath);
-    return res.status(404).json({
-      success: false,
-      error: {
-        code: 'FILE_NOT_FOUND',
-        message: 'Document file not found on server'
-      }
-    });
-  }
+  // Add download parameter to force download instead of preview
+  // ?dl=1 tells Cloudinary to serve as attachment, not inline
+  const downloadUrl = document.fileUrl + '?fl_attachment';
 
-  // Set CORS headers for file download
-  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:5173');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  console.log('Download requested for document:', id);
+  console.log('Original File URL:', document.fileUrl);
+  console.log('Download URL with ?dl=1:', downloadUrl);
+  console.log('File name:', document.fileName);
 
-  // Send file
-  res.download(filePath, document.fileName, (err) => {
-    if (err) {
-      console.error('Download error:', err);
-    }
-  });
+  // Return Cloudinary URL with download parameter
+  res.success({
+    fileUrl: downloadUrl,
+    fileName: document.fileName,
+    downloadCount: document.downloadCount
+  }, 'Document ready for download', 200);
 });

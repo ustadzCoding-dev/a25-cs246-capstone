@@ -47,6 +47,7 @@ export const uploadDocument = async formData => {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 120000, // 2 minutes for large file uploads to Cloudinary
     })
     return response
   } catch (error) {
@@ -99,33 +100,31 @@ export const restoreDocument = async id => {
 
 /**
  * Download document
- * @param {string} id - Document ID
- * @returns {Promise} File blob
+ * @param {string} id - Document ID or URL
+ * @returns {Promise<string>} File URL
  */
 export const downloadDocument = async id => {
   try {
-    // If `id` looks like a file URL (starts with "/uploads" or is absolute),
-    // download directly from that URL instead of calling the protected API route.
-    const looksLikeFileUrl =
-      typeof id === 'string' && (id.startsWith('/uploads') || id.startsWith('http'))
-
-    if (looksLikeFileUrl) {
-      // Build absolute URL for the static file. If `id` is absolute, use it as-is.
-      const fileUrl = id.startsWith('http')
-        ? id
-        : `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${id}`
-
-      const response = await api.get(fileUrl, {
-        responseType: 'blob',
-      })
-      return response
+    // If id is already a Cloudinary URL, return it directly
+    if (typeof id === 'string' && id.startsWith('http')) {
+      return id
     }
 
-    const response = await api.get(`/document/${id}/download`, {
-      responseType: 'blob',
-    })
+    // If id looks like a static file URL (starts with /uploads), return absolute URL
+    if (typeof id === 'string' && id.startsWith('/uploads')) {
+      const absoluteUrl = `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${id}`
+      return absoluteUrl
+    }
 
-    return response
+    // If id is a document ID, fetch the download URL from backend
+    // Backend returns JSON with fileUrl
+    const response = await api.get(`/document/${id}/download`)
+
+    if (response.data && response.data.fileUrl) {
+      return response.data.fileUrl
+    }
+
+    throw new Error('No fileUrl in response')
   } catch (error) {
     throw error
   }
@@ -138,43 +137,43 @@ export const downloadDocument = async id => {
  */
 export const triggerDownload = async (id, filename) => {
   try {
-    // If id looks like a static file URL or absolute URL, let the browser handle it
-    const looksLikeFileUrl =
-      typeof id === 'string' && (id.startsWith('/uploads') || id.startsWith('http'))
+    // If id is already a Cloudinary URL, open directly without calling downloadDocument again
+    if (typeof id === 'string' && id.startsWith('http')) {
+      window.open(id, '_blank', 'noopener,noreferrer')
+      return
+    }
 
-    if (looksLikeFileUrl) {
-      // Build absolute URL
-      const absoluteUrl = id.startsWith('http')
-        ? id
-        : `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${id}`
-
-      // Create a temporary link and let browser navigate to it (handles download or open)
+    // If id looks like a static file URL (starts with /uploads), handle it
+    if (typeof id === 'string' && id.startsWith('/uploads')) {
+      const absoluteUrl = `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${id}`
       const link = document.createElement('a')
       link.href = absoluteUrl
-      // Suggest filename when possible
       if (filename) link.setAttribute('download', filename)
       link.target = '_blank'
       link.rel = 'noopener noreferrer'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-
       return
     }
 
-    const blob = await downloadDocument(id)
+    // If id is a document ID, fetch the download URL from backend
+    const result = await downloadDocument(id)
 
-    // Create blob URL
+    // If result is a URL string (Cloudinary), open in new tab
+    if (typeof result === 'string' && result.startsWith('http')) {
+      window.open(result, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    // Otherwise treat as blob
+    const blob = result
     const url = window.URL.createObjectURL(blob)
-
-    // Create temporary link and trigger download
     const link = document.createElement('a')
     link.href = url
     link.download = filename
     document.body.appendChild(link)
     link.click()
-
-    // Cleanup
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
   } catch (error) {

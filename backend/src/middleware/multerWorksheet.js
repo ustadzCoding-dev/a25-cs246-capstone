@@ -1,9 +1,4 @@
 import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Use memory storage for Cloudinary upload
 const storage = multer.memoryStorage();
@@ -66,7 +61,7 @@ export const getEvidenceFileInfo = (file, cloudinaryResult) => {
 };
 
 // Legacy helper for local file deletion (kept for backward compatibility)
-export const deleteEvidenceFile = (filePath) => {
+export const deleteEvidenceFile = (_filePath) => {
   return Promise.resolve(true);
 };
 

@@ -1,6 +1,5 @@
 import cloudinary from '../config/cloudinary.js';
 import { Readable } from 'stream';
-import fs from 'fs';
 import logger from '../utils/logger.js';
 
 /**

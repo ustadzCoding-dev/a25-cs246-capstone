@@ -260,7 +260,7 @@
           v-if="!editingDocument"
           v-model="form.file"
           label="File Dokumen"
-          accept=".pdf,.doc,.docx,.ppt,.pptx"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif"
           :max-size="10"
           :error="errors.file"
           required

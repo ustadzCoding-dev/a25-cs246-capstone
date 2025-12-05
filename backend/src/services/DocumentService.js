@@ -1,6 +1,5 @@
 import Document from '../models/Document.js';
-import fs from 'fs/promises';
-import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
 import { ValidationError, NotFoundError, ConflictError } from '../utils/errorHandler.js';
 
 /**
@@ -50,15 +49,44 @@ export class DocumentService {
       throw error;
     }
 
-    // 4. Create document record
-    const fileUrl = `/uploads/documents/${file.filename}`;
+    // 4. Upload file to Cloudinary with proper filename handling
+    console.log('Uploading file to Cloudinary...');
+    let fileUrl;
 
+    try {
+      // If file already has secure_url (from multer-storage-cloudinary), use it
+      if (file.secure_url) {
+        fileUrl = file.secure_url;
+        console.log('Using existing Cloudinary URL from multer-storage-cloudinary');
+      } else if (file.path) {
+        // Upload to Cloudinary with signed upload (more reliable)
+        const uploadOptions = {
+          resource_type: 'auto',
+          folder: 'capstone/documents',
+          use_filename: true,
+          unique_filename: false,
+          access_mode: 'public'
+        };
+
+        console.log('Using signed upload with API credentials');
+        const result = await cloudinary.uploader.upload(file.path, uploadOptions);
+        fileUrl = result.secure_url;
+        console.log('Uploaded to Cloudinary:', fileUrl);
+      } else {
+        throw new ValidationError('No file path available for upload');
+      }
+    } catch (error) {
+      console.error('Cloudinary upload error:', error.message);
+      throw new Error(`Failed to upload file to Cloudinary: ${error.message}`);
+    }
+
+    // 5. Create document record
     const document = await Document.create({
       title: documentData.title.trim(),
       description: documentData.description.trim(),
       category: documentData.category,
       visibility: documentData.visibility,
-      fileName: file.filename,
+      fileName: file.originalname || file.filename,
       fileUrl,
       uploadedBy: adminId,
       downloadCount: 0,
@@ -164,7 +192,7 @@ export class DocumentService {
   /**
    * Download document
    * @param {string} documentId - Document ID
-   * @returns {Promise<Object>} Object with document and filePath
+   * @returns {Promise<Object>} Document with updated download count
    * @throws {NotFoundError} If document not found
    */
   async downloadDocument(documentId) {
@@ -178,13 +206,7 @@ export class DocumentService {
       throw new NotFoundError('Document not found');
     }
 
-    // Build file path
-    const filePath = path.join(process.cwd(), 'uploads', 'documents', document.fileName);
-
-    return {
-      document,
-      filePath
-    };
+    return document;
   }
 
   /**
@@ -344,27 +366,6 @@ export class DocumentService {
     }
   }
 
-  /**
-   * Delete file from filesystem
-   * @private
-   */
-  async deleteFile(fileName) {
-    try {
-      const filePath = path.join(process.cwd(), 'uploads', 'documents', fileName);
-      // Check if file exists before deleting
-      try {
-        await fs.access(filePath);
-        await fs.unlink(filePath);
-        console.log(`File deleted: ${fileName}`);
-      } catch {
-        // File doesn't exist, which is fine for soft delete
-        console.log(`File not found (already deleted): ${fileName}`);
-      }
-    } catch (error) {
-      // Log error but don't throw - file might already be deleted
-      console.error(`Error deleting file ${fileName}:`, error.message);
-    }
-  }
 }
 
 export default new DocumentService();

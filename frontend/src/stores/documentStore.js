@@ -221,32 +221,15 @@ export const useDocumentStore = defineStore('document', {
       this.error = null
 
       try {
-        // If `id` looks like a Mongo ObjectId, fetch the document first to obtain
-        // the canonical `fileUrl`/`fileName` stored on the server. This avoids
-        // requesting an incorrect static path when the frontend has stale data.
-        const isObjectId = typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id)
+        // Call the download endpoint which returns signed URL
+        const downloadUrl = await documentService.downloadDocument(id)
 
-        if (isObjectId) {
-          try {
-            const docResp = await documentService.getDocumentById(id)
-            if (docResp?.success && docResp.data) {
-              const doc = docResp.data
-              const fileUrl = doc.fileUrl || null
-              const fileName = doc.fileName || filename
-
-              if (fileUrl) {
-                await documentService.triggerDownload(fileUrl, fileName)
-                return { success: true, message: 'Document downloaded successfully' }
-              }
-            }
-          } catch (err) {
-            // If fetching document failed, fall back to direct trigger
-            console.warn('Failed to fetch document record for download fallback', err)
-          }
+        if (downloadUrl) {
+          await documentService.triggerDownload(downloadUrl, filename)
+          return { success: true, message: 'Document downloaded successfully' }
         }
 
-        await documentService.triggerDownload(id, filename)
-        return { success: true, message: 'Document downloaded successfully' }
+        throw new Error('Failed to get download URL')
       } catch (error) {
         this.error = error.message || 'Failed to download document'
         throw error

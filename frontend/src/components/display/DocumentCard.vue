@@ -35,7 +35,7 @@
         :href="link"
         target="_blank"
         rel="noopener noreferrer"
-        @click.stop
+        @click.prevent="$emit('click')"
         class="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-700 cursor-pointer hover:underline
         lg:text-md
     md:text-md
