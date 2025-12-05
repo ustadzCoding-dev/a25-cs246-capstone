@@ -58,12 +58,22 @@ export const uploadDocument = async formData => {
 /**
  * Update document (Admin only)
  * @param {string} id - Document ID
- * @param {Object} updateData - Data to update
+ * @param {Object|FormData} updateData - Data to update (JSON or FormData with file)
  * @returns {Promise} Updated document data
  */
 export const updateDocumentAPI = async (id, updateData) => {
   try {
-    const response = await api.put(`/document/${id}`, updateData)
+    const config = {}
+
+    // If updateData is FormData (has file), set proper headers
+    if (updateData instanceof FormData) {
+      config.headers = {
+        'Content-Type': 'multipart/form-data',
+      }
+      config.timeout = 120000 // 2 minutes for file uploads
+    }
+
+    const response = await api.put(`/document/${id}`, updateData, config)
     return response
   } catch (error) {
     throw error

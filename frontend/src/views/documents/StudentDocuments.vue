@@ -207,6 +207,11 @@ const downloadDocument = async doc => {
 const backendOrigin = api.defaults.baseURL.replace(/\/api\/?$/, '')
 
 const getDocumentLink = doc => {
+  // Priority: external link > fileUrl (Cloudinary) > API download route
+  if (doc?.link) {
+    return doc.link
+  }
+
   if (doc?.fileUrl) {
     const fileUrl = doc.fileUrl
     return fileUrl.startsWith('http') ? fileUrl : `${backendOrigin}${fileUrl}`

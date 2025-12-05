@@ -62,42 +62,63 @@ export const addDocument = asyncHandler(async (req, res) => {
 /**
  * Update a document
  * PUT /api/document/:id
+ * Can update metadata only, or metadata + file
  */
 export const updateDocument = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
+  const file = req.file;
 
   console.log('=== Document Update Debug ===');
   console.log('documentId:', id);
   console.log('updateData:', updateData);
+  console.log('file:', file ? { filename: file.filename, mimetype: file.mimetype, size: file.size } : null);
 
-  const document = await DocumentService.updateDocument(id, updateData);
+  let document;
+
+  // If file provided, use updateDocumentWithFile
+  if (file) {
+    document = await DocumentService.updateDocumentWithFile(id, updateData, file);
+  } else {
+    // Otherwise just update metadata
+    document = await DocumentService.updateDocument(id, updateData);
+  }
 
   res.success(document, 'Document updated successfully', 200);
 });
 
 /**
- * Delete a document
- * DELETE /api/document/:id/delete
+ * Delete a document (hard delete - permanent)
+ * DELETE /api/document/:id
  */
 export const deleteDocument = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const adminId = req.user._id;
 
-  await DocumentService.deleteDocument(id);
+  const deletedDocInfo = await DocumentService.deleteDocument(id, adminId);
+
+  // Log deletion to audit log
+  try {
+    const { AuditLog } = await import('../models/AuditLog.js');
+    await AuditLog.create({
+      action: 'DELETE_DOCUMENT',
+      userId: adminId,
+      resourceType: 'Document',
+      resourceId: id,
+      details: {
+        title: deletedDocInfo.title,
+        fileName: deletedDocInfo.fileName,
+        category: deletedDocInfo.category
+      },
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent')
+    });
+  } catch (error) {
+    console.error('Failed to create audit log:', error.message);
+    // Don't fail the delete if audit log fails
+  }
 
   res.success(null, 'Document deleted successfully', 200);
-});
-
-/**
- * Restore a deleted document
- * PUT /api/document/:id/restore
- */
-export const restoreDocument = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  const document = await DocumentService.restoreDocument(id);
-
-  res.success(document, 'Document restored successfully', 200);
 });
 
 /**
@@ -110,16 +131,31 @@ export const downloadDocument = asyncHandler(async (req, res) => {
 
   const document = await DocumentService.downloadDocument(id);
 
-  // Add download parameter to force download instead of preview
-  // ?dl=1 tells Cloudinary to serve as attachment, not inline
-  const downloadUrl = document.fileUrl + '?fl_attachment';
-
   console.log('Download requested for document:', id);
   console.log('Original File URL:', document.fileUrl);
-  console.log('Download URL with ?dl=1:', downloadUrl);
+  console.log('External Link:', document.link);
   console.log('File name:', document.fileName);
 
-  // Return Cloudinary URL with download parameter
+  let downloadUrl;
+
+  // Case 1: File uploaded to Cloudinary
+  if (document.fileUrl) {
+    // Add download parameter to force download instead of preview
+    // ?fl_attachment tells Cloudinary to serve as attachment, not inline
+    downloadUrl = document.fileUrl + '?fl_attachment';
+    console.log('Download URL with ?fl_attachment:', downloadUrl);
+  }
+  // Case 2: External link only
+  else if (document.link) {
+    downloadUrl = document.link;
+    console.log('Using external link:', downloadUrl);
+  }
+  // Case 3: Neither file nor link (should not happen)
+  else {
+    return res.error('Document has no file or link', 400);
+  }
+
+  // Return URL with download metadata
   res.success({
     fileUrl: downloadUrl,
     fileName: document.fileName,

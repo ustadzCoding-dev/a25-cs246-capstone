@@ -51,7 +51,6 @@ import {
   addDocument,
   updateDocument,
   deleteDocument,
-  restoreDocument,
   downloadDocument
 } from '../controllers/documentController.js';
 import {
@@ -301,13 +300,35 @@ router.post(
   '/document/add',
   protect,
   adminOnly,
-  upload.single('file'),
+  (req, res, next) => {
+    upload.single('file')(req, res, (err) => {
+      if (err) {
+        console.error('[MULTER ERROR]', err.message);
+        return res.status(400).json({ success: false, message: `File upload error: ${err.message}` });
+      }
+      next();
+    });
+  },
   parseFormDataFields,
   addDocument
 );
-router.put('/document/:id', protect, adminOnly, parseFormDataFields, updateDocument);
+router.put(
+  '/document/:id',
+  protect,
+  adminOnly,
+  (req, res, next) => {
+    upload.single('file')(req, res, (err) => {
+      if (err) {
+        console.error('[MULTER ERROR]', err.message);
+        return res.status(400).json({ success: false, message: `File upload error: ${err.message}` });
+      }
+      next();
+    });
+  },
+  parseFormDataFields,
+  updateDocument
+);
 router.delete('/document/:id', protect, adminOnly, deleteDocument);
-router.put('/document/:id/restore', protect, adminOnly, restoreDocument);
 
 // ========== TIMELINES ==========
 // All: View timelines

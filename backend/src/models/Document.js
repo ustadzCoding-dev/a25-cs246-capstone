@@ -23,7 +23,14 @@ const documentSchema = new mongoose.Schema({
   // Contoh: "https://storage.example.com/documents/guideline.pdf"
   fileUrl: {
     type: String,
-    required: [true, 'File URL is required'],
+    default: null,
+    trim: true
+  },
+  // External link (optional alternative to file upload)
+  // Contoh: "https://drive.google.com/file/d/..."
+  link: {
+    type: String,
+    default: null,
     trim: true
   },
   // Category
@@ -57,12 +64,6 @@ const documentSchema = new mongoose.Schema({
   lastDownloadedAt: {
     type: Date,
     default: null
-  },
-  // Status
-  // Contoh: true
-  isActive: {
-    type: Boolean,
-    default: true
   }
 }, {
   timestamps: true,

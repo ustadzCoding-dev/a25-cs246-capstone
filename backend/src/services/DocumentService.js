@@ -34,11 +34,11 @@ export class DocumentService {
       this.validateDocumentData(documentData);
       console.log('Document data validation passed');
 
-      // 2. Validate file
-      if (!file) {
-        throw new ValidationError('File is required');
+      // 2. Validate file or link (at least one required)
+      if (!file && !documentData.link) {
+        throw new ValidationError('File atau Link harus diisi (minimal salah satu)');
       }
-      console.log('File validation passed');
+      console.log('File or Link validation passed');
 
       // 3. Check title uniqueness
       console.log('Checking title uniqueness...');
@@ -49,35 +49,49 @@ export class DocumentService {
       throw error;
     }
 
-    // 4. Upload file to Cloudinary with proper filename handling
-    console.log('Uploading file to Cloudinary...');
-    let fileUrl;
+    // 4. Upload file to Cloudinary (if file provided)
+    console.log('Processing file upload...');
+    let fileUrl = null;
+    let fileName = 'External Link';
 
-    try {
-      // If file already has secure_url (from multer-storage-cloudinary), use it
-      if (file.secure_url) {
-        fileUrl = file.secure_url;
-        console.log('Using existing Cloudinary URL from multer-storage-cloudinary');
-      } else if (file.path) {
-        // Upload to Cloudinary with signed upload (more reliable)
-        const uploadOptions = {
-          resource_type: 'auto',
-          folder: 'capstone/documents',
-          use_filename: true,
-          unique_filename: false,
-          access_mode: 'public'
-        };
+    if (file) {
+      try {
+        console.log('File object keys:', Object.keys(file));
+        console.log('File path:', file.path);
+        console.log('File secure_url:', file.secure_url);
 
-        console.log('Using signed upload with API credentials');
-        const result = await cloudinary.uploader.upload(file.path, uploadOptions);
-        fileUrl = result.secure_url;
-        console.log('Uploaded to Cloudinary:', fileUrl);
-      } else {
-        throw new ValidationError('No file path available for upload');
+        // If file already has secure_url (from multer-storage-cloudinary), use it
+        if (file.secure_url) {
+          fileUrl = file.secure_url;
+          console.log('Using existing Cloudinary URL from multer-storage-cloudinary');
+        } else if (file.path) {
+          // Upload to Cloudinary with signed upload (more reliable)
+          const uploadOptions = {
+            resource_type: 'auto',
+            folder: 'capstone/documents',
+            use_filename: true,
+            unique_filename: false,
+            access_mode: 'public'
+          };
+
+          console.log('Using signed upload with API credentials');
+          console.log('Uploading from path:', file.path);
+          const result = await cloudinary.uploader.upload(file.path, uploadOptions);
+          fileUrl = result.secure_url;
+          console.log('Uploaded to Cloudinary:', fileUrl);
+        } else {
+          console.error('File object:', JSON.stringify(file, null, 2));
+          throw new ValidationError('No file path available for upload. File object missing path property.');
+        }
+        fileName = file.originalname || file.filename;
+      } catch (error) {
+        console.error('Cloudinary upload error - Full error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        throw new Error(`Failed to upload file to Cloudinary: ${error.message || JSON.stringify(error)}`);
       }
-    } catch (error) {
-      console.error('Cloudinary upload error:', error.message);
-      throw new Error(`Failed to upload file to Cloudinary: ${error.message}`);
+    } else {
+      console.log('No file provided, using external link instead');
     }
 
     // 5. Create document record
@@ -86,8 +100,9 @@ export class DocumentService {
       description: documentData.description.trim(),
       category: documentData.category,
       visibility: documentData.visibility,
-      fileName: file.originalname || file.filename,
-      fileUrl,
+      fileName: fileName,
+      fileUrl: fileUrl,
+      link: documentData.link || null,
       uploadedBy: adminId,
       downloadCount: 0,
       isActive: true
@@ -114,19 +129,14 @@ export class DocumentService {
       search,
       page = 1,
       limit = 10,
-      userRole = 'student',
-      showDeleted = false
+      userRole = 'student'
     } = filters;
 
     // Build query
     const query = {};
 
-    // Filter by active/deleted status
-    if (showDeleted) {
-      query.isActive = false;
-    } else {
-      query.isActive = true;
-    }
+    // Note: Hard delete implemented - no soft delete, so no isActive filter needed
+    // All documents in DB are "active" (deleted ones are removed)
 
     // If not admin, only show public documents
     if (userRole !== 'admin') {
@@ -210,46 +220,49 @@ export class DocumentService {
   }
 
   /**
-   * Delete document (Soft delete - only mark as inactive)
+   * Delete a document (hard delete - permanent)
    * @param {string} documentId - Document ID
-   * @returns {Promise<void>}
+   * @param {string} _adminId - Admin user ID (for audit log)
+   * @returns {Promise<Object>} Deleted document info
    * @throws {NotFoundError} If document not found
    */
-  async deleteDocument(documentId) {
+  async deleteDocument(documentId, _adminId) {
     const document = await Document.findById(documentId);
 
     if (!document) {
       throw new NotFoundError('Document not found');
     }
 
-    // Soft delete from database (do NOT delete file)
-    // File will be deleted only on permanent delete
-    document.isActive = false;
-    await document.save();
-  }
+    // Store document info before deletion (for audit log)
+    const deletedDocInfo = {
+      id: document._id,
+      title: document.title,
+      fileName: document.fileName,
+      fileUrl: document.fileUrl,
+      link: document.link,
+      category: document.category
+    };
 
-  /**
-   * Restore a deleted document
-   * @param {string} documentId - Document ID
-   * @returns {Promise<Object>} Restored document
-   * @throws {NotFoundError} If document not found
-   */
-  async restoreDocument(documentId) {
-    const document = await Document.findById(documentId);
-
-    if (!document) {
-      throw new NotFoundError('Document not found');
+    // Delete file from Cloudinary if exists
+    if (document.fileUrl) {
+      try {
+        await this.deleteCloudinaryFile(document.fileUrl);
+        console.log('Deleted from Cloudinary:', document.fileUrl);
+      } catch (error) {
+        console.error('Failed to delete file from Cloudinary:', error.message);
+        // Continue with database deletion even if Cloudinary delete fails
+      }
     }
 
-    // Restore from soft delete
-    document.isActive = true;
-    await document.save();
+    // Hard delete from database
+    await Document.findByIdAndDelete(documentId);
+    console.log('Document hard deleted from database:', documentId);
 
-    return document;
+    return deletedDocInfo;
   }
 
   /**
-   * Update document
+   * Update document (metadata only, no file)
    * @param {string} documentId - Document ID
    * @param {Object} updateData - Data to update
    * @returns {Promise<Object>} Updated document
@@ -262,16 +275,140 @@ export class DocumentService {
       throw new NotFoundError('Document not found');
     }
 
-    // Update allowed fields
-    const allowedFields = ['title', 'description', 'category', 'visibility'];
+    // Update allowed fields (including link now)
+    const allowedFields = ['title', 'description', 'category', 'visibility', 'link'];
     allowedFields.forEach(field => {
-      if (updateData[field]) {
+      if (field === 'link') {
+        // Allow link to be updated or cleared
+        document[field] = updateData[field] || null;
+      } else if (updateData[field]) {
         document[field] = updateData[field];
       }
     });
 
     await document.save();
     return document;
+  }
+
+  /**
+   * Update document with file replacement
+   * @param {string} documentId - Document ID
+   * @param {Object} updateData - Data to update (title, description, category, visibility, link)
+   * @param {Object} file - New file from Multer (optional)
+   * @returns {Promise<Object>} Updated document
+   * @throws {NotFoundError} If document not found
+   * @throws {ValidationError} If validation fails
+   */
+  async updateDocumentWithFile(documentId, updateData, file) {
+    console.log('=== DocumentService.updateDocumentWithFile ===');
+    console.log('documentId:', documentId);
+    console.log('updateData:', updateData);
+    console.log('file:', file ? { filename: file.filename, mimetype: file.mimetype, size: file.size } : null);
+
+    const document = await Document.findById(documentId);
+
+    if (!document) {
+      throw new NotFoundError('Document not found');
+    }
+
+    try {
+      // 1. Validate input
+      console.log('Validating document data...');
+      this.validateDocumentData(updateData);
+      console.log('Document data validation passed');
+
+      // 2. Validate file or link (at least one required)
+      if (!file && !updateData.link && !document.fileUrl) {
+        throw new ValidationError('File atau Link harus diisi (minimal salah satu)');
+      }
+      console.log('File or Link validation passed');
+
+      // 3. Check title uniqueness (if title changed)
+      if (updateData.title !== document.title) {
+        console.log('Checking title uniqueness for new title...');
+        const existing = await Document.findOne({
+          title: updateData.title.trim(),
+          isActive: true,
+          _id: { $ne: documentId }
+        });
+
+        if (existing) {
+          throw new ConflictError('Document title already exists');
+        }
+        console.log('Title uniqueness check passed');
+      }
+
+      // 4. Handle file upload (if new file provided)
+      let fileUrl = document.fileUrl;
+      let fileName = document.fileName;
+
+      if (file) {
+        try {
+          // Delete old file from Cloudinary if exists
+          if (document.fileUrl) {
+            console.log('Deleting old file from Cloudinary...');
+            await this.deleteCloudinaryFile(document.fileUrl);
+            console.log('Old file deleted');
+          }
+
+          // Upload new file
+          const uploadOptions = {
+            resource_type: 'auto',
+            folder: 'capstone/documents',
+            use_filename: true,
+            unique_filename: false,
+            access_mode: 'public'
+          };
+
+          console.log('Uploading new file to Cloudinary...');
+          const result = await cloudinary.uploader.upload(file.path, uploadOptions);
+          fileUrl = result.secure_url;
+          fileName = file.originalname || file.filename;
+          console.log('New file uploaded:', fileUrl);
+        } catch (error) {
+          console.error('Cloudinary upload error:', error.message);
+          throw new Error(`Failed to upload file to Cloudinary: ${error.message}`);
+        }
+      }
+
+      // 5. Update document
+      document.title = updateData.title.trim();
+      document.description = updateData.description.trim();
+      document.category = updateData.category;
+      document.visibility = updateData.visibility;
+      document.fileUrl = fileUrl;
+      document.fileName = fileName;
+      document.link = updateData.link || null;
+
+      await document.save();
+      console.log('Document updated successfully');
+
+      return document;
+    } catch (error) {
+      console.error('DocumentService.updateDocumentWithFile error:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete file from Cloudinary
+   * @private
+   */
+  async deleteCloudinaryFile(fileUrl) {
+    try {
+      // Extract public_id from Cloudinary URL
+      // URL format: https://res.cloudinary.com/[cloud]/image/upload/v[version]/[folder]/[public_id]
+      const urlParts = fileUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1];
+      const publicId = `capstone/documents/${fileName.split('.')[0]}`;
+
+      console.log('Attempting to delete Cloudinary file:', publicId);
+      await cloudinary.uploader.destroy(publicId);
+      console.log('Cloudinary file deleted successfully');
+    } catch (error) {
+      console.error('Error deleting Cloudinary file:', error.message);
+      // Don't throw error, just log it - file deletion failure shouldn't block update
+    }
   }
 
   /**
