@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import logger from '../utils/logger.js';
-import { setTimeout, setInterval } from 'timers';
+import { setTimeout, setInterval, clearTimeout } from 'timers';
 
 const connectDB = async () => {
   try {
@@ -11,9 +11,9 @@ const connectDB = async () => {
     }
 
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      // Connection pool settings
-      maxPoolSize: 10,
-      minPoolSize: 5,
+      // Connection pool settings - Adjusted for M0 cluster (max 3 connections)
+      maxPoolSize: 3,
+      minPoolSize: 1,
       // Timeout settings
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
@@ -72,8 +72,9 @@ const connectDB = async () => {
 
 // Handle connection events
 let reconnectAttempts = 0;
-const maxReconnectAttempts = 5;
+const maxReconnectAttempts = 3; // Reduced from 5 for M0 cluster
 let isReconnecting = false;
+let disconnectDebounceTimer; // Debounce timer for disconnect events
 
 // Circuit Breaker Pattern
 let circuitBreakerOpen = false;
@@ -109,73 +110,81 @@ const getReconnectDelay = (attempt) => {
 mongoose.connection.on('disconnected', () => {
   logger.warn('MongoDB disconnected');
 
-  // Check Circuit Breaker status
-  if (circuitBreakerOpen) {
-    logger.warn('⚠️ Circuit breaker is OPEN. Stopping reconnection attempts for 10 minutes.');
-    logger.warn('Too many failures detected. MongoDB service may be down or unreachable.');
-    return;
+  // Debounce: Clear existing timer and set new one
+  // This prevents reconnection loop by waiting 60s before attempting reconnect
+  if (disconnectDebounceTimer) {
+    clearTimeout(disconnectDebounceTimer);
   }
 
-  // Prevent multiple reconnect attempts from firing simultaneously
-  if (isReconnecting) {
-    logger.warn('Reconnection already in progress, skipping...');
-    return;
-  }
+  disconnectDebounceTimer = setTimeout(() => {
+    // Check Circuit Breaker status
+    if (circuitBreakerOpen) {
+      logger.warn('⚠️ Circuit breaker is OPEN. Stopping reconnection attempts for 10 minutes.');
+      logger.warn('Too many failures detected. MongoDB service may be down or unreachable.');
+      return;
+    }
 
-  // Track failures in time window
-  const currentFailureCount = trackFailure();
+    // Prevent multiple reconnect attempts from firing simultaneously
+    if (isReconnecting) {
+      logger.warn('Reconnection already in progress, skipping...');
+      return;
+    }
 
-  // Check if we've exceeded failure threshold
-  if (currentFailureCount >= failureThreshold) {
-    logger.error(`❌ Circuit breaker triggered: ${currentFailureCount} failures in ${failureWindowMs / 1000 / 60} minutes`);
-    circuitBreakerOpen = true;
+    // Track failures in time window
+    const currentFailureCount = trackFailure();
 
-    // Reset circuit breaker after duration
-    setTimeout(() => {
-      circuitBreakerOpen = false;
-      resetFailures();
-      logger.info('🔄 Circuit breaker RESET. Attempting reconnection again...');
-    }, circuitBreakerDuration);
+    // Check if we've exceeded failure threshold
+    if (currentFailureCount >= failureThreshold) {
+      logger.error(`❌ Circuit breaker triggered: ${currentFailureCount} failures in ${failureWindowMs / 1000 / 60} minutes`);
+      circuitBreakerOpen = true;
 
-    return;
-  }
-
-  // Auto-reconnect logic with exponential backoff
-  if (reconnectAttempts < maxReconnectAttempts) {
-    reconnectAttempts++;
-    const delay = getReconnectDelay(reconnectAttempts);
-    const delaySeconds = (delay / 1000).toFixed(1);
-
-    logger.info(`Attempting to reconnect to MongoDB (attempt ${reconnectAttempts}/${maxReconnectAttempts}) in ${delaySeconds}s...`);
-    isReconnecting = true;
-
-    setTimeout(() => {
-      if (!process.env.MONGODB_URI) {
-        isReconnecting = false;
-        return;
-      }
-
-      mongoose.connect(process.env.MONGODB_URI, {
-        maxPoolSize: 10,
-        minPoolSize: 5,
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-        connectTimeoutMS: 10000,
-        retryWrites: true,
-        retryReads: true
-      }).then(() => {
+      // Reset circuit breaker after duration
+      setTimeout(() => {
+        circuitBreakerOpen = false;
         resetFailures();
-        isReconnecting = false;
-        logger.info('✅ MongoDB reconnected successfully');
-      }).catch((err) => {
-        isReconnecting = false;
-        logger.error(`Reconnection failed: ${err.message}`);
-      });
-    }, delay);
-  } else {
-    logger.error('Max reconnection attempts reached. Please check your MongoDB connection.');
-    isReconnecting = false;
-  }
+        logger.info('🔄 Circuit breaker RESET. Attempting reconnection again...');
+      }, circuitBreakerDuration);
+
+      return;
+    }
+
+    // Auto-reconnect logic with exponential backoff
+    if (reconnectAttempts < maxReconnectAttempts) {
+      reconnectAttempts++;
+      const delay = getReconnectDelay(reconnectAttempts);
+      const delaySeconds = (delay / 1000).toFixed(1);
+
+      logger.info(`Attempting to reconnect to MongoDB (attempt ${reconnectAttempts}/${maxReconnectAttempts}) in ${delaySeconds}s...`);
+      isReconnecting = true;
+
+      setTimeout(() => {
+        if (!process.env.MONGODB_URI) {
+          isReconnecting = false;
+          return;
+        }
+
+        mongoose.connect(process.env.MONGODB_URI, {
+          maxPoolSize: 3,
+          minPoolSize: 1,
+          serverSelectionTimeoutMS: 5000,
+          socketTimeoutMS: 45000,
+          connectTimeoutMS: 10000,
+          retryWrites: true,
+          retryReads: true
+        }).then(() => {
+          resetFailures();
+          isReconnecting = false;
+          logger.info('✅ MongoDB reconnected successfully');
+        }).catch((err) => {
+          isReconnecting = false;
+          logger.error(`Reconnection failed: ${err.message}`);
+        });
+      }, delay);
+    } else {
+      logger.error('Max reconnection attempts reached. Please check your MongoDB connection.');
+      isReconnecting = false;
+    }
+  }, 60000); // Debounce: Wait 60 seconds before attempting reconnect
 });
 
 mongoose.connection.on('reconnected', () => {
