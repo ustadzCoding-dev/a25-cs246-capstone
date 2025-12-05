@@ -337,6 +337,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import Swal from 'sweetalert2'
 import { useAuthStore } from '../../stores/authStore'
 import { useStudentMenu } from '../../composables/useStudentMenu'
 import { useAdminMenu } from '../../composables/useAdminMenu'
