@@ -18,7 +18,7 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
+        url: 'http://localhost:8000',
         description: 'Development server'
       },
       {
@@ -58,8 +58,8 @@ const options = {
             },
             role: {
               type: 'string',
-              enum: ['student', 'admin'],
-              description: 'User role'
+              enum: ['student', 'admin', 'mentor'],
+              description: 'User role (student, admin, mentor)'
             },
             learningPath: {
               type: 'string',
@@ -129,7 +129,7 @@ const options = {
             },
             status: {
               type: 'string',
-              enum: ['draft', 'pending', 'approved', 'rejected'],
+              enum: ['pending', 'approved', 'rejected'],
               description: 'Team approval status'
             },
             submittedAt: {
@@ -184,6 +184,90 @@ const options = {
             data: {
               type: 'object',
               description: 'Response data'
+            }
+          }
+        },
+        Invitation: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Invitation ID'
+            },
+            leaderId: {
+              type: 'string',
+              description: 'Team leader user ID'
+            },
+            memberId: {
+              type: 'string',
+              description: 'Invited member user ID'
+            },
+            teamId: {
+              type: 'string',
+              description: 'Team ID'
+            },
+            status: {
+              type: 'string',
+              enum: ['pending', 'accepted', 'rejected'],
+              description: 'Invitation status'
+            },
+            rejectionReason: {
+              type: 'string',
+              description: 'Reason for rejection (if rejected)'
+            },
+            expiresAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Invitation expiry date'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time'
+            }
+          }
+        },
+        UseCase: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Use case ID'
+            },
+            useCaseId: {
+              type: 'string',
+              description: 'Unique use case identifier'
+            },
+            title: {
+              type: 'string',
+              description: 'Use case title'
+            },
+            description: {
+              type: 'string',
+              description: 'Use case description'
+            },
+            composition: {
+              type: 'object',
+              description: 'Required team composition (learning paths and counts)'
+            },
+            totalSlots: {
+              type: 'integer',
+              description: 'Total available slots'
+            },
+            availableSlots: {
+              type: 'integer',
+              description: 'Currently available slots'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time'
             }
           }
         }
@@ -291,16 +375,16 @@ const options = {
         description: 'System announcements'
       },
       {
-        name: 'Worksheet',
-        description: 'Worksheet check-in management'
-      },
-      {
         name: 'Dashboard',
         description: 'Dashboard statistics'
       },
       {
         name: 'Use Cases',
         description: 'Capstone project use case management'
+      },
+      {
+        name: 'Students',
+        description: 'Student lookup and information'
       }
     ]
   },

@@ -1,0 +1,568 @@
+{
+  "collections": {
+    "capstone_test.announcements": {
+      "ns": "capstone_test.announcements",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "content",
+          "createdAt",
+          "createdBy",
+          "priority",
+          "title",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "content": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "createdBy": {
+            "bsonType": "objectId"
+          },
+          "priority": {
+            "bsonType": "string"
+          },
+          "title": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "capstone_test.capstonegroups": {
+      "ns": "capstone_test.capstonegroups",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {}
+      }
+    },
+    "capstone_test.counters": {
+      "ns": "capstone_test.counters",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "seq"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "string"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "seq": {
+            "bsonType": "int"
+          }
+        }
+      }
+    },
+    "capstone_test.documents": {
+      "ns": "capstone_test.documents",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "category",
+          "createdAt",
+          "description",
+          "downloadCount",
+          "fileName",
+          "fileUrl",
+          "lastDownloadedAt",
+          "link",
+          "title",
+          "updatedAt",
+          "uploadedBy",
+          "visibility"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "category": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "downloadCount": {
+            "bsonType": "int"
+          },
+          "fileName": {
+            "bsonType": "string"
+          },
+          "fileUrl": {
+            "bsonType": "string"
+          },
+          "lastDownloadedAt": {
+            "bsonType": "null"
+          },
+          "link": {
+            "bsonType": "null"
+          },
+          "title": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          },
+          "uploadedBy": {
+            "bsonType": "objectId"
+          },
+          "visibility": {
+            "bsonType": "string"
+          }
+        }
+      }
+    },
+    "capstone_test.invitations": {
+      "ns": "capstone_test.invitations",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {}
+      }
+    },
+    "capstone_test.learninggroups": {
+      "ns": "capstone_test.learninggroups",
+      "jsonSchema": {
+        "bsonType": "object",
+        "properties": {}
+      }
+    },
+    "capstone_test.learningpaths": {
+      "ns": "capstone_test.learningpaths",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "code",
+          "createdAt",
+          "description",
+          "dicodingIdPrefix",
+          "isActive",
+          "name",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "code": {
+            "bsonType": "string"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "dicodingIdPrefix": {
+            "bsonType": "string"
+          },
+          "isActive": {
+            "bsonType": "bool"
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "capstone_test.timelines": {
+      "ns": "capstone_test.timelines",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "createdAt",
+          "createdBy",
+          "daysRemaining",
+          "description",
+          "endDate",
+          "isOverdue",
+          "priority",
+          "startDate",
+          "status",
+          "title",
+          "type",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "createdBy": {
+            "bsonType": "objectId"
+          },
+          "daysRemaining": {
+            "bsonType": "int"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "endDate": {
+            "bsonType": "date"
+          },
+          "isOverdue": {
+            "bsonType": "bool"
+          },
+          "priority": {
+            "bsonType": "string"
+          },
+          "startDate": {
+            "bsonType": "date"
+          },
+          "status": {
+            "bsonType": "string"
+          },
+          "title": {
+            "bsonType": "string"
+          },
+          "type": {
+            "bsonType": "string"
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    },
+    "capstone_test.usecases": {
+      "ns": "capstone_test.usecases",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "availableSlots",
+          "capstoneGroup",
+          "description",
+          "difficulty",
+          "partner",
+          "status",
+          "teamComposition",
+          "title",
+          "totalSlots",
+          "totalTeamSize",
+          "usecaseId"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "availableSlots": {
+            "bsonType": "int"
+          },
+          "capstoneGroup": {
+            "bsonType": "array"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "difficulty": {
+            "bsonType": "string"
+          },
+          "partner": {
+            "bsonType": "string"
+          },
+          "status": {
+            "bsonType": "string"
+          },
+          "teamComposition": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "object",
+              "properties": {
+                "_id": {
+                  "bsonType": "objectId"
+                },
+                "count": {
+                  "bsonType": "int"
+                },
+                "learningPathId": {
+                  "bsonType": "objectId"
+                },
+                "learningPathName": {
+                  "bsonType": "string"
+                }
+              },
+              "required": [
+                "_id",
+                "count",
+                "learningPathId",
+                "learningPathName"
+              ]
+            }
+          },
+          "title": {
+            "bsonType": "string"
+          },
+          "totalSlots": {
+            "bsonType": "int"
+          },
+          "totalTeamSize": {
+            "bsonType": "int"
+          },
+          "usecaseId": {
+            "bsonType": "string"
+          }
+        }
+      }
+    },
+    "capstone_test.users": {
+      "ns": "capstone_test.users",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "__v",
+          "capstoneGroupId",
+          "createdAt",
+          "dicodingId",
+          "email",
+          "isEmailVerified",
+          "lastLogin",
+          "learningGroupId",
+          "learningPathId",
+          "learningPathName",
+          "memberStatus",
+          "name",
+          "profilePicture",
+          "provider",
+          "refreshToken",
+          "role",
+          "university",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "__v": {
+            "bsonType": "int"
+          },
+          "capstoneGroupId": {
+            "bsonType": "null"
+          },
+          "createdAt": {
+            "bsonType": "date"
+          },
+          "dicodingId": {
+            "bsonType": "string"
+          },
+          "email": {
+            "bsonType": "string"
+          },
+          "googleId": {
+            "bsonType": "string"
+          },
+          "isEmailVerified": {
+            "bsonType": "bool"
+          },
+          "lastLogin": {
+            "bsonType": "date"
+          },
+          "learningGroupId": {
+            "bsonType": "null"
+          },
+          "learningPathId": {
+            "bsonType": [
+              "objectId",
+              "null"
+            ]
+          },
+          "learningPathName": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "memberStatus": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "password": {
+            "bsonType": "string"
+          },
+          "profilePicture": {
+            "bsonType": [
+              "null",
+              "string"
+            ]
+          },
+          "provider": {
+            "bsonType": "string"
+          },
+          "refreshToken": {
+            "bsonType": "string"
+          },
+          "resetPasswordExpires": {
+            "bsonType": "null"
+          },
+          "resetPasswordToken": {
+            "bsonType": "null"
+          },
+          "role": {
+            "bsonType": "string"
+          },
+          "university": {
+            "bsonType": [
+              "string",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "bsonType": "date"
+          }
+        }
+      }
+    }
+  },
+  "relationships": [
+    {
+      "id": "c9e9b73c-523b-4e5f-aba0-edf11b0d81bb",
+      "relationship": [
+        {
+          "ns": "capstone_test.usecases",
+          "fields": [
+            "teamComposition",
+            "learningPathId"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "capstone_test.learningpaths",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "adf91b97-6de3-40dc-9ba7-2aa6e69d8922",
+      "relationship": [
+        {
+          "ns": "capstone_test.users",
+          "fields": [
+            "learningPathId"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "capstone_test.learningpaths",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "c19e097d-82f2-4ce8-9cf2-1aa4a3a705c5",
+      "relationship": [
+        {
+          "ns": "capstone_test.announcements",
+          "fields": [
+            "createdBy"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "capstone_test.users",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "9f23ab2a-57e0-4aad-a757-5348cf2735bc",
+      "relationship": [
+        {
+          "ns": "capstone_test.documents",
+          "fields": [
+            "uploadedBy"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "capstone_test.users",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    },
+    {
+      "id": "cfaab894-084f-4b08-b7b5-427967ff528e",
+      "relationship": [
+        {
+          "ns": "capstone_test.timelines",
+          "fields": [
+            "createdBy"
+          ],
+          "cardinality": 1
+        },
+        {
+          "ns": "capstone_test.users",
+          "fields": [
+            "_id"
+          ],
+          "cardinality": 1
+        }
+      ],
+      "isInferred": true
+    }
+  ]
+}

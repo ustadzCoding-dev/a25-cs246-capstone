@@ -192,25 +192,23 @@ const router = createRouter({
       meta: { requiresAuth: true, title: 'Profil' },
     },
 
-    // Worksheet / Check-in Progress (Student)
-    {
-      path: '/worksheet',
-      name: 'student-worksheet',
-      component: () => import('../views/worksheet/StudentWorksheet.vue'),
-      meta: { requiresAuth: true, title: 'Capstone Worksheet' },
-    },
-
-    // Worksheet Management (Admin)
-    {
-      path: '/admin/worksheet',
-      name: 'admin-worksheet',
-      component: () => import('../views/worksheet/AdminWorksheet.vue'),
-      meta: {
-        requiresAuth: true,
-        requiresAdmin: true,
-        title: 'Kelola Worksheet',
-      },
-    },
+    // DISABLED: Worksheet feature removed
+    // {
+    //   path: '/worksheet',
+    //   name: 'student-worksheet',
+    //   component: () => import('../views/worksheet/StudentWorksheet.vue'),
+    //   meta: { requiresAuth: true, title: 'Capstone Worksheet' },
+    // },
+    // {
+    //   path: '/admin/worksheet',
+    //   name: 'admin-worksheet',
+    //   component: () => import('../views/worksheet/AdminWorksheet.vue'),
+    //   meta: {
+    //     requiresAuth: true,
+    //     requiresAdmin: true,
+    //     title: 'Kelola Worksheet',
+    //   },
+    // },
 
     // 404 Not Found
     {

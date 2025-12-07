@@ -1,345 +1,433 @@
-# 🎓 Dicoding Academic Dashboard - Capstone Project Features
+# 🎓 DC-09 Capstone Project Management System
 
-**Tim Capstone Project:** A25-CS246
-**Use Case:** DC-09 - Enhancing Academic Dashboard with Capstone Project Features
-**Program:** Asah - Dicoding Indonesia x Accenture
+**Sistem manajemen capstone project terintegrasi** untuk Dicoding Academy dengan fitur team management, document repository, timeline tracking, dan announcement system.
 
-## 📋 Deskripsi Project
-
-Sistem dashboard terintegrasi untuk manajemen Capstone Project Dicoding yang melayani 30.000+ peserta. Proyek ini mengintegrasikan fitur-fitur capstone ke dalam Academic Dashboard untuk meningkatkan efisiensi monitoring, validasi tim, dan distribusi informasi.
-
-## 👥 Tim Pengembang
-
-| Nama                    | ID          | Role                               | Learning Path                |
-| ----------------------- | ----------- | ---------------------------------- | ---------------------------- |
-| Afrizal Ilza Munadhif   | F886D5Y0069 | Project Manager + Full Stack       | Front-End & Back-End with AI |
-| Deby Maulida            | F891D5X0445 | Front-End Lead + UI/UX Designer    | Front-End & Back-End with AI |
-| Ganza Wajendra Ekasakti | F268D5Y0679 | Back-End Lead + Database Architect | Front-End & Back-End with AI |
-| Marsa Ardita            | F891D5X1077 | Full Stack Developer               | Front-End & Back-End with AI |
-| Muhammad Rizky          | F295D5Y1370 | Full Stack Developer + DevOps      | Front-End & Back-End with AI |
-
-## ✨ Fitur Utama (MVP)
-
-### 1. 📝 Registrasi Tim Capstone
-
-- Form pendaftaran tim dengan validasi otomatis
-- Validasi komposisi learning path sesuai ketentuan
-- Admin dashboard untuk approve/reject tim
-- Status tracking pengajuan tim
-
-### 2. 📚 Informasi Dokumen Capstone
-
-- Repository terpusat untuk dokumen panduan
-- Upload/download dokumen (admin/siswa)
-- Kategorisasi dokumen berdasarkan jenis
-- Search dan filter dokumen
-
-### 3. 📅 Timeline Capstone
-
-- Visualisasi milestone dan deadline
-- Highlight deadline terdekat
-- Status overdue tracking
-- Calendar view untuk semua aktivitas
-
-### 4. 👤 Profile Management
-
-- Google OAuth authentication
-- Profile picture upload ke Cloudinary
-- Learning path management
-- University information
-
-### 5. 📧 Team Invitations
-
-- Automatic invitation creation
-- Email notifications
-- Accept/reject workflow
-- Invitation tracking
-
-### 6. � Worksheet/Check-in
-
-- Bi-weekly progress check-in
-- Evidence submission
-- Admin validation
-- Status tracking
-
-## �🛠️ Tech Stack
-
-### Front-End
-
-- **Framework:** Vue.js 3 (Composition API)
-- **Build Tool:** Vite 5
-- **Routing:** Vue Router 4
-- **State Management:** Pinia
-- **Styling:** Tailwind CSS 3
-- **HTTP Client:** Axios
-- **Utilities:** VueUse
-- **Data Fetching:** Vue Query (TanStack Query)
-- **Testing:** Vitest + @vue/test-utils
-
-### Back-End
-
-- **Framework:** Express.js 4
-- **Database:** MongoDB 7
-- **ODM:** Mongoose 8
-- **Authentication:** JWT + Bcrypt
-- **File Upload:** Multer
-- **Validation:** Joi
-- **CORS:** CORS middleware
-
-### DevOps & Tools
-
-- **Version Control:** GitHub
-- **CI/CD:** GitHub Actions
-- **Front-End Hosting:** Vercel
-- **Back-End Hosting:** Railway
-- **API Testing:** Postman
-- **Design:** Figma
-- **Code Quality:** ESLint + Prettier
-
-## 📁 Struktur Project
-
-```
-A25-CS246/
-├── frontend/                 # Vue.js Application
-│   ├── src/
-│   │   ├── assets/          # Images, fonts, static files
-│   │   ├── components/      # Reusable Vue components
-│   │   ├── views/           # Page components
-│   │   ├── router/          # Vue Router configuration
-│   │   ├── stores/          # Pinia stores
-│   │   ├── composables/     # Composition functions
-│   │   ├── utils/           # Helper functions
-│   │   ├── services/        # API services
-│   │   ├── App.vue          # Root component
-│   │   └── main.js          # Entry point
-│   ├── public/              # Public static files
-│   ├── tests/               # Unit & integration tests
-│   ├── package.json
-│   ├── vite.config.js
-│   └── tailwind.config.js
-│
-├── backend/                 # Express.js API
-│   ├── src/
-│   │   ├── config/          # Configuration files
-│   │   ├── models/          # Mongoose models
-│   │   ├── controllers/     # Route controllers
-│   │   ├── routes/          # API routes
-│   │   ├── middleware/      # Custom middleware
-│   │   ├── utils/           # Helper functions
-│   │   ├── validators/      # Joi validators
-│   │   └── server.js        # Entry point
-│   ├── tests/               # API tests
-│   ├── uploads/             # Uploaded files (gitignored)
-│   └── package.json
-│
-├── docs/                    # Documentation
-│   ├── api/                 # API documentation
-│   ├── design/              # Design files & wireframes
-│   └── reports/             # Progress reports
-│
-├── .github/                 # GitHub configuration
-│   ├── workflows/           # CI/CD workflows
-│   └── PULL_REQUEST_TEMPLATE.md
-│
-├── .gitignore
-├── README.md
-├── ProjectPlan.md
-└── BRANCHING_STRATEGY.md
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js >= 18.x
-- npm >= 9.x
-- MongoDB >= 7.x
-- Git
-
-### Installation
-
-#### 1. Clone Repository
-
-```bash
-git clone https://github.com/[username]/A25-CS246.git
-cd A25-CS246
-```
-
-#### 2. Setup Front-End
-
-```bash
-cd frontend
-npm install
-cp .env.example .env
-# Edit .env dengan konfigurasi Anda
-npm run dev
-```
-
-Front-end akan berjalan di `http://localhost:5173`
-
-#### 3. Setup Back-End
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Edit .env dengan konfigurasi MongoDB dan JWT secret
-npm run dev
-```
-
-Back-end akan berjalan di `http://localhost:3000`
-
-## 📝 Environment Variables
-
-### Front-End (.env)
-
-```env
-VITE_API_BASE_URL=http://localhost:3000/api
-```
-
-### Back-End (.env)
-
-```env
-PORT=3000
-MONGODB_URI=mongodb://localhost:27017/dicoding-capstone
-JWT_SECRET=your-secret-key-here
-JWT_EXPIRES_IN=7d
-NODE_ENV=development
-CORS_ORIGIN=http://localhost:5173
-```
-
-## 🔄 Branching Strategy
-
-Kami menggunakan **Git Flow** dengan struktur:
-
-- `main` - Production-ready code
-- `develop` - Development branch
-- `feature/*` - Feature branches
-- `bugfix/*` - Bug fix branches
-- `hotfix/*` - Hotfix branches
-
-Lihat [BRANCHING_STRATEGY.md](./BRANCHING_STRATEGY.md) untuk detail lengkap.
-
-## 🧪 Testing
-
-### Front-End Testing
-
-```bash
-cd frontend
-npm run test          # Run unit tests
-npm run test:ui       # Run tests with UI
-npm run coverage      # Generate coverage report
-```
-
-### Back-End Testing
-
-```bash
-cd backend
-npm run test          # Run API tests
-npm run test:watch    # Run tests in watch mode
-```
-
-## 📦 Build & Deployment
-
-### Build Front-End
-
-```bash
-cd frontend
-npm run build         # Build untuk production
-npm run preview       # Preview production build
-```
-
-### Build Back-End
-
-```bash
-cd backend
-npm run build         # Jika menggunakan TypeScript
-npm start             # Run production server
-```
-
-### Deployment
-
-- **Front-End:** Auto-deploy ke Vercel via GitHub integration
-- **Back-End:** Auto-deploy ke Railway via GitHub integration
-
-## 📚 Documentation
-
-- [Project Plan](./ProjectPlan.md) - Rencana lengkap proyek
-- [Roadmap](./ROADMAP.md) - Project roadmap & timeline
-- [API Documentation](./docs/api/API_REFERENCE.md) - Complete API reference
-- [Developer Setup](./docs/01-getting-started/DEVELOPER_SETUP.md) - Local development guide
-- [Branching Strategy](./BRANCHING_STRATEGY.md) - Git workflow
-- [Design Files](./docs/design/) - Figma wireframes & mockups
-- [Full Documentation](./docs/README.md) - Complete documentation index
-
-## 🤝 Contributing
-
-### Pull Request Process
-
-1. Create feature branch dari `develop`
-
-   ```bash
-   git checkout develop
-   git pull origin develop
-   git checkout -b feature/nama-fitur
-   ```
-
-2. Commit changes dengan conventional commits
-
-   ```bash
-   git commit -m "feat: add registration form validation"
-   ```
-
-3. Push dan create Pull Request
-
-   ```bash
-   git push origin feature/nama-fitur
-   ```
-
-4. Request review dari minimal 1 team member
-5. Merge setelah approved dan CI/CD passed
-
-### Commit Convention
-
-Gunakan [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat:` - Fitur baru
-- `fix:` - Bug fix
-- `docs:` - Dokumentasi
-- `style:` - Formatting, tidak mengubah logic
-- `refactor:` - Refactoring code
-- `test:` - Menambah/update tests
-- `chore:` - Maintenance tasks
-
-## 📅 Timeline
-
-| Week | Periode         | Fokus                     |
-| ---- | --------------- | ------------------------- |
-| W1   | 31 Okt - 6 Nov  | Planning & Setup          |
-| W2   | 7 Nov - 13 Nov  | Registrasi Tim Feature    |
-| W3   | 14 Nov - 20 Nov | Informasi Dokumen Feature |
-| W4   | 21 Nov - 27 Nov | Timeline Feature          |
-| W5   | 28 Nov - 4 Des  | Testing & Deployment      |
-| W6   | 5 Des - 15 Des  | Finalisasi & Deliverables |
-
-**Submission Deadlines:**
-
-- ✅ Project Plan: 31 Oktober 2025
-- 📝 Laporan Kemajuan: 18 November 2025
-- 🔄 360 Feedback: 13-15 Desember 2025
-- 🎯 Final Deliverables: 15 Desember 2025
-
-## 📞 Contact
-
-**Ketua Tim:** Afrizal Ilza Munadhif
-**Email:** asah@dicoding.com
-**WhatsApp:** 0856-5945-2688
-
-## 📄 License
-
-This project is developed for educational purposes as part of Dicoding's Asah Program in association with Accenture.
+**Status:** ✅ MVP Ready (v1.0.0) | **Last Updated:** December 8, 2025 | **Repository:** [GitHub](https://github.com/ustadzCoding/A25-CS246)
 
 ---
 
-**Made with ❤️ by Tim A25-CS246**
-_Dicoding Indonesia x Accenture - Asah Program 2025_
+## 📖 Quick Navigation
+
+### For Different Roles
+
+| Role             | Start Here             | Key Features                                                                                                               |
+| ---------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **👨‍🎓 Student**   | [SETUP.md](./SETUP.md) | Register team, view documents, check timeline, accept invitations                                                          |
+| **👨‍💼 Admin**     | [SETUP.md](./SETUP.md) | Approve teams, manage documents, create announcements, view stats                                                          |
+| **👨‍💻 Developer** | [SETUP.md](./SETUP.md) | [Architecture](./docs/ARCHITECTURE.md), [API Docs](http://localhost:8000/api-docs), [Contributing](./docs/CONTRIBUTING.md) |
+
+### Documentation Quick Links
+
+| Document                                        | Purpose                               |
+| ----------------------------------------------- | ------------------------------------- |
+| [SETUP.md](./SETUP.md)                          | Installation & environment setup      |
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md)       | System design, data flows, tech stack |
+| [DATABASE_SCHEMA.md](./docs/DATABASE_SCHEMA.md) | 14 MongoDB models documentation       |
+| [API_REFERENCE.md](./docs/API_REFERENCE.md)     | All API endpoints with examples       |
+| [USER_GUIDE.md](./docs/USER_GUIDE.md)           | Student & Admin user manual           |
+| [DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md) | Development setup & code structure    |
+| [DEPLOYMENT.md](./docs/DEPLOYMENT.md)           | Production deployment guide           |
+| [CONTRIBUTING.md](./docs/CONTRIBUTING.md)       | Git workflow, commit conventions      |
+| [TESTING.md](./docs/TESTING.md)                 | Testing & QA procedures               |
+| [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) | Common issues & solutions             |
+| [SECURITY.md](./docs/SECURITY.md)               | Security best practices               |
+| [CHANGELOG.md](./CHANGELOG.md)                  | Version history & release notes       |
+| [GLOSSARY.md](./docs/GLOSSARY.md)               | Terms & definitions                   |
+
+---
+
+## 🚀 Quick Start (5 Minutes)
+
+### Prerequisites
+
+```bash
+✅ Node.js 18+ LTS
+✅ npm 9+
+✅ MongoDB 7+ (local atau MongoDB Atlas)
+✅ Git 2.40+
+```
+
+### Installation Steps
+
+```bash
+# 1️⃣ Clone repository
+git clone https://github.com/ustadzCoding/A25-CS246.git
+cd A25-CS246
+
+# 2️⃣ Setup Backend
+cd backend
+npm install
+cp .env.example .env
+# Edit .env dengan credentials Anda
+
+# 3️⃣ Setup Frontend
+cd ../frontend
+npm install
+cp .env.example .env
+
+# 4️⃣ Run Development Servers
+# Terminal 1 - Backend (port 8000)
+cd backend && npm run dev
+
+# Terminal 2 - Frontend (port 5173)
+cd frontend && npm run dev
+```
+
+### Access Points
+
+| Service          | URL                              | Purpose                       |
+| ---------------- | -------------------------------- | ----------------------------- |
+| **Frontend**     | http://localhost:5173            | Web application               |
+| **Backend API**  | http://localhost:8000            | REST API                      |
+| **Swagger Docs** | http://localhost:8000/api-docs   | Interactive API documentation |
+| **Health Check** | http://localhost:8000/api/health | API status                    |
+
+---
+
+## 📋 Table of Contents
+
+1. [Features](#features)
+2. [Tech Stack](#tech-stack)
+3. [Project Structure](#project-structure)
+4. [Architecture Overview](#architecture-overview)
+5. [Getting Started](#getting-started)
+6. [Development](#development)
+7. [Deployment](#deployment)
+8. [Team](#team)
+9. [Contributing](#contributing)
+10. [License](#license)
+
+---
+
+## ✨ Features
+
+### MVP Features (v1.0.0) ✅
+
+#### 👥 Team Management
+
+- ✅ **Dynamic Team Registration** - Students create teams with auto-fetched learning paths
+- ✅ **Composition Validation** - Automatic validation of team member learning path counts
+- ✅ **Member Invitations** - Auto-generated invitations with email notifications
+- ✅ **Accept/Reject Flow** - Members can accept or reject invitations
+- ✅ **Team Editing** - Leader can edit team members before admin approval
+- ✅ **Admin Approval Workflow** - Admin validates composition and approves teams
+- ✅ **Rejection with Reason** - Admin can reject with detailed feedback
+- ✅ **Team ID Assignment** - Admin assigns unique capstone group IDs
+- ✅ **Bulk Operations** - Bulk approve/reject/delete teams
+- ✅ **CSV Export** - Export team data to CSV
+
+#### 📄 Document Management
+
+- ✅ **Document Repository** - Centralized storage for capstone guidance documents
+- ✅ **File Upload** - Admin uploads documents (via Cloudinary)
+- ✅ **External Links** - Support for external document links
+- ✅ **Document Categories** - Organize documents by category
+- ✅ **Student Access** - Students can view and download documents
+- ✅ **Document Metadata** - Title, description, file size, type
+
+#### 📅 Timeline Management
+
+- ✅ **Milestone Creation** - Admin creates capstone project milestones
+- ✅ **Deadline Tracking** - Visual timeline with status indicators
+- ✅ **Status Indicators** - Upcoming, ongoing, completed milestones
+- ✅ **Edit & Delete** - Admin can update or remove milestones
+
+#### 📢 Announcements
+
+- ✅ **Create Announcements** - Admin broadcasts messages to all students
+- ✅ **Announcement Types** - Info, warning, success, error
+- ✅ **Edit & Delete** - Admin can update or remove announcements
+- ✅ **Student View** - Students see announcements on dashboard
+
+#### 🔐 Authentication & Authorization
+
+- ✅ **Email/Password Login** - Standard authentication
+- ✅ **Google OAuth** - Sign in with Google
+- ✅ **JWT Tokens** - Secure token-based authentication
+- ✅ **Role-Based Access** - Student, Admin, Mentor roles
+- ✅ **Email Verification** - Verify email ownership
+- ✅ **Password Hashing** - Bcrypt encryption
+
+#### 📊 Dashboard & Analytics
+
+- ✅ **Admin Dashboard** - View team statistics
+- ✅ **Student Dashboard** - View personal team info
+- ✅ **Statistics** - Pending, approved, rejected team counts
+- ✅ **Quick Actions** - Fast access to common tasks
+
+### Phase 2 Features (Planned Q2 2026) 🔄
+
+- 🔄 **Worksheet Feature** - Team check-in system with auto-validation
+- 🔄 **360-Degree Feedback** - Peer evaluation system
+- 🔄 **Advanced Analytics** - Team performance metrics
+- 🔄 **Real-time Notifications** - Push & email alerts
+- 🔄 **Mentor Role** - Mentor assignment & monitoring
+
+### Phase 3 Features (Planned Q3 2026) 📋
+
+- 📋 **Team Communication** - Internal messaging & discussion board
+- 📋 **Performance Tracking** - Contribution metrics & leaderboard
+- 📋 **Mobile App** - iOS/Android native apps
+- 📋 **Advanced Reporting** - Custom reports & data visualization
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+| Technology       | Version | Purpose                          |
+| ---------------- | ------- | -------------------------------- |
+| **Vue.js**       | 3.x     | Progressive JavaScript framework |
+| **Vite**         | 5.x     | Next generation build tool       |
+| **Tailwind CSS** | 3.x     | Utility-first CSS framework      |
+| **Pinia**        | 2.x     | State management                 |
+| **Vue Router**   | 4.x     | Client-side routing              |
+| **Axios**        | 1.x     | HTTP client                      |
+| **Lucide Vue**   | Latest  | Icon library                     |
+
+### Backend
+
+| Technology     | Version | Purpose              |
+| -------------- | ------- | -------------------- |
+| **Express.js** | 4.x     | Web framework        |
+| **Node.js**    | 18+ LTS | JavaScript runtime   |
+| **MongoDB**    | 7.x     | NoSQL database       |
+| **Mongoose**   | 8.x     | MongoDB ODM          |
+| **JWT**        | Latest  | Token authentication |
+| **Bcrypt**     | 5.x     | Password hashing     |
+| **Multer**     | 1.x     | File upload handling |
+| **Cloudinary** | Latest  | Cloud file storage   |
+| **Nodemailer** | 6.x     | Email service        |
+| **Swagger**    | 3.x     | API documentation    |
+
+### Infrastructure
+
+| Service              | Provider      | Purpose             |
+| -------------------- | ------------- | ------------------- |
+| **Frontend Hosting** | Vercel        | Frontend deployment |
+| **Backend Hosting**  | Railway       | Backend deployment  |
+| **Database**         | MongoDB Atlas | Cloud database      |
+| **File Storage**     | Cloudinary    | Cloud storage       |
+| **Email**            | Gmail SMTP    | Email service       |
+| **OAuth**            | Google        | Social login        |
+
+---
+
+## 📁 Project Structure
+
+```
+A25-CS246/
+├── 📂 backend/                      # Express.js backend
+│   ├── src/
+│   │   ├── config/                  # Configuration files
+│   │   ├── models/                  # MongoDB schemas (14 models)
+│   │   ├── controllers/             # Route handlers (13 controllers)
+│   │   ├── services/                # Business logic (6 services)
+│   │   ├── middleware/              # Express middleware (12 files)
+│   │   ├── routes/                  # API routes (50+ endpoints)
+│   │   ├── docs/                    # API documentation
+│   │   ├── utils/                   # Utility functions (7 files)
+│   │   ├── tests/                   # Test files (4 files)
+│   │   └── server.js                # Entry point
+│   ├── package.json
+│   └── .env.example
+│
+├── 📂 frontend/                     # Vue 3 + Vite frontend
+│   ├── src/
+│   │   ├── components/              # Reusable components (28 files)
+│   │   ├── views/                   # Page components (27 files)
+│   │   ├── stores/                  # Pinia state management (8 stores)
+│   │   ├── services/                # API services (10 files)
+│   │   ├── router/                  # Vue Router configuration
+│   │   ├── composables/             # Composition functions (5 files)
+│   │   ├── utils/                   # Utility functions
+│   │   ├── assets/                  # Static assets
+│   │   ├── tests/                   # Test files (3 files)
+│   │   └── main.js                  # Entry point
+│   ├── package.json
+│   └── .env.example
+│
+├── 📂 docs/                         # Documentation (14 files)
+│   ├── ARCHITECTURE.md              # System design
+│   ├── DATABASE_SCHEMA.md           # Database models
+│   ├── API_REFERENCE.md             # API documentation
+│   ├── USER_GUIDE.md                # User manual
+│   ├── DEVELOPER_GUIDE.md           # Development guide
+│   ├── DEPLOYMENT.md                # Deployment guide
+│   ├── CONTRIBUTING.md              # Contributing guidelines
+│   ├── TESTING.md                   # Testing guide
+│   ├── TROUBLESHOOTING.md           # Troubleshooting
+│   ├── SECURITY.md                  # Security practices
+│   ├── GLOSSARY.md                  # Terms & definitions
+│   ├── PROJECT_PLAN.md              # Project planning
+│   ├── DATABASE_SCHEMA.png          # ERD diagram
+│   └── a25-cs246.json               # Project data
+│
+├── 📂 .github/                      # GitHub configuration
+│   ├── ISSUE_TEMPLATE/
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── workflows/                   # CI/CD pipelines
+│
+├── CHANGELOG.md                     # Version history
+├── LICENSE                          # MIT License
+├── SETUP.md                         # Quick setup guide
+└── package.json                     # Root package config
+```
+
+---
+
+## 🏗️ Architecture Overview
+
+### System Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    CLIENT LAYER                     │
+│  ┌──────────────────────────────────────────────┐   │
+│  │  Web Browser (Vue 3 + Vite)                  │   │
+│  │  - Student Dashboard                        │   │
+│  │  - Team Management                          │   │
+│  │  - Document Repository                      │   │
+│  │  - Timeline & Announcements                 │   │
+│  │  - Admin Panel                              │   │
+│  └──────────────────────────────────────────────┘   │
+└────────────────────┬────────────────────────────────┘
+                     │ HTTPS/REST API
+                     │
+┌────────────────────▼────────────────────────────────┐
+│                  API LAYER                          │
+│  ┌──────────────────────────────────────────────┐   │
+│  │  Express.js Server (Node.js)                 │   │
+│  │  - 50+ REST API Endpoints                    │   │
+│  │  - JWT Authentication                       │   │
+│  │  - Input Validation & Error Handling        │   │
+│  │  - Business Logic & Services                │   │
+│  │  - Swagger/OpenAPI Documentation            │   │
+│  └──────────────────────────────────────────────┘   │
+└────────────────────┬────────────────────────────────┘
+                     │
+        ┌────────────┼────────────┐
+        │            │            │
+        ▼            ▼            ▼
+┌──────────────┐ ┌──────────┐ ┌──────────┐
+│  MongoDB     │ │Cloudinary│ │  Gmail   │
+│  (Database)  │ │(Storage) │ │ (Email)  │
+└──────────────┘ └──────────┘ └──────────┘
+```
+
+---
+
+## 🚀 Getting Started
+
+### For Students
+
+1. **Register Account** - Go to http://localhost:5173, click "Register", select learning path
+2. **Create/Join Team** - Go to "Tim Saya", click "Daftar Tim Baru", select use case, add members
+3. **Accept Invitations** - Check "Tim Saya" for pending invitations, click "Accept" or "Reject"
+4. **View Documents & Timeline** - Go to "Dokumen" and "Timeline" to see project information
+
+### For Admins
+
+1. **Login as Admin** - Use admin credentials to access admin dashboard
+2. **Manage Teams** - View pending teams, approve/reject, assign team IDs
+3. **Manage Documents** - Upload guidance documents, organize by category
+4. **Create Timeline & Announcements** - Add milestones and broadcast messages
+
+### For Developers
+
+1. **Setup Development Environment** - Follow [SETUP.md](./SETUP.md)
+2. **Understand Architecture** - Read [ARCHITECTURE.md](./docs/ARCHITECTURE.md)
+3. **Follow Development Guidelines** - Read [CONTRIBUTING.md](./docs/CONTRIBUTING.md)
+4. **Run Tests & Verify** - Run `npm test` and check Swagger UI
+
+---
+
+## 🚢 Deployment
+
+### Frontend (Vercel)
+
+```bash
+# Automatic deployment on push to main
+# Manual deployment:
+vercel deploy --prod
+```
+
+### Backend (Railway)
+
+```bash
+# Automatic deployment on push to main
+# Manual deployment:
+railway deploy
+```
+
+### Database (MongoDB Atlas)
+
+- Automatic backups every 5 minutes
+- 35-day backup retention
+- Point-in-time restore capability
+
+See [DEPLOYMENT.md](./docs/DEPLOYMENT.md) for detailed instructions.
+
+---
+
+## 👥 Team
+
+| Name                        | Role                         | Responsibility                           |
+| --------------------------- | ---------------------------- | ---------------------------------------- |
+| **Afrizal Ilza Munadhif**   | Project Manager + Full Stack | Overall project management, architecture |
+| **Deby Maulida**            | Frontend Lead + UI/UX        | Frontend development, UI/UX design       |
+| **Ganza Wajendra Ekasakti** | Backend Lead + Database      | Backend development, database design     |
+| **Marsa Ardita**            | Full Stack                   | Documents & features implementation      |
+| **Muhammad Rizky**          | Full Stack + DevOps          | Timeline, deployment, infrastructure     |
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please read [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for:
+
+- **Git Flow Strategy** - How to branch and merge
+- **Commit Conventions** - How to write commit messages
+- **Pull Request Process** - How to submit PRs
+- **Code Review Checklist** - What we look for in reviews
+- **Coding Standards** - JavaScript & Vue best practices
+- **Testing Requirements** - Unit & integration tests
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see [LICENSE](./LICENSE) file for details.
+
+---
+
+## 📞 Support & Contact
+
+- **Issues:** [GitHub Issues](https://github.com/ustadzCoding/A25-CS246/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/ustadzCoding/A25-CS246/discussions)
+- **Email:** asah@dicoding.com
+
+---
+
+## 🎯 Project Status
+
+| Aspect               | Status         | Details                                  |
+| -------------------- | -------------- | ---------------------------------------- |
+| **MVP Development**  | ✅ Complete    | v1.0.0 ready for production              |
+| **Documentation**    | ✅ Complete    | 14 comprehensive documents               |
+| **Testing**          | 🟡 In Progress | Unit & integration tests                 |
+| **Deployment**       | ✅ Ready       | Vercel (frontend), Railway (backend)     |
+| **Phase 2 Planning** | 📋 Planned     | Q2 2026 - Worksheet, Feedback, Analytics |
+
+---
+
+## 🔗 Quick Links
+
+- **GitHub Repository:** https://github.com/ustadzCoding/A25-CS246
+- **Project Plan:** [PROJECT_PLAN.md](./docs/PROJECT_PLAN.md)
+- **Swagger API Docs:** http://localhost:8000/api-docs
+
+---
+
+**Last Updated:** December 8, 2025 | **Version:** 1.0.0 | **Maintained by:** A25-CS246 Team

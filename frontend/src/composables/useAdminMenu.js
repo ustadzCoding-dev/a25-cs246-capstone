@@ -10,7 +10,7 @@ export const useAdminMenu = () => {
     { name: 'Timeline', icon: 'timeline', path: '/admin/timeline', roles: ['admin'] },
     { name: 'Pengumuman', icon: 'announcement', path: '/admin/announcements', roles: ['admin'] },
     { name: 'Use Case', icon: 'settings', path: '/admin/usecase', roles: ['admin'] },
-    { name: 'Worksheet', icon: 'document', path: '/admin/worksheet', roles: ['admin'] },
+    // { name: 'Worksheet', icon: 'document', path: '/admin/worksheet', roles: ['admin'] }, // DISABLED: Worksheet feature removed
   ])
 
   return {

@@ -1042,9 +1042,68 @@
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rejectionReason:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Invitation rejected
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+
+/**
+ * @swagger
+ * /api/invitations/team/{teamId}:
+ *   get:
+ *     tags:
+ *       - Invitations
+ *     summary: Get team invitations
+ *     description: Retrieve all invitations for a specific team (Leader/Admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: teamId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Team invitations retrieved
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+
+/**
+ * @swagger
+ * /api/invitations/{id}:
+ *   delete:
+ *     tags:
+ *       - Invitations
+ *     summary: Delete invitation
+ *     description: Delete a team invitation (Leader/Admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Invitation deleted
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
@@ -1509,200 +1568,151 @@
  */
 
 // ============================================================================
-// WORKSHEET ENDPOINTS
+// USE CASES ENDPOINTS
 // ============================================================================
 
 /**
  * @swagger
- * /api/worksheet/periods:
+ * /api/use-cases:
  *   get:
  *     tags:
- *       - Worksheet
- *     summary: Get all worksheet periods
- *     description: Retrieve list of worksheet check-in periods
+ *       - Use Cases
+ *     summary: Get all use cases
+ *     description: Retrieve list of all capstone use cases
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Periods retrieved
- *   post:
- *     tags:
- *       - Worksheet
- *     summary: Create worksheet period
- *     description: Create a new worksheet period (Admin only)
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - periodNumber
- *               - title
- *               - startDate
- *               - deadline
- *             properties:
- *               periodNumber:
- *                 type: integer
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               startDate:
- *                 type: string
- *                 format: date-time
- *               deadline:
- *                 type: string
- *                 format: date-time
- *               autoValidationDate:
- *                 type: string
- *                 format: date-time
- *     responses:
- *       201:
- *         description: Period created
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-
-/**
- * @swagger
- * /api/worksheet/my-worksheets:
- *   get:
- *     tags:
- *       - Worksheet
- *     summary: Get my worksheets
- *     description: Retrieve current user's worksheets (Student only)
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Worksheets retrieved
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-
-/**
- * @swagger
- * /api/worksheet/submit/{periodId}:
- *   post:
- *     tags:
- *       - Worksheet
- *     summary: Submit worksheet
- *     description: Submit completed worksheet (Student only)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: periodId
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - content
- *             properties:
- *               content:
- *                 type: string
- *     responses:
- *       200:
- *         description: Worksheet submitted
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-
-/**
- * @swagger
- * /api/worksheet/admin/period/{periodId}:
- *   get:
- *     tags:
- *       - Worksheet
- *     summary: Get worksheets by period
- *     description: Retrieve all worksheets for a period (Admin only)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: periodId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Worksheets retrieved
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-
-/**
- * @swagger
- * /api/worksheet/admin/validate/{worksheetId}:
- *   put:
- *     tags:
- *       - Worksheet
- *     summary: Validate worksheet
- *     description: Validate a submitted worksheet (Admin only)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: worksheetId
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - status
- *             properties:
- *               status:
- *                 type: string
- *                 enum: ["pending", "completed", "incomplete"]
- *               notes:
- *                 type: string
- *     responses:
- *       200:
- *         description: Worksheet validated
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
- */
-
-/**
- * @swagger
- * /api/worksheet/admin/period/{periodId}/export-csv:
- *   get:
- *     tags:
- *       - Worksheet
- *     summary: Export worksheet data to CSV
- *     description: Export all worksheets for a period to CSV (Admin only)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: periodId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: CSV file generated
+ *         description: Use cases retrieved
  *         content:
- *           text/csv:
+ *           application/json:
  *             schema:
- *               type: string
- *       403:
- *         $ref: '#/components/responses/ForbiddenError'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       useCaseId:
+ *                         type: string
+ *                       title:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       composition:
+ *                         type: object
+ *                       totalSlots:
+ *                         type: integer
+ *                       availableSlots:
+ *                         type: integer
  */
+
+/**
+ * @swagger
+ * /api/use-cases/{id}:
+ *   get:
+ *     tags:
+ *       - Use Cases
+ *     summary: Get use case by ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Use case retrieved
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+
+// ============================================================================
+// STUDENTS LOOKUP ENDPOINTS
+// ============================================================================
+
+/**
+ * @swagger
+ * /api/students/lookup/{studentId}:
+ *   get:
+ *     tags:
+ *       - Students
+ *     summary: Lookup student by ID
+ *     description: Get student information by student/user ID (Public endpoint)
+ *     parameters:
+ *       - in: path
+ *         name: studentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Student ID or User ID
+ *     responses:
+ *       200:
+ *         description: Student found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     learningPath:
+ *                       type: string
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+
+// ============================================================================
+// HEALTH CHECK ENDPOINTS
+// ============================================================================
+
+/**
+ * @swagger
+ * /api/health:
+ *   get:
+ *     tags:
+ *       - Health
+ *     summary: Health check
+ *     description: Check if API is running (Public endpoint)
+ *     responses:
+ *       200:
+ *         description: API is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ */
+
+// ============================================================================
+// WORKSHEET ENDPOINTS (PHASE 2 - FUTURE)
+// ============================================================================
+// NOTE: Worksheet feature is planned for Phase 2 (Q2 2026)
+// These endpoints are documented for future implementation
+// Currently DISABLED in MVP
 
 // ============================================================================
 // DASHBOARD ENDPOINTS
