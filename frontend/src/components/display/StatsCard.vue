@@ -1,9 +1,9 @@
 <template>
-  <div class="stats-card bg-gray-300 border border-gray-500 rounded-lg p-6 text-white">
+  <div class="stats-card bg-blue-100 border border-blue-500 rounded-lg py-3 px-6 text-white hover:bg-blue-500 group transition-colors duration-300">
     <div class="flex items-center justify-between">
       <div class="flex-1">
-        <p class="text-md font-medium text-gray-500">{{ label }}</p>
-        <p class="mt-2 text-3xl text-gray-800">{{ value }}</p>
+        <p class="text-sm lg:text-md md:text-md sm:text-sm xs:text-sm font-medium text-blue-500 group-hover:text-white">{{ label }}</p>
+        <p class="text-lg lg:text-3xl md:text-xl sm:text-lg xs:text-lg text-blue-600 group-hover:text-white">{{ value }}</p>
         <p v-if="change" :class="[
           'mt-2 text-sm flex items-center',
           trend === 'up' ? 'text-success-400' : 'text-danger-400'
