@@ -5,6 +5,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  VITE_API_BASE_URL = "https://a25-cs246-capstone-production.up.railway.app/api"
 
 [[redirects]]
   from = "/*"
