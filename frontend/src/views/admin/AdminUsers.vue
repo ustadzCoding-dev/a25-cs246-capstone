@@ -2,152 +2,159 @@
   <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900">Kelola User</h1>
-          <p class="mt-2 text-gray-600">Manage semua user di sistem</p>
-        </div>
+      <div class="pb-4 bg-white p-5 rounded-lg shadow-md">
+        <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+          Manage Users
+        </h1>
+        <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+          Kelola semua user di sistem
+        </p>
       </div>
 
-      <!-- Statistics -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard label="Total Users" :value="stats.total" icon="team" color="primary" />
-        <StatsCard label="Students" :value="stats.students" icon="team" color="success" />
-        <StatsCard label="Admins" :value="stats.admins" icon="settings" color="warning" />
-      </div>
-
-      <!-- Filters & Search -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-          <BaseInput v-model="searchQuery" placeholder="Cari user (nama, email, student ID)..." />
-
-          <BaseSelect v-model="filterRole" label="Filter by Role" :options="roleOptions" />
-
-          <BaseButton variant="outline" @click="resetFilters">
-            Reset Filters
-          </BaseButton>
-        </div>
-      </div>
-
-      <!-- Loading State -->
-      <div v-if="loading" class="flex justify-center items-center py-12">
-        <BaseSpinner centered size="lg" label="Memuat users..." />
-      </div>
-
-      <!-- Error State -->
-      <div v-else-if="error" class="bg-danger-50 border border-danger-200 rounded-lg p-4">
-        <p class="text-danger-700">{{ error }}</p>
-        <BaseButton variant="outline" @click="fetchUsers" class="mt-4"> Coba Lagi </BaseButton>
-      </div>
-
-      <!-- Users Table -->
-      <div v-else class="bg-white rounded-lg shadow overflow-hidden">
-        <div v-if="filteredUsers.length === 0" class="p-12 text-center">
-          <p class="text-gray-500">Tidak ada user yang sesuai dengan filter</p>
+      <div class="p-6 bg-white shadow-md flex flex-col gap-5 rounded-lg">
+        <!-- Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <StatsCard label="Total Users" :value="stats.total" icon="team" color="primary" />
+          <StatsCard label="Students" :value="stats.students" icon="team" color="success" />
+          <StatsCard label="Admins" :value="stats.admins" icon="settings" color="warning" />
         </div>
 
-        <div v-else class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                  Nama
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                  Email
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                  Student ID
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                  Role
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                  Learning Path
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                  Status
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="user in paginatedUsers" :key="user._id" class="hover:bg-gray-50">
-                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ user.name }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ user.email }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ user.dicodingId || '-' }}</td>
-                <td class="px-6 py-4 text-sm">
-                  <BaseBadge :variant="getRoleVariant(user.role)">
-                    {{ getRoleLabel(user.role) }}
-                  </BaseBadge>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ user.learningPathName || '-' }}</td>
-                <td class="px-6 py-4 text-sm">
-                  <span v-if="user.role === 'admin'">-</span>
-                  <BaseBadge
-                    v-else
-                    :variant="user.memberStatus === 'active' ? 'success' : 'warning'"
-                  >
-                    {{ user.memberStatus === 'active' ? 'Aktif' : user.memberStatus || 'Nonaktif' }}
-                  </BaseBadge>
-                </td>
-                <td class="px-6 py-4 text-sm space-x-2">
-                  <button
-                    @click="viewUserDetail(user)"
-                    class="text-primary-600 hover:text-primary-900 font-medium"
-                  >
-                    Lihat
-                  </button>
-                  <button
-                    @click="openChangeRoleModal(user)"
-                    class="text-blue-600 hover:text-blue-900 font-medium"
-                  >
-                    Ubah Role
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div
-          v-if="totalPages > 1"
-          class="px-6 py-4 border-t border-gray-200 flex items-center justify-between"
-        >
-          <div class="text-sm text-gray-600">
-            Menampilkan {{ (pagination.currentPage - 1) * pagination.limit + 1 }} -
-            {{ Math.min(pagination.currentPage * pagination.limit, pagination.totalItems) }} dari
-            {{ pagination.totalItems }} users
+        <!-- Filters & Search -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end border-t border-gray-300 pt-5">
+          <div class="col-span-2">
+            <BaseInput v-model="searchQuery" placeholder="Cari user (nama, email, student ID)..." />
           </div>
-          <div class="flex space-x-2">
-            <BaseButton variant="outline" :disabled="currentPage === 1" @click="currentPage--">
-              Sebelumnya
-            </BaseButton>
-            <div class="flex items-center space-x-1">
-              <span v-for="page in totalPages" :key="page">
-                <button
-                  @click="currentPage = page"
-                  :class="[
-                    'px-3 py-1 rounded',
-                    currentPage === page
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-                  ]"
-                >
-                  {{ page }}
-                </button>
-              </span>
+          <div class="col-span-2">
+            <BaseSelect v-model="filterRole" label="Filter by Role" :options="roleOptions" />
+          </div>
+
+          <BaseButton variant="danger" @click="resetFilters"> Reset Filters </BaseButton>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="bg-danger-50 border border-danger-200 rounded-lg p-4">
+          <p class="text-danger-700">{{ error }}</p>
+          <BaseButton variant="outline" @click="fetchUsers" class="mt-4"> Coba Lagi </BaseButton>
+        </div>
+
+        <!-- Users Table -->
+        <div v-else class="bg-white overflow-hidden pt-5">
+          <div v-if="filteredUsers.length === 0" class="p-12 text-center">
+            <p class="text-gray-500">Tidak ada user yang sesuai dengan filter</p>
+          </div>
+
+          <div v-else class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">
+                    Nama
+                  </th>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">
+                    Email
+                  </th>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">
+                    Student ID
+                  </th>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">
+                    Role
+                  </th>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">
+                    Learning Path
+                  </th>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">
+                    Status
+                  </th>
+                  <th class="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="user in paginatedUsers" :key="user._id" class="hover:bg-gray-50">
+                  <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ user.name }}</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">{{ user.email }}</td>
+                  <td class="px-6 py-4 text-sm text-gray-600">{{ user.dicodingId || '-' }}</td>
+                  <td class="px-6 py-4 text-sm">
+                    <BaseBadge :variant="getRoleVariant(user.role)">
+                      {{ getRoleLabel(user.role) }}
+                    </BaseBadge>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-gray-600">
+                    {{ user.learningPathName || '-' }}
+                  </td>
+                  <td class="px-6 py-4 text-sm">
+                    <span v-if="user.role === 'admin'">-</span>
+                    <BaseBadge
+                      v-else
+                      :variant="user.memberStatus === 'active' ? 'success' : 'warning'"
+                    >
+                      {{
+                        user.memberStatus === 'active' ? 'Aktif' : user.memberStatus || 'Nonaktif'
+                      }}
+                    </BaseBadge>
+                  </td>
+                  <td class="px-6 py-4 text-sm flex flex-col gap-3">
+                    <button
+                      @click="viewUserDetail(user)"
+                      class="text-primary-700 hover:text-primary-900 font-medium bg-blue-100 py-1"
+                    >
+                      Lihat
+                    </button>
+                    <button
+                      @click="openChangeRoleModal(user)"
+                      class="text-yellow-700 hover:text-yellow-900 font-medium bg-yellow-100 py-1 w-full"
+                    >
+                      Ubah Role
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            v-if="totalPages > 1"
+            class="px-6 py-4 border-t border-gray-200 flex items-center justify-between"
+          >
+            <div class="text-sm text-gray-600">
+              Menampilkan {{ (pagination.currentPage - 1) * pagination.limit + 1 }} -
+              {{ Math.min(pagination.currentPage * pagination.limit, pagination.totalItems) }} dari
+              {{ pagination.totalItems }} users
             </div>
-            <BaseButton
-              variant="outline"
-              :disabled="currentPage === totalPages"
-              @click="currentPage++"
-            >
-              Selanjutnya
-            </BaseButton>
+            <div class="flex space-x-2">
+              <BaseButton variant="outline" :disabled="currentPage === 1" @click="currentPage--">
+                Sebelumnya
+              </BaseButton>
+              <div class="flex items-center space-x-1">
+                <span v-for="page in totalPages" :key="page">
+                  <button
+                    @click="currentPage = page"
+                    :class="[
+                      'px-3 py-1 rounded',
+                      currentPage === page
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                    ]"
+                  >
+                    {{ page }}
+                  </button>
+                </span>
+              </div>
+              <BaseButton
+                variant="outline"
+                :disabled="currentPage === totalPages"
+                @click="currentPage++"
+              >
+                Selanjutnya
+              </BaseButton>
+            </div>
           </div>
         </div>
       </div>
@@ -301,7 +308,7 @@ const stats = computed(() => {
   return {
     total: backendStats.total || 0,
     students: backendStats.students || 0,
-    admins: backendStats.admins || 0
+    admins: backendStats.admins || 0,
   }
 })
 
@@ -372,7 +379,14 @@ const fetchUsers = async () => {
         pagination.value.stats = response.data.stats
       }
 
-      console.log('[AdminUsers] users loaded:', users.value.length, 'pagination:', pagination.value, 'stats:', response.data?.stats)
+      console.log(
+        '[AdminUsers] users loaded:',
+        users.value.length,
+        'pagination:',
+        pagination.value,
+        'stats:',
+        response.data?.stats
+      )
       if (users.value.length > 0) {
         console.log(
           '[AdminUsers] First user _id:',
