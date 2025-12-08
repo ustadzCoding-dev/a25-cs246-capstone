@@ -75,39 +75,31 @@ api.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      const refreshToken = localStorage.getItem('refreshToken')
+      // Refresh token is stored in httpOnly cookie by backend
+      // Just call refresh endpoint without body
+      return api
+        .post('/auth/refresh')
+        .then(({ data }) => {
+          // Extract accessToken from data (new response format)
+          const accessToken = data?.data?.accessToken || data?.accessToken
+          if (!accessToken) {
+            throw new Error('No access token in refresh response')
+          }
 
-      if (refreshToken) {
-        return api
-          .post('/auth/refresh', { refreshToken })
-          .then(({ data }) => {
-            // Extract accessToken from data (new response format)
-            const accessToken = data?.accessToken || data?.data?.accessToken
-            if (!accessToken) {
-              throw new Error('No access token in refresh response')
-            }
-
-            localStorage.setItem('token', accessToken)
-            api.defaults.headers.common.Authorization = `Bearer ${accessToken}`
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`
-            processQueue(null, accessToken)
-            return api(originalRequest)
-          })
-          .catch(err => {
-            processQueue(err, null)
-            // Redirect to login
-            localStorage.removeItem('token')
-            localStorage.removeItem('refreshToken')
-            window.location.href = '/login'
-            return Promise.reject(err)
-          })
-      } else {
-        // No refresh token, redirect to login
-        localStorage.removeItem('token')
-        localStorage.removeItem('refreshToken')
-        window.location.href = '/login'
-        return Promise.reject(error)
-      }
+          localStorage.setItem('token', accessToken)
+          api.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`
+          processQueue(null, accessToken)
+          return api(originalRequest)
+        })
+        .catch(err => {
+          processQueue(err, null)
+          // Redirect to login
+          localStorage.removeItem('token')
+          localStorage.removeItem('refreshToken')
+          window.location.href = '/login'
+          return Promise.reject(err)
+        })
     }
 
     // Format error response

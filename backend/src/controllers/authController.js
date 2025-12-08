@@ -364,7 +364,7 @@ export const localLogin = async (req, res) => {
 /**
  * Refresh Access Token
  */
-export const refreshToken = async (req, res) => {
+export const refreshAccessToken = async (req, res) => {
   try {
     const { refreshToken } = req.cookies;
 
@@ -570,92 +570,6 @@ export const completeProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error'
-    });
-  }
-};
-
-/**
- * Refresh Access Token
- * POST /api/auth/refresh
- */
-export const refreshAccessToken = async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'MISSING_REFRESH_TOKEN',
-          message: 'Refresh token is required'
-        }
-      });
-    }
-
-    // Verify refresh token
-    const decoded = verifyRefreshToken(refreshToken);
-    if (!decoded) {
-      return res.status(401).json({
-        success: false,
-        error: {
-          code: 'INVALID_REFRESH_TOKEN',
-          message: 'Invalid or expired refresh token'
-        }
-      });
-    }
-
-    // Find user
-    const user = await User.findById(decoded.userId);
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: {
-          code: 'USER_NOT_FOUND',
-          message: 'User not found'
-        }
-      });
-    }
-
-    // Check if refresh token matches
-    if (user.refreshToken !== refreshToken) {
-      return res.status(401).json({
-        success: false,
-        error: {
-          code: 'REFRESH_TOKEN_MISMATCH',
-          message: 'Refresh token does not match'
-        }
-      });
-    }
-
-    // Generate new tokens
-    const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
-
-    // Update refresh token in database
-    user.refreshToken = newRefreshToken;
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'Token refreshed successfully',
-      data: {
-        accessToken,
-        refreshToken: newRefreshToken,
-        user: {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          role: user.role
-        }
-      }
-    });
-  } catch (error) {
-    console.error('❌ Refresh token error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Server error'
-      }
     });
   }
 };
