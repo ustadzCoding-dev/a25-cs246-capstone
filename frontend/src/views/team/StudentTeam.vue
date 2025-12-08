@@ -102,7 +102,7 @@
 
       <!-- Pending Team State -->
       <div v-else-if="hasPendingTeam && !hasTeam">
-        <div class="bg-warning-50 border border-warning-200 rounded-lg p-6">
+        <div class="bg-warning-50 border-l-4 rounded-lg p-6 border-warning-600">
           <div class="flex items-start">
             <svg
               class="w-6 h-6 text-warning-600 mr-3 flex-shrink-0"
@@ -118,8 +118,8 @@
               />
             </svg>
             <div class="flex-1">
-              <h3 class="text-base font-semibold text-warning-900">Tim Menunggu Persetujuan</h3>
-              <p class="mt-1 text-sm text-warning-700">
+              <h3 class="text-lg font-semibold text-warning-900">Tim Menunggu Persetujuan</h3>
+              <p class="text-md text-warning-700">
                 Tim Anda sedang menunggu persetujuan dari admin. Anda akan menerima notifikasi
                 setelah tim disetujui.
               </p>
@@ -200,14 +200,14 @@
 
         <!-- Pending Team Info -->
         <div class="bg-white rounded-lg shadow p-6 mt-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">Informasi Tim (Pending)</h2>
+          <h2 class="font-semibold text-gray-900 lg:text-lg md:text-base sm:text-base text-sm mb-4">Informasi Tim (Pending)</h2>
           <TeamInfoCard :team="pendingTeam" />
           <!-- Replacement slots for leader to fill rejected/invited seats -->
           <!-- Show for leader OR if team has vacancies (temporary fix) -->
           <div v-if="isLeader || vacancies > 0" class="mt-6">
-            <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-              <h3 class="text-sm font-semibold text-yellow-900 mb-2">Isi Slot Kosong</h3>
-              <p class="text-sm text-yellow-700 mb-3">
+            <div class="bg-yellow-50 border-l-4 border-warning-600 p-4 rounded-lg">
+              <h3 class="lg:text-lg md:text-base sm:text-base text-sm font-semibold text-yellow-800">Isi Slot Kosong</h3>
+              <p class="text-md text-yellow-700 mb-3">
                 Jika ada anggota yang menolak undangan, Anda dapat menambahkan pengganti di sini
                 agar komposisi tim terpenuhi.
               </p>
@@ -217,39 +217,39 @@
                 <div
                   v-for="(m, idx) in acceptedMembers"
                   :key="`acc-${idx}`"
-                  class="flex items-center justify-between bg-white p-3 rounded border border-green-200"
+                  class="flex items-center justify-between bg-green-50 p-3 rounded border border-green-400"
                 >
                   <div>
-                    <p class="text-sm font-medium">{{ m.name || m.studentId || m }}</p>
-                    <p v-if="m.learningPath" class="text-xs text-gray-500">{{ m.learningPath }}</p>
+                    <p class="text-md font-medium">{{ m.name || m.studentId || m }}</p>
+                    <p v-if="m.learningPath" class="text-md text-gray-500">{{ m.learningPath }}</p>
                   </div>
-                  <span class="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded">✓ Diterima</span>
+                  <span class="text-sm font-medium text-green-700 bg-green-200 px-2 py-1 rounded">✓ Diterima</span>
                 </div>
 
                 <!-- Pending Members (Yellow) -->
                 <div
                   v-for="(m, idx) in pendingMembers"
                   :key="`pending-${idx}`"
-                  class="flex items-center justify-between bg-yellow-50 p-3 rounded border border-yellow-200"
+                  class="flex items-center justify-between bg-yellow-50 p-3 rounded border border-yellow-400"
                 >
                   <div>
                     <p class="text-sm font-medium">{{ m.name || m.studentId || m }}</p>
                     <p v-if="m.learningPath" class="text-xs text-gray-500">{{ m.learningPath }}</p>
                   </div>
-                  <span class="text-xs font-medium text-yellow-700 bg-yellow-100 px-2 py-1 rounded">⏳ Menunggu</span>
+                  <span class="text-sm font-medium text-yellow-700 bg-yellow-200 px-2 py-1 rounded">⏳ Menunggu</span>
                 </div>
 
                 <!-- Rejected Members (Red) -->
                 <div
                   v-for="(m, idx) in rejectedMembers"
                   :key="`rejected-${idx}`"
-                  class="flex items-center justify-between bg-red-50 p-3 rounded border border-red-200"
+                  class="flex items-center justify-between bg-red-50 p-3 rounded border border-red-400"
                 >
                   <div>
                     <p class="text-sm font-medium">{{ m.name || m.studentId || m }}</p>
                     <p v-if="m.learningPath" class="text-xs text-gray-500">{{ m.learningPath }}</p>
                   </div>
-                  <span class="text-xs font-medium text-red-700 bg-red-100 px-2 py-1 rounded">✗ Ditolak</span>
+                  <span class="text-sm font-medium text-red-700 bg-red-200 px-2 py-1 rounded">✗ Ditolak</span>
                 </div>
 
                 <div
