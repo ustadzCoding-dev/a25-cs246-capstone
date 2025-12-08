@@ -32,6 +32,20 @@ export const getUpcomingTimelines = async () => {
 }
 
 /**
+ * Get timeline by ID
+ * @param {string} id - Timeline ID
+ * @returns {Promise} Timeline data
+ */
+export const getTimelineById = async (id) => {
+  try {
+    const response = await api.get(`/timeline/${id}`)
+    return response
+  } catch (error) {
+    throw error
+  }
+}
+
+/**
  * Get overdue timelines
  * @returns {Promise} Overdue timelines list
  */
@@ -94,6 +108,7 @@ export const deleteTimeline = async (id) => {
 export default {
   getAllTimelines,
   getUpcomingTimelines,
+  getTimelineById,
   getOverdueTimelines,
   createTimeline,
   updateTimeline,
