@@ -102,13 +102,13 @@
                   <td class="px-6 py-4 text-sm flex flex-col gap-3">
                     <button
                       @click="viewUserDetail(user)"
-                      class="text-primary-700 hover:text-primary-900 font-medium bg-blue-100 py-1"
+                      class="text-primary-700 hover:text-primary-900 font-medium bg-blue-100 py-1 px-5 w-full"
                     >
                       Lihat
                     </button>
                     <button
                       @click="openChangeRoleModal(user)"
-                      class="text-yellow-700 hover:text-yellow-900 font-medium bg-yellow-100 py-1 w-full"
+                      class="text-yellow-700 hover:text-yellow-900 font-medium bg-yellow-100 py-1 w-full px-5"
                     >
                       Ubah Role
                     </button>
