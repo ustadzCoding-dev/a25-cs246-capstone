@@ -8,128 +8,158 @@
         </h1>
         <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
           Selamat datang kembali,
-          <span class="text-primary-600 font-semibold">{{ user?.name }}</span
-          >
+          <span class="text-primary-600 font-semibold">{{ user?.name }}</span>
         </p>
       </div>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          label="Total Tim"
-          :value="stats.totalTeams"
-          icon="team"
-          color="primary"
-          :change="stats.teamChange"
-          trend="up"
-        />
-        <StatsCard label="Tim Pending" :value="stats.pendingTeams" icon="clock" color="warning" />
-        <StatsCard
-          label="Total Dokumen"
-          :value="stats.totalDocuments"
-          icon="document"
-          color="success"
-        />
-        <StatsCard label="Total Siswa" :value="stats.totalStudents" icon="team" color="primary" />
-      </div>
-
-      <!-- Quick Actions - All Blue Theme -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <!-- Kelola Tim -->
-        <div
-          @click="$router.push('/admin/teams')"
-          class="flex flex-col items-center p-4 border border-primary-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 cursor-pointer"
-        >
-          <svg class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-          <span class="font-medium text-primary-600 mt-1 lg:text-sm md:text-sm sm:text-xs text-xs">Kelola Tim</span>
+      <div class="p-6 bg-white shadow-md flex flex-col gap-5 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatsCard
+            label="Total Tim"
+            :value="stats.totalTeams"
+            icon="team"
+            color="primary"
+            :change="stats.teamChange"
+            trend="up"
+          />
+          <StatsCard label="Tim Pending" :value="stats.pendingTeams" icon="clock" color="warning" />
+          <StatsCard
+            label="Total Dokumen"
+            :value="stats.totalDocuments"
+            icon="document"
+            color="success"
+          />
+          <StatsCard label="Total Siswa" :value="stats.totalStudents" icon="team" color="primary" />
         </div>
 
-        <!-- Tambah Dokumen -->
-        <div
-          @click="$router.push('/admin/documents')"
-          class="flex flex-col items-center p-4 border border-primary-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 cursor-pointer"
-        >
-          <svg class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
-          <span class="font-medium text-primary-600 mt-1 lg:text-sm md:text-sm sm:text-xs text-xs">Dokumen</span>
-        </div>
-
-        <!-- Buat Pengumuman -->
-        <div
-          @click="$router.push('/admin/announcements')"
-          class="flex flex-col items-center p-4 border border-primary-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 cursor-pointer"
-        >
-          <svg class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
-            />
-          </svg>
-          <span class="font-medium text-primary-600 mt-1 lg:text-sm md:text-sm sm:text-xs text-xs">Pengumuman</span>
-        </div>
-
-        <!-- Kelola User -->
-        <div
-          @click="$router.push('/admin/users')"
-          class="flex flex-col items-center p-4 border border-primary-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 cursor-pointer"
-        >
-          <svg class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-          <span class="font-medium text-primary-600 mt-1 lg:text-sm md:text-sm sm:text-xs text-xs">User</span>
-        </div>
-      </div>
-
-
-      <!-- Recent Activity -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Aktivitas Terbaru</h2>
-        <div class="space-y-4">
+        <!-- Quick Actions - All Blue Theme -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <!-- Kelola Tim -->
           <div
-            v-for="activity in recentActivities"
-            :key="activity.id"
-            class="flex items-start space-x-3"
+            @click="$router.push('/admin/teams')"
+            class="flex flex-col items-center p-4 border border-primary-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 cursor-pointer"
           >
-            <div class="flex-shrink-0">
-              <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                <svg
-                  class="w-4 h-4 text-primary-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+            <svg
+              class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            <span class="font-medium text-primary-600 mt-1 lg:text-sm md:text-sm sm:text-xs text-xs"
+              >Kelola Tim</span
+            >
+          </div>
+
+          <!-- Tambah Dokumen -->
+          <div
+            @click="$router.push('/admin/documents')"
+            class="flex flex-col items-center p-4 border border-primary-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 cursor-pointer"
+          >
+            <svg
+              class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span class="font-medium text-primary-600 mt-1 lg:text-sm md:text-sm sm:text-xs text-xs"
+              >Dokumen</span
+            >
+          </div>
+
+          <!-- Buat Pengumuman -->
+          <div
+            @click="$router.push('/admin/announcements')"
+            class="flex flex-col items-center p-4 border border-primary-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 cursor-pointer"
+          >
+            <svg
+              class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
+              />
+            </svg>
+            <span class="font-medium text-primary-600 mt-1 lg:text-sm md:text-sm sm:text-xs text-xs"
+              >Pengumuman</span
+            >
+          </div>
+
+          <!-- Kelola User -->
+          <div
+            @click="$router.push('/admin/users')"
+            class="flex flex-col items-center p-4 border border-primary-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all duration-200 cursor-pointer"
+          >
+            <svg
+              class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            <span class="font-medium text-primary-600 mt-1 lg:text-sm md:text-sm sm:text-xs text-xs"
+              >User</span
+            >
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="font-semibold text-gray-900 lg:text-lg md:text-base sm:text-base text-sm">
+            Aktivitas Terbaru
+          </h3>
+          <div class="space-y-4 mt-3">
+            <div
+              v-for="activity in recentActivities"
+              :key="activity.id"
+              class="flex items-start space-x-3"
+            >
+              <div class="flex-shrink-0">
+                <div class="size-11 bg-primary-100 rounded-full flex items-center justify-center">
+                  <svg
+                    class="size-7 text-primary-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
               </div>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm text-gray-900">{{ activity.message }}</p>
-              <p class="text-xs text-gray-500 mt-1">{{ activity.time }}</p>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm lg:text-lg md:text-md sm:text-sm xs:text-sm text-gray-900">{{ activity.message }}</p>
+                <p class="text-xs lg:text-md md:text-sm sm:text-xs xs:text-xs text-gray-500">{{ activity.time }}</p>
+              </div>
             </div>
           </div>
         </div>
