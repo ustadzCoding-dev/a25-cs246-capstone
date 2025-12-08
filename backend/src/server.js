@@ -21,6 +21,9 @@ import { helmetMiddleware, limiter, preventHPP, customHeaders } from './middlewa
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// ========== TRUST PROXY (for Railway/Render deployment) ==========
+app.set('trust proxy', 1);
+
 // Connect to MongoDB
 connectDB();
 
