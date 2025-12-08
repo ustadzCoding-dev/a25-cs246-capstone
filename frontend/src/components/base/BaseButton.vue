@@ -52,8 +52,8 @@ const buttonClasses = computed(() => {
   const variantClasses = {
     primary: 'bg-primary-600 text-white hover:bg-primary-700 disabled:bg-primary-300',
     secondary: 'bg-gray-600 text-white hover:bg-gray-700 disabled:bg-gray-300',
-    success: 'bg-success-600 text-white hover:bg-success-700 disabled:bg-success-300',
-    danger: 'bg-danger-600 text-white hover:bg-danger-700 disabled:bg-danger-300',
+    success: 'bg-success-100 text-success-600 border border-success-600 hover:bg-success-600 hover:text-white disabled:bg-success-300',
+    danger: 'bg-danger-100 text-danger-600 border border-danger-600 hover:bg-danger-600 hover:text-white disabled:bg-danger-300',
     warning: 'bg-warning-600 text-white hover:bg-warning-700 disabled:bg-warning-300',
     outline: 'border-2 border-gray-300 text-gray-700 hover:bg-gray-50 disabled:border-gray-200 disabled:text-gray-400',
     ghost: 'text-gray-700 hover:bg-gray-100 disabled:text-gray-400'

@@ -19,9 +19,9 @@
         v-if="pendingInvitations.length > 0"
         class="bg-blue-50 border border-blue-200 rounded-lg p-6"
       >
-        <div class="flex items-start mb-4">
+        <div class="flex items-center mb-4 pb-2 border-b border-blue-500/60">
           <svg
-            class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0"
+            class="size-7 text-blue-600 mr-3 flex-shrink-0"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -34,8 +34,8 @@
             />
           </svg>
           <div>
-            <h3 class="text-base font-semibold text-blue-900">Undangan Tim Tertunda</h3>
-            <p class="text-sm text-blue-700">
+            <h3 class="lg:text-lg md:text-base sm:text-base text-md font-semibold text-blue-900">Undangan Tim Tertunda</h3>
+            <p class="text-sm lg:text-base md:text-base sm:text-sm xs:text-sm text-blue-700">
               Anda memiliki {{ pendingInvitations.length }} undangan tim yang menunggu respons Anda
             </p>
           </div>
@@ -45,12 +45,12 @@
           <div
             v-for="invitation in pendingInvitations"
             :key="invitation._id"
-            class="bg-white rounded-lg p-4 flex items-center justify-between"
+            class="bg-white rounded-lg p-4 flex items-center justify-between flex-col md:flex-row md:gap-0 gap-3"
           >
-            <div class="flex-1">
-              <h4 class="font-semibold text-gray-900">{{ invitation.teamId.teamName }}</h4>
-              <p class="text-sm text-gray-600">Use Case: {{ invitation.teamId.useCaseId?.title || 'Unknown' }}</p>
-              <p class="text-sm text-gray-500">Dari: {{ invitation.leaderId.name }}</p>
+            <div class="flex-1 w-full md:justify-start">
+              <h4 class="text-sm lg:text-base md:text-base sm:text-sm xs:text-sm font-semibold text-gray-900">{{ invitation.teamId.teamName }}</h4>
+              <p class="text-sm lg:text-base md:text-base sm:text-sm xs:text-sm text-gray-600">Use Case: {{ invitation.teamId.useCaseId?.title || 'Unknown' }}</p>
+              <p class="text-sm lg:text-base md:text-base sm:text-sm xs:text-sm text-gray-500">Dari: {{ invitation.leaderId.name }}</p>
             </div>
             <div class="flex gap-2">
               <BaseButton
