@@ -2,7 +2,7 @@
   <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="pb-4 bg-white p-5 rounded-lg shadow-md flex justify-between items-center">
+      <div class="pb-4 bg-white p-5 rounded-lg shadow-md flex justify-start items-start flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
             Manage Learning Paths
@@ -12,7 +12,7 @@
           </p>
         </div>
         <BaseButton variant="primary" @click="showAddForm = true">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="lg:size-5 md:size-5 sm:size-4 xs:size-4 size-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"

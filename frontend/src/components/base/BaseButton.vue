@@ -6,7 +6,7 @@
     @click="$emit('click', $event)"
   >
     <BaseSpinner v-if="loading" :size="spinnerSize" class="mr-2" />
-    <slot></slot>
+    <slot class="lg:text-md md:text-md sm:text-sm xs:text-sm text-sm"></slot>
   </button>
 </template>
 
