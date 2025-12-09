@@ -151,7 +151,9 @@
         <!-- Teams Table -->
         <div class="bg-white rounded-lg shadow">
           <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 class="font-semibold text-gray-900 lg:text-lg md:text-base sm:text-base text-sm">Daftar Tim</h2>
+            <h2 class="font-semibold text-gray-900 lg:text-lg md:text-base sm:text-base text-sm">
+              Daftar Tim
+            </h2>
             <!-- Select All Checkbox -->
             <div v-if="filteredTeams.length > 0" class="flex items-center space-x-3">
               <input
@@ -175,9 +177,9 @@
           </div>
 
           <!-- Loading State -->
-        <div v-if="loading" class="flex justify-center items-center py-12">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-        </div>
+          <div v-if="loading" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
 
           <div v-else-if="filteredTeams.length === 0" class="p-12 text-center">
             <svg
