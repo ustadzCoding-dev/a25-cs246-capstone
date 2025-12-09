@@ -25,7 +25,7 @@ export const helmetMiddleware = helmet({
 // Rate limiting - Development-friendly settings
 export const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // 1000 for dev, 100 for production
+  max: process.env.NODE_ENV === 'production' ? 300 : 1000, // 300 for production, 1000 for dev
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -41,7 +41,7 @@ export const limiter = rateLimit({
 // Stricter rate limit for authentication endpoints
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 5 : 50, // 50 for dev, 5 for production
+  max: process.env.NODE_ENV === 'production' ? 50 : 50, // 50 for both dev and production
   message: 'Too many login attempts, please try again after 15 minutes.',
   skipSuccessfulRequests: true // Don't count successful requests
 });
