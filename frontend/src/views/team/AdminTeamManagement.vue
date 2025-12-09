@@ -2,19 +2,24 @@
   <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="flex items-center justify-between">
+      <div class="pb-4 bg-white p-5 rounded-lg shadow-md flex justify-start items-start gap-4 flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Kelola Tim</h1>
-          <p class="mt-2 text-gray-600">Kelola semua tim capstone</p>
+          <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+            Manage Teams
+          </h1>
+          <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+            Kelola semua tim capstone
+          </p>
         </div>
         <div class="flex items-center space-x-3">
           <button
             @click="exportTeamsCSV"
             :disabled="teamStore.teams.length === 0 || exporting"
-            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed
+            lg:text-md md:text-md sm:text-sm xs:text-sm text-sm"
             title="Export tim ke CSV"
           >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="lg:size-5 md:size-5 sm:size-4 xs:size-4 size-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -26,9 +31,10 @@
           </button>
           <button
             @click="showAutoCreateModal = true"
-            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center"
+            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center
+            lg:text-md md:text-md sm:text-sm xs:text-sm text-sm"
           >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="lg:size-5 md:size-5 sm:size-4 xs:size-4 size-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -41,200 +47,243 @@
         </div>
       </div>
 
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatsCard label="Total Tim" :value="stats.totalTeams" icon="team" color="primary" />
-        <StatsCard label="Tim Pending" :value="stats.pendingTeams" icon="clock" color="warning" />
-        <StatsCard label="Tim Disetujui" :value="stats.approvedTeams" icon="team" color="success" />
-        <StatsCard label="Tim Ditolak" :value="stats.rejectedTeams" icon="team" color="danger" />
-      </div>
-
-      <!-- Error Alert -->
-      <div v-if="teamStore.error" class="bg-danger-50 border border-danger-200 rounded-lg p-4">
-        <div class="flex items-start">
-          <div class="flex-1">
-            <h3 class="text-sm font-medium text-danger-800">Error</h3>
-            <p class="mt-1 text-sm text-danger-700">{{ teamStore.error }}</p>
-            <p v-if="teamStore.errorDetails.length > 0" class="mt-2 text-xs text-danger-600">
-              <span v-for="(detail, idx) in teamStore.errorDetails" :key="idx" class="block">
-                • {{ detail.field }}: {{ detail.message }}
-              </span>
-            </p>
-          </div>
-          <button @click="teamStore.clearError()" class="text-danger-400 hover:text-danger-600">
-            ✕
-          </button>
-        </div>
-      </div>
-
-      <!-- Success Alert -->
-      <div
-        v-if="teamStore.successMessage"
-        class="bg-success-50 border border-success-200 rounded-lg p-4"
-      >
-        <div class="flex items-start">
-          <div class="flex-1">
-            <p class="text-sm text-success-700">{{ teamStore.successMessage }}</p>
-          </div>
-          <button @click="teamStore.clearSuccess()" class="text-success-400 hover:text-success-600">
-            ✕
-          </button>
-        </div>
-      </div>
-
-      <!-- Tabs Navigation -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="flex border-b border-gray-200">
-          <button
-            v-for="tab in ['pending', 'approved']"
-            :key="tab"
-            @click="activeTab = tab"
-            :class="[
-              'px-6 py-4 font-medium text-sm transition-colors',
-              activeTab === tab
-                ? 'border-b-2 border-primary-600 text-primary-600'
-                : 'text-gray-600 hover:text-gray-900'
-            ]"
-          >
-            <span v-if="tab === 'pending'" class="flex items-center space-x-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>Pending ({{ pendingCount }})</span>
-            </span>
-            <span v-else class="flex items-center space-x-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>Approved ({{ approvedCount }})</span>
-            </span>
-          </button>
+      <div class="p-6 bg-white shadow-md rounded-lg flex flex-col gap-5">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <StatsCard label="Total Tim" :value="stats.totalTeams" icon="team" color="primary" />
+          <StatsCard label="Tim Pending" :value="stats.pendingTeams" icon="clock" color="warning" />
+          <StatsCard
+            label="Tim Disetujui"
+            :value="stats.approvedTeams"
+            icon="team"
+            color="success"
+          />
+          <StatsCard label="Tim Ditolak" :value="stats.rejectedTeams" icon="team" color="danger" />
         </div>
 
-        <!-- Filters & Search -->
-        <div class="px-6 py-4 border-b border-gray-200">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <BaseSearch v-model="searchQuery" placeholder="Cari nama tim atau ketua..." />
-
-            <BaseSelect
-              v-model="filterUseCase"
-              :options="useCaseOptions"
-              placeholder="Semua Use Case"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Teams Table -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 class="text-xl font-semibold text-gray-900">Daftar Tim</h2>
-          <!-- Select All Checkbox -->
-          <div v-if="filteredTeams.length > 0" class="flex items-center space-x-3">
-            <input
-              type="checkbox"
-              :checked="isAllSelected"
-              :indeterminate="isSomeSelected"
-              @change="toggleSelectAll"
-              class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-              :title="isAllSelected ? 'Deselect all' : 'Select all'"
-            />
-            <span class="text-sm text-gray-600">
-              {{ isAllSelected ? `Semua ${filteredTeams.length} tim dipilih` : isSomeSelected ? `${selectedTeams.size} dari ${filteredTeams.length} tim dipilih` : `Pilih semua ${filteredTeams.length} tim` }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Teams List -->
-        <div v-if="loading" class="p-12 text-center">
-          <BaseSpinner centered size="lg" label="Memuat data..." />
-        </div>
-
-        <div v-else-if="filteredTeams.length === 0" class="p-12 text-center">
-          <svg
-            class="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-            />
-          </svg>
-          <p class="mt-2 text-sm text-gray-500">Tidak ada tim ditemukan</p>
-        </div>
-
-        <!-- Bulk Actions Bar -->
-        <div v-if="selectedTeams.size > 0" class="bg-primary-50 border-b border-primary-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-          <div class="flex items-center space-x-4">
-            <span class="text-sm font-medium text-primary-900">
-              {{ selectedTeams.size }} tim dipilih
-            </span>
-            <div class="flex space-x-2">
-              <!-- Approve button - only show on Pending tab -->
-              <button
-                v-if="activeTab === 'pending'"
-                @click="bulkApproveTeams"
-                :disabled="selectedTeamsHasPendingInvitations"
-                :class="selectedTeamsHasPendingInvitations ? 'px-3 py-1 text-sm bg-gray-400 text-white rounded cursor-not-allowed' : 'px-3 py-1 text-sm bg-success-600 text-white rounded hover:bg-success-700 transition-colors'"
-                :title="selectedTeamsHasPendingInvitations ? 'Ada tim dengan anggota yang belum accept undangan' : 'Setujui semua tim yang dipilih'"
-              >
-                Setujui Semua
-              </button>
-              <!-- Reject button - only show on Pending tab -->
-              <button
-                v-if="activeTab === 'pending'"
-                @click="bulkRejectTeams"
-                :disabled="selectedTeamsHasPendingInvitations"
-                :class="selectedTeamsHasPendingInvitations ? 'px-3 py-1 text-sm bg-gray-400 text-white rounded cursor-not-allowed' : 'px-3 py-1 text-sm bg-danger-600 text-white rounded hover:bg-danger-700 transition-colors'"
-                :title="selectedTeamsHasPendingInvitations ? 'Ada tim dengan anggota yang belum accept undangan' : 'Tolak semua tim yang dipilih'"
-              >
-                Tolak Semua
-              </button>
-              <button
-                @click="bulkDeleteTeams"
-                class="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-              >
-                Hapus Semua
-              </button>
-            </div>
-          </div>
-          <button
-            @click="clearSelection"
-            class="text-sm text-primary-700 hover:text-primary-900"
-          >
-            Batal Pilih
-          </button>
-        </div>
-
-        <div class="divide-y divide-gray-200">
-          <div
-            v-for="team in filteredTeams"
-            :key="team._id"
-            class="p-6 hover:bg-gray-50 transition-colors flex items-center"
-          >
-            <!-- Checkbox -->
-            <input
-              type="checkbox"
-              :checked="selectedTeams.has(team._id)"
-              @change="toggleTeamSelection(team._id)"
-              class="mr-4 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-            />
-
+        <!-- Error Alert -->
+        <div v-if="teamStore.error" class="bg-danger-50 border border-danger-200 rounded-lg p-4">
+          <div class="flex items-start">
             <div class="flex-1">
-              <h3 class="text-base font-semibold text-gray-900">{{ team.teamName }}</h3>
-              <p class="text-sm text-gray-600 mt-1">
-                ID Tim: {{ team.capstoneGroupId || '(Belum di-assign)' }}
-              </p>
-              <p class="text-sm text-gray-600">
-                Anggota: {{ team.membersUserId?.length || 0 }} | Status:
-                {{ getStatusLabel(team.status) }}
+              <h3 class="text-sm font-medium text-danger-800">Error</h3>
+              <p class="mt-1 text-sm text-danger-700">{{ teamStore.error }}</p>
+              <p v-if="teamStore.errorDetails.length > 0" class="mt-2 text-xs text-danger-600">
+                <span v-for="(detail, idx) in teamStore.errorDetails" :key="idx" class="block">
+                  • {{ detail.field }}: {{ detail.message }}
+                </span>
               </p>
             </div>
-            <div class="flex items-center space-x-2 ml-4">
+            <button @click="teamStore.clearError()" class="text-danger-400 hover:text-danger-600">
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Success Alert -->
+        <div
+          v-if="teamStore.successMessage"
+          class="bg-success-50 border border-success-200 rounded-lg p-4"
+        >
+          <div class="flex items-start">
+            <div class="flex-1">
+              <p class="text-sm text-success-700">{{ teamStore.successMessage }}</p>
+            </div>
+            <button
+              @click="teamStore.clearSuccess()"
+              class="text-success-400 hover:text-success-600"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="flex border-b border-gray-200">
+            <button
+              v-for="tab in ['pending', 'approved']"
+              :key="tab"
+              @click="activeTab = tab"
+              :class="[
+                'px-6 py-4 font-medium text-sm transition-colors',
+                activeTab === tab
+                  ? 'border-b-2 border-primary-600 text-primary-600'
+                  : 'text-gray-600 hover:text-gray-900',
+              ]"
+            >
+              <span v-if="tab === 'pending'" class="flex items-center space-x-1">
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>Pending ({{ pendingCount }})</span>
+              </span>
+              <span v-else class="flex items-center space-x-1">
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>Approved ({{ approvedCount }})</span>
+              </span>
+            </button>
+          </div>
+
+          <!-- Filters & Search -->
+          <div class="px-6 py-4 border-b border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <BaseSearch v-model="searchQuery" placeholder="Cari nama tim atau ketua..." />
+
+              <BaseSelect
+                v-model="filterUseCase"
+                :options="useCaseOptions"
+                placeholder="Semua Use Case"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Teams Table -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-900 lg:text-lg md:text-base sm:text-base text-sm">
+              Daftar Tim
+            </h2>
+            <!-- Select All Checkbox -->
+            <div v-if="filteredTeams.length > 0" class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                :checked="isAllSelected"
+                :indeterminate="isSomeSelected"
+                @change="toggleSelectAll"
+                class="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                :title="isAllSelected ? 'Deselect all' : 'Select all'"
+              />
+              <span class="text-sm text-gray-600">
+                {{
+                  isAllSelected
+                    ? `Semua ${filteredTeams.length} tim dipilih`
+                    : isSomeSelected
+                      ? `${selectedTeams.size} dari ${filteredTeams.length} tim dipilih`
+                      : `Pilih semua ${filteredTeams.length} tim`
+                }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="loading" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
+
+          <div v-else-if="filteredTeams.length === 0" class="p-12 text-center">
+            <svg
+              class="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+              />
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">Tidak ada tim ditemukan</p>
+          </div>
+
+          <!-- Bulk Actions Bar -->
+          <div
+            v-if="selectedTeams.size > 0"
+            class="bg-primary-50 border-b border-primary-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10"
+          >
+            <div class="flex items-center space-x-4">
+              <span class="text-sm font-medium text-primary-900">
+                {{ selectedTeams.size }} tim dipilih
+              </span>
+              <div class="flex space-x-2">
+                <!-- Approve button - only show on Pending tab -->
+                <button
+                  v-if="activeTab === 'pending'"
+                  @click="bulkApproveTeams"
+                  :disabled="selectedTeamsHasPendingInvitations"
+                  :class="
+                    selectedTeamsHasPendingInvitations
+                      ? 'px-3 py-1 text-sm bg-gray-400 text-white rounded cursor-not-allowed'
+                      : 'px-3 py-1 text-sm bg-success-600 text-white rounded hover:bg-success-700 transition-colors'
+                  "
+                  :title="
+                    selectedTeamsHasPendingInvitations
+                      ? 'Ada tim dengan anggota yang belum accept undangan'
+                      : 'Setujui semua tim yang dipilih'
+                  "
+                >
+                  Setujui Semua
+                </button>
+                <!-- Reject button - only show on Pending tab -->
+                <button
+                  v-if="activeTab === 'pending'"
+                  @click="bulkRejectTeams"
+                  :disabled="selectedTeamsHasPendingInvitations"
+                  :class="
+                    selectedTeamsHasPendingInvitations
+                      ? 'px-3 py-1 text-sm bg-gray-400 text-white rounded cursor-not-allowed'
+                      : 'px-3 py-1 text-sm bg-danger-600 text-white rounded hover:bg-danger-700 transition-colors'
+                  "
+                  :title="
+                    selectedTeamsHasPendingInvitations
+                      ? 'Ada tim dengan anggota yang belum accept undangan'
+                      : 'Tolak semua tim yang dipilih'
+                  "
+                >
+                  Tolak Semua
+                </button>
+                <button
+                  @click="bulkDeleteTeams"
+                  class="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                >
+                  Hapus Semua
+                </button>
+              </div>
+            </div>
+            <button @click="clearSelection" class="text-sm text-primary-700 hover:text-primary-900">
+              Batal Pilih
+            </button>
+          </div>
+
+          <div class="divide-y divide-gray-200">
+            <div
+              v-for="team in filteredTeams"
+              :key="team._id"
+              class="p-6 hover:bg-gray-50 transition-colors flex items-center"
+            >
+              <!-- Checkbox -->
+              <input
+                type="checkbox"
+                :checked="selectedTeams.has(team._id)"
+                @change="toggleTeamSelection(team._id)"
+                class="mr-4 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+
+              <div class="flex-1">
+                <h3 class="text-base font-semibold text-gray-900">{{ team.teamName }}</h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  ID Tim: {{ team.capstoneGroupId || '(Belum di-assign)' }}
+                </p>
+                <p class="text-sm text-gray-600">
+                  Anggota: {{ team.membersUserId?.length || 0 }} | Status:
+                  {{ getStatusLabel(team.status) }}
+                </p>
+              </div>
+              <div class="flex items-center space-x-2 ml-4">
                 <button
                   @click="viewTeamDetails(team)"
                   class="text-primary-600 hover:text-primary-700 p-2"
@@ -260,7 +309,11 @@
                   v-if="team.status === 'pending'"
                   @click="approveTeam(team)"
                   :disabled="isTeamInvitationsIncomplete(team._id)"
-                  :class="isTeamInvitationsIncomplete(team._id) ? 'text-gray-400 cursor-not-allowed p-2' : 'text-success-600 hover:text-success-700 p-2'"
+                  :class="
+                    isTeamInvitationsIncomplete(team._id)
+                      ? 'text-gray-400 cursor-not-allowed p-2'
+                      : 'text-success-600 hover:text-success-700 p-2'
+                  "
                   :title="getTeamInvitationsDisabledReason(team._id) || 'Setujui'"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,7 +330,11 @@
                   v-if="team.status === 'pending'"
                   @click="rejectTeam(team)"
                   :disabled="isTeamInvitationsIncomplete(team._id)"
-                  :class="isTeamInvitationsIncomplete(team._id) ? 'text-gray-400 cursor-not-allowed p-2' : 'text-danger-600 hover:text-danger-700 p-2'"
+                  :class="
+                    isTeamInvitationsIncomplete(team._id)
+                      ? 'text-gray-400 cursor-not-allowed p-2'
+                      : 'text-danger-600 hover:text-danger-700 p-2'
+                  "
                   :title="getTeamInvitationsDisabledReason(team._id) || 'Tolak'"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,7 +349,7 @@
 
                 <button
                   @click="deleteTeam(team)"
-                  class="text-gray-400 hover:text-danger-600 p-2"
+                  class="text-danger-600 hover:text-danger-700 p-2"
                   title="Hapus"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,6 +366,7 @@
           </div>
         </div>
       </div>
+    </div>
 
     <!-- Team Details Modal -->
     <BaseModal v-model="showDetailsModal" title="Detail Tim" size="lg">
@@ -365,14 +423,19 @@
                 Anggota ({{ selectedTeam.membersUserId?.length || 0 }})
               </p>
               <ul class="text-sm text-gray-600 space-y-2 mt-2">
-                <li v-for="(member, idx) in selectedTeam.membersUserId" :key="idx" class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <li
+                  v-for="(member, idx) in selectedTeam.membersUserId"
+                  :key="idx"
+                  class="flex items-center justify-between p-2 bg-gray-50 rounded"
+                >
                   <div class="flex-1">
                     <span class="font-medium">{{
                       typeof member === 'object' ? member.name || member.studentId : member
                     }}</span>
                     <span
                       v-if="
-                        typeof member === 'object' && (member.learningPathName || member.learningPath)
+                        typeof member === 'object' &&
+                        (member.learningPathName || member.learningPath)
                       "
                       class="ml-2 text-xs text-gray-500"
                       >— {{ member.learningPathName || member.learningPath }}</span
@@ -403,27 +466,45 @@
             <div v-if="selectedTeam.status === 'pending' && teamInvitations.length > 0">
               <p class="text-sm font-medium text-gray-700">Status Undangan</p>
               <ul class="text-sm space-y-2 mt-2">
-                <li v-for="inv in teamInvitations" :key="inv._id" class="flex items-center justify-between p-2 bg-yellow-50 rounded border border-yellow-200">
+                <li
+                  v-for="inv in teamInvitations"
+                  :key="inv._id"
+                  class="flex items-center justify-between p-2 bg-yellow-50 rounded border border-yellow-200"
+                >
                   <div class="flex-1">
                     <span class="font-medium">{{ inv.memberId?.name || 'Unknown' }}</span>
                     <span class="ml-2 text-xs text-gray-500">{{ inv.memberId?.email }}</span>
                   </div>
                   <div class="flex items-center space-x-2 ml-2">
-                    <span v-if="inv.status === 'pending'" class="px-2 py-1 text-xs bg-yellow-200 text-yellow-800 rounded font-medium">
+                    <span
+                      v-if="inv.status === 'pending'"
+                      class="px-2 py-1 text-xs bg-yellow-200 text-yellow-800 rounded font-medium"
+                    >
                       ⏳ Menunggu
                     </span>
-                    <span v-else-if="inv.status === 'accepted'" class="px-2 py-1 text-xs bg-green-200 text-green-800 rounded font-medium">
+                    <span
+                      v-else-if="inv.status === 'accepted'"
+                      class="px-2 py-1 text-xs bg-green-200 text-green-800 rounded font-medium"
+                    >
                       ✓ Diterima
                     </span>
-                    <span v-else-if="inv.status === 'rejected'" class="px-2 py-1 text-xs bg-red-200 text-red-800 rounded font-medium">
+                    <span
+                      v-else-if="inv.status === 'rejected'"
+                      class="px-2 py-1 text-xs bg-red-200 text-red-800 rounded font-medium"
+                    >
                       ✗ Ditolak
                     </span>
                   </div>
                 </li>
               </ul>
-              <div v-if="teamInvitations.some(inv => inv.status === 'pending')" class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+              <div
+                v-if="teamInvitations.some(inv => inv.status === 'pending')"
+                class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded"
+              >
                 <p class="text-xs text-yellow-800">
-                  ⚠️ Tim tidak bisa disetujui karena ada {{ teamInvitations.filter(inv => inv.status === 'pending').length }} anggota yang belum menerima undangan.
+                  ⚠️ Tim tidak bisa disetujui karena ada
+                  {{ teamInvitations.filter(inv => inv.status === 'pending').length }} anggota yang
+                  belum menerima undangan.
                 </p>
               </div>
             </div>
@@ -549,11 +630,21 @@
         />
 
         <!-- Use Case Composition Info -->
-        <div v-if="selectedUseCaseForCreate" class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-          <h4 class="text-sm font-semibold text-indigo-900 mb-3">📋 Komposisi Tim yang Dibutuhkan</h4>
+        <div
+          v-if="selectedUseCaseForCreate"
+          class="bg-indigo-50 border border-indigo-200 rounded-lg p-4"
+        >
+          <h4 class="text-sm font-semibold text-indigo-900 mb-3">
+            📋 Komposisi Tim yang Dibutuhkan
+          </h4>
 
           <!-- If use case has team composition requirements -->
-          <div v-if="selectedUseCaseForCreate.teamComposition && selectedUseCaseForCreate.teamComposition.length > 0">
+          <div
+            v-if="
+              selectedUseCaseForCreate.teamComposition &&
+              selectedUseCaseForCreate.teamComposition.length > 0
+            "
+          >
             <div class="space-y-2">
               <div
                 v-for="(comp, index) in selectedUseCaseForCreate.teamComposition"
@@ -594,7 +685,11 @@
           min="2"
           max="4"
           placeholder="Jumlah anggota per tim (2-4)"
-          :hint="selectedUseCaseForCreate?.totalTeamSize ? 'Ukuran tim otomatis disesuaikan dengan komposisi use case' : 'Jumlah anggota per tim yang akan dibuat'"
+          :hint="
+            selectedUseCaseForCreate?.totalTeamSize
+              ? 'Ukuran tim otomatis disesuaikan dengan komposisi use case'
+              : 'Jumlah anggota per tim yang akan dibuat'
+          "
           :disabled="selectedUseCaseForCreate?.totalTeamSize > 0"
         />
       </div>
@@ -768,7 +863,7 @@ const loadingInvitations = ref(false)
 const teamInvitationsCache = ref({}) // Cache invitations per team ID
 const autoCreateForm = ref({
   useCaseId: '',
-  teamSize: 4
+  teamSize: 4,
 })
 
 // Default generation settings (ubah jika perlu)
@@ -891,7 +986,7 @@ const useCaseOptionsForCreate = computed(() => {
         title: useCase.title,
         id: useCase.id,
         _id: useCase._id,
-        useCaseId
+        useCaseId,
       })
       options.push({
         value: useCaseId,
@@ -1009,7 +1104,8 @@ const getTeamInvitationsDisabledReason = teamId => {
     const memberInvs = memberInvitations[memberId]
     const hasAccepted = memberInvs.some(inv => inv.status === 'accepted')
     if (!hasAccepted) {
-      const memberName = memberInvs[0]?.memberId?.name || memberInvs[0]?.memberId?.email || 'Unknown'
+      const memberName =
+        memberInvs[0]?.memberId?.name || memberInvs[0]?.memberId?.email || 'Unknown'
       const statuses = memberInvs.map(inv => inv.status).join(', ')
       incompleteMembers.push(`${memberName} (${statuses})`)
     }
@@ -1035,8 +1131,9 @@ const selectedTeamsHasPendingInvitations = computed(() => {
  * Check if all visible teams are selected
  */
 const isAllSelected = computed(() => {
-  return filteredTeams.value.length > 0 &&
-         filteredTeams.value.every(t => selectedTeams.value.has(t._id))
+  return (
+    filteredTeams.value.length > 0 && filteredTeams.value.every(t => selectedTeams.value.has(t._id))
+  )
 })
 
 /**
@@ -1327,7 +1424,7 @@ const fetchUnregisteredStats = async () => {
       })
       unregisteredStats.value = {
         total: students.length,
-        byLearningPath: byPath
+        byLearningPath: byPath,
       }
     }
   } catch (err) {
@@ -1341,7 +1438,7 @@ const confirmAutoCreate = async () => {
     Swal.fire({
       icon: 'warning',
       title: 'Perhatian',
-      text: 'Pilih Use Case terlebih dahulu'
+      text: 'Pilih Use Case terlebih dahulu',
     })
     return
   }
@@ -1353,7 +1450,7 @@ const confirmAutoCreate = async () => {
     text: `Buat tim otomatis untuk ${unregisteredStats.value?.total || 0} siswa yang belum terdaftar?`,
     showCancelButton: true,
     confirmButtonText: 'Ya, Buat Tim',
-    cancelButtonText: 'Batal'
+    cancelButtonText: 'Batal',
   })
 
   if (!confirm.isConfirmed) return
@@ -1364,7 +1461,7 @@ const confirmAutoCreate = async () => {
   try {
     const response = await api.post('/admin/teams/auto-create', {
       useCaseId: autoCreateForm.value.useCaseId,
-      teamSize: autoCreateForm.value.teamSize || 4
+      teamSize: autoCreateForm.value.teamSize || 4,
     })
 
     if (response.success) {
@@ -1381,9 +1478,13 @@ const confirmAutoCreate = async () => {
           title: 'Tidak Ada Tim Dibuat',
           html: `
             <p>${response.message}</p>
-            ${response.data.skippedStudents ? `<p class="text-sm text-gray-600 mt-2">
+            ${
+              response.data.skippedStudents
+                ? `<p class="text-sm text-gray-600 mt-2">
               <strong>${response.data.skippedStudents}</strong> siswa di-skip karena tidak memiliki learning path yang valid.
-            </p>` : ''}
+            </p>`
+                : ''
+            }
             <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-left">
               <p class="text-sm font-semibold text-yellow-800 mb-2">💡 Saran:</p>
               <ul class="text-sm text-yellow-700 list-disc list-inside space-y-1">
@@ -1392,7 +1493,7 @@ const confirmAutoCreate = async () => {
                 <li>Minimal 2 siswa dengan learning path yang sama diperlukan untuk membuat tim</li>
               </ul>
             </div>
-          `
+          `,
         })
       } else {
         Swal.fire({
@@ -1404,17 +1505,21 @@ const confirmAutoCreate = async () => {
               <strong>${response.data.teamsCreated}</strong> tim dibuat<br>
               <strong>${response.data.studentsAssigned}</strong> siswa di-assign
             </p>
-            ${response.data.skippedStudents ? `<p class="text-sm text-orange-600 mt-2">
+            ${
+              response.data.skippedStudents
+                ? `<p class="text-sm text-orange-600 mt-2">
               ⚠️ <strong>${response.data.skippedStudents}</strong> siswa di-skip (tidak ada learning path)
-            </p>` : ''}
-          `
+            </p>`
+                : ''
+            }
+          `,
         })
       }
 
       // Reset form
       autoCreateForm.value = {
         useCaseId: '',
-        teamSize: 4
+        teamSize: 4,
       }
     }
   } catch (err) {
@@ -1422,7 +1527,7 @@ const confirmAutoCreate = async () => {
     Swal.fire({
       icon: 'error',
       title: 'Gagal',
-      text: err.message || 'Gagal membuat tim otomatis'
+      text: err.message || 'Gagal membuat tim otomatis',
     })
   } finally {
     autoCreating.value = false
@@ -1430,7 +1535,7 @@ const confirmAutoCreate = async () => {
 }
 
 // Watch auto-create modal to fetch stats when opened
-watch(showAutoCreateModal, (newVal) => {
+watch(showAutoCreateModal, newVal => {
   if (newVal) {
     fetchUnregisteredStats()
   }
@@ -1439,12 +1544,18 @@ watch(showAutoCreateModal, (newVal) => {
 // Watch selected use case to auto-adjust team size if composition is defined
 watch(
   () => autoCreateForm.value.useCaseId,
-  (newUseCaseId) => {
+  newUseCaseId => {
     if (newUseCaseId && selectedUseCaseForCreate.value) {
       // If use case has team composition, set team size to totalTeamSize
-      if (selectedUseCaseForCreate.value.totalTeamSize && selectedUseCaseForCreate.value.totalTeamSize > 0) {
+      if (
+        selectedUseCaseForCreate.value.totalTeamSize &&
+        selectedUseCaseForCreate.value.totalTeamSize > 0
+      ) {
         autoCreateForm.value.teamSize = selectedUseCaseForCreate.value.totalTeamSize
-        console.log('[Watch useCaseId] Auto-adjusted team size to:', selectedUseCaseForCreate.value.totalTeamSize)
+        console.log(
+          '[Watch useCaseId] Auto-adjusted team size to:',
+          selectedUseCaseForCreate.value.totalTeamSize
+        )
       }
     }
   }
@@ -1460,12 +1571,12 @@ const exportTeamsCSV = async () => {
     const filters = {
       status: filterStatus.value || undefined,
       useCaseId: filterUseCase.value || undefined,
-      search: searchQuery.value || undefined
+      search: searchQuery.value || undefined,
     }
 
     // Call API directly to get CSV
     const response = await api.get('/capstone-group/export-csv', {
-      params: filters
+      params: filters,
     })
 
     // Create blob from response data
@@ -1482,14 +1593,14 @@ const exportTeamsCSV = async () => {
     Swal.fire({
       icon: 'success',
       title: 'Berhasil!',
-      text: 'File CSV berhasil diunduh'
+      text: 'File CSV berhasil diunduh',
     })
   } catch (error) {
     console.error('Failed to export teams:', error)
     Swal.fire({
       icon: 'error',
       title: 'Gagal',
-      text: error.message || 'Gagal mengunduh file CSV'
+      text: error.message || 'Gagal mengunduh file CSV',
     })
   } finally {
     exporting.value = false
@@ -1499,7 +1610,7 @@ const exportTeamsCSV = async () => {
 /**
  * Toggle team selection
  */
-const toggleTeamSelection = (teamId) => {
+const toggleTeamSelection = teamId => {
   if (selectedTeams.value.has(teamId)) {
     selectedTeams.value.delete(teamId)
   } else {
@@ -1535,7 +1646,7 @@ const bulkApproveTeams = () => {
     Swal.fire({
       icon: 'warning',
       title: 'Pilih Tim',
-      text: 'Pilih minimal 1 tim untuk disetujui'
+      text: 'Pilih minimal 1 tim untuk disetujui',
     })
     return
   }
@@ -1550,7 +1661,7 @@ const bulkRejectTeams = () => {
     Swal.fire({
       icon: 'warning',
       title: 'Pilih Tim',
-      text: 'Pilih minimal 1 tim untuk ditolak'
+      text: 'Pilih minimal 1 tim untuk ditolak',
     })
     return
   }
@@ -1566,7 +1677,7 @@ const bulkDeleteTeams = () => {
     Swal.fire({
       icon: 'warning',
       title: 'Pilih Tim',
-      text: 'Pilih minimal 1 tim untuk dihapus'
+      text: 'Pilih minimal 1 tim untuk dihapus',
     })
     return
   }
@@ -1586,7 +1697,7 @@ const confirmBulkApprove = async () => {
       Swal.fire({
         icon: 'success',
         title: 'Berhasil!',
-        text: `${teamIds.length} tim berhasil disetujui`
+        text: `${teamIds.length} tim berhasil disetujui`,
       })
 
       // Clear invitation cache for approved teams
@@ -1610,7 +1721,7 @@ const confirmBulkApprove = async () => {
     Swal.fire({
       icon: 'error',
       title: 'Gagal',
-      text: error.message || 'Gagal menyetujui tim'
+      text: error.message || 'Gagal menyetujui tim',
     })
   } finally {
     bulkProcessing.value = false
@@ -1630,7 +1741,7 @@ const confirmBulkReject = async () => {
       Swal.fire({
         icon: 'success',
         title: 'Berhasil!',
-        text: `${teamIds.length} tim berhasil ditolak`
+        text: `${teamIds.length} tim berhasil ditolak`,
       })
 
       // Clear invitation cache for rejected teams
@@ -1652,7 +1763,7 @@ const confirmBulkReject = async () => {
     Swal.fire({
       icon: 'error',
       title: 'Gagal',
-      text: error.message || 'Gagal menolak tim'
+      text: error.message || 'Gagal menolak tim',
     })
   } finally {
     bulkProcessing.value = false
@@ -1672,7 +1783,7 @@ const confirmBulkDelete = async () => {
       Swal.fire({
         icon: 'success',
         title: 'Berhasil!',
-        text: `${teamIds.length} tim berhasil dihapus`
+        text: `${teamIds.length} tim berhasil dihapus`,
       })
 
       // Clear invitation cache for deleted teams
@@ -1693,7 +1804,7 @@ const confirmBulkDelete = async () => {
     Swal.fire({
       icon: 'error',
       title: 'Gagal',
-      text: error.message || 'Gagal menghapus tim'
+      text: error.message || 'Gagal menghapus tim',
     })
   } finally {
     bulkProcessing.value = false
@@ -1703,7 +1814,7 @@ const confirmBulkDelete = async () => {
 /**
  * Open remove member modal
  */
-const openRemoveMemberModal = (member) => {
+const openRemoveMemberModal = member => {
   selectedMember.value = member
   showRemoveMemberModal.value = true
 }
@@ -1711,7 +1822,7 @@ const openRemoveMemberModal = (member) => {
 /**
  * Open replace member modal
  */
-const openReplaceMemberModal = (member) => {
+const openReplaceMemberModal = member => {
   selectedMember.value = member
   showReplaceMemberModal.value = true
 }
@@ -1735,7 +1846,7 @@ const getAvailableMembersForReplacement = () => {
 /**
  * Handle remove member confirmation
  */
-const handleRemoveMember = async (data) => {
+const handleRemoveMember = async data => {
   if (!selectedTeam.value) return
 
   removingMember.value = true
@@ -1750,7 +1861,7 @@ const handleRemoveMember = async (data) => {
       Swal.fire({
         icon: 'success',
         title: 'Berhasil!',
-        text: 'Anggota berhasil dihapus dari tim'
+        text: 'Anggota berhasil dihapus dari tim',
       })
 
       showRemoveMemberModal.value = false
@@ -1764,7 +1875,7 @@ const handleRemoveMember = async (data) => {
     Swal.fire({
       icon: 'error',
       title: 'Gagal',
-      text: error.message || 'Gagal menghapus anggota'
+      text: error.message || 'Gagal menghapus anggota',
     })
   } finally {
     removingMember.value = false
@@ -1774,7 +1885,7 @@ const handleRemoveMember = async (data) => {
 /**
  * Handle replace member confirmation
  */
-const handleReplaceMember = async (data) => {
+const handleReplaceMember = async data => {
   if (!selectedTeam.value) return
 
   replacingMember.value = true
@@ -1793,7 +1904,7 @@ const handleReplaceMember = async (data) => {
       Swal.fire({
         icon: 'success',
         title: 'Berhasil!',
-        text: 'Anggota berhasil diganti'
+        text: 'Anggota berhasil diganti',
       })
 
       showReplaceMemberModal.value = false
@@ -1807,7 +1918,7 @@ const handleReplaceMember = async (data) => {
     Swal.fire({
       icon: 'error',
       title: 'Gagal',
-      text: error.message || 'Gagal mengganti anggota'
+      text: error.message || 'Gagal mengganti anggota',
     })
   } finally {
     replacingMember.value = false

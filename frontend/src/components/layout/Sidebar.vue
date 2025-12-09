@@ -1,7 +1,7 @@
 <template>
   <aside
     :class="[
-      'sidebar fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out',
+      'sidebar overflow-y-auto fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out',
       isOpen ? 'translate-x-0' : '-translate-x-full',
       'lg:translate-x-0',
     ]"

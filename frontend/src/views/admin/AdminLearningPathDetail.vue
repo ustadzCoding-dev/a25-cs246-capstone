@@ -1,61 +1,77 @@
 <template>
   <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
     <div class="space-y-6">
-      <!-- Page Header -->
-      <div class="flex items-center justify-between">
-        <div>
-          <router-link to="/admin/learning-paths" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
-            ← Kembali ke Learning Paths
-          </router-link>
-          <h1 class="text-3xl font-bold text-gray-900 mt-2">{{ learningPath?.name || 'Loading...' }}</h1>
-          <p class="mt-2 text-gray-600">Detail learning path dan member</p>
-        </div>
+      <router-link
+        to="/admin/learning-paths"
+        class="text-primary-600 hover:text-primary-700 text-sm font-medium"
+      >
+        ← Kembali ke Learning Paths
+      </router-link>
 
-        <BaseButton variant="primary" @click="showEditModal = true" v-if="learningPath">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      <!-- Page Header -->
+      <div
+        class="pb-4 bg-white p-5 rounded-lg shadow-md flex justify-start items-start flex-col gap-4 md:flex-row md:items-center md:justify-between"
+      >
+        <div>
+          <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+            {{ learningPath?.name || 'Loading...' }}
+          </h1>
+          <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+            Detail learning path dan member
+          </p>
+        </div>
+        <button
+          @click="showEditModal = true"
+          class="text-warning-600 hover:text-warning-700 p-2"
+          title="Edit"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+            />
           </svg>
-          Edit
-        </BaseButton>
+        </button>
       </div>
 
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center items-center py-12">
-        <BaseSpinner centered size="lg" label="Memuat detail..." />
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
 
       <!-- Error State -->
       <div v-else-if="error" class="bg-danger-50 border border-danger-200 rounded-lg p-4">
         <p class="text-danger-700">{{ error }}</p>
-        <BaseButton variant="outline" @click="fetchDetail" class="mt-4">
-          Coba Lagi
-        </BaseButton>
+        <BaseButton variant="outline" @click="fetchDetail" class="mt-4"> Coba Lagi </BaseButton>
       </div>
 
       <!-- Content -->
       <div v-else-if="learningPath" class="space-y-6">
         <!-- Learning Path Info -->
         <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">Informasi Learning Path</h2>
-
+          <h2 class="lg:text-lg md:text-base sm:text-base text-sm font-semibold text-gray-900 mb-4">
+            Informasi Learning Path
+          </h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700">Nama</label>
-              <p class="mt-1 text-gray-900">{{ learningPath.name }}</p>
+              <label class="block text-sm text-gray-500 uppercase">Nama</label>
+              <p class="text-gray-900">{{ learningPath.name }}</p>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700">Kode</label>
-              <p class="mt-1 text-gray-900">{{ learningPath.code }}</p>
+              <label class="block text-sm text-gray-500 uppercase">Kode</label>
+              <p class="text-gray-900">{{ learningPath.code }}</p>
             </div>
 
             <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700">Deskripsi</label>
-              <p class="mt-1 text-gray-900">{{ learningPath.description }}</p>
+              <label class="block text-sm text-gray-500 uppercase">Deskripsi</label>
+              <p class="text-gray-900">{{ learningPath.description }}</p>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700">Status</label>
+              <label class="block text-sm text-gray-500 uppercase">Status</label>
               <div class="mt-1">
                 <BaseBadge :variant="learningPath.isActive ? 'success' : 'warning'">
                   {{ learningPath.isActive ? 'Aktif' : 'Nonaktif' }}
@@ -64,25 +80,19 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700">Dibuat</label>
-              <p class="mt-1 text-gray-900">{{ formatDate(learningPath.createdAt) }}</p>
+              <label class="block text-sm text-gray-500 uppercase">Dibuat</label>
+              <p class="text-gray-900">{{ formatDate(learningPath.createdAt) }}</p>
             </div>
           </div>
         </div>
 
         <!-- Statistics -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <StatsCard
             label="Total Members"
             :value="stats.totalMembers"
             icon="team"
             color="primary"
-          />
-          <StatsCard
-            label="Total Teams"
-            :value="stats.totalTeams"
-            icon="settings"
-            color="success"
           />
           <StatsCard
             label="Completion Rate"
@@ -96,12 +106,10 @@
         <div class="bg-white rounded-lg shadow">
           <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex items-center justify-between">
-              <h2 class="text-xl font-semibold text-gray-900">Members ({{ members.length }})</h2>
-              <BaseInput
-                v-model="searchQuery"
-                placeholder="Cari member..."
-                class="w-64"
-              />
+              <h2 class="lg:text-lg md:text-base sm:text-base text-sm font-semibold text-gray-900">
+                Members ({{ members.length }})
+              </h2>
+              <BaseInput v-model="searchQuery" placeholder="Cari member..." class="w-64" />
             </div>
           </div>
 
@@ -113,10 +121,18 @@
             <table class="w-full">
               <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Student ID</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Nama</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Email</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Team</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                    Student ID
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                    Nama
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                    Email
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                    Team
+                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
@@ -138,19 +154,9 @@
     <!-- Edit Modal -->
     <BaseModal v-model="showEditModal" title="Edit Learning Path" size="lg">
       <form @submit.prevent="handleSubmit" class="space-y-4">
-        <BaseInput
-          v-model="editForm.name"
-          label="Nama"
-          :error="editErrors.name"
-          required
-        />
+        <BaseInput v-model="editForm.name" label="Nama" :error="editErrors.name" required />
 
-        <BaseInput
-          v-model="editForm.code"
-          label="Kode"
-          :error="editErrors.code"
-          required
-        />
+        <BaseInput v-model="editForm.code" label="Kode" :error="editErrors.code" required />
 
         <BaseTextarea
           v-model="editForm.description"
@@ -160,12 +166,7 @@
         />
 
         <div class="flex items-center">
-          <input
-            type="checkbox"
-            v-model="editForm.isActive"
-            id="isActive"
-            class="rounded"
-          />
+          <input type="checkbox" v-model="editForm.isActive" id="isActive" class="rounded" />
           <label for="isActive" class="ml-2 text-sm text-gray-700">Aktif</label>
         </div>
 
@@ -176,9 +177,7 @@
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="showEditModal = false">
-            Batal
-          </BaseButton>
+          <BaseButton variant="outline" @click="showEditModal = false"> Batal </BaseButton>
           <BaseButton variant="primary" :loading="editSubmitting" @click="handleSubmit">
             Simpan Perubahan
           </BaseButton>
@@ -225,13 +224,13 @@ const editForm = reactive({
   name: '',
   code: '',
   description: '',
-  isActive: true
+  isActive: true,
 })
 
 const editErrors = reactive({
   name: '',
   code: '',
-  description: ''
+  description: '',
 })
 
 // Computed
@@ -239,28 +238,32 @@ const filteredMembers = computed(() => {
   if (!searchQuery.value) return members.value
 
   const query = searchQuery.value.toLowerCase()
-  return members.value.filter(m =>
-    m.name.toLowerCase().includes(query) ||
-    m.email.toLowerCase().includes(query) ||
-    (m.dicodingId && m.dicodingId.toLowerCase().includes(query))
+  return members.value.filter(
+    m =>
+      m.name.toLowerCase().includes(query) ||
+      m.email.toLowerCase().includes(query) ||
+      (m.dicodingId && m.dicodingId.toLowerCase().includes(query))
   )
 })
 
 const stats = computed(() => ({
   totalMembers: members.value.length,
   totalTeams: members.value.filter(m => m.capstoneGroupId).length,
-  completionRate: members.value.length > 0
-    ? Math.round((members.value.filter(m => m.capstoneGroupId).length / members.value.length) * 100)
-    : 0
+  completionRate:
+    members.value.length > 0
+      ? Math.round(
+          (members.value.filter(m => m.capstoneGroupId).length / members.value.length) * 100
+        )
+      : 0,
 }))
 
 // Methods
-const formatDate = (date) => {
+const formatDate = date => {
   if (!date) return '-'
   return new Date(date).toLocaleDateString('id-ID', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
@@ -280,7 +283,12 @@ const fetchDetail = async () => {
 
       // Get members from response data (already fetched by backend)
       members.value = response.data.members || []
-      console.log('[AdminLearningPathDetail] Members loaded:', members.value.length, 'members:', members.value)
+      console.log(
+        '[AdminLearningPathDetail] Members loaded:',
+        members.value.length,
+        'members:',
+        members.value
+      )
     } else {
       error.value = response.message || 'Gagal memuat detail learning path'
     }
@@ -307,7 +315,7 @@ const handleSubmit = async () => {
       name: editForm.name,
       code: editForm.code,
       description: editForm.description,
-      isActive: editForm.isActive
+      isActive: editForm.isActive,
     })
 
     if (response.success) {
