@@ -5,6 +5,7 @@ import uploadProfilePicture from '../middleware/multerProfilePicture.js';
 // import { uploadEvidence } from '../middleware/multerWorksheet.js'; // DISABLED: Worksheet feature removed
 import { protect } from '../middleware/auth.js';
 import { adminOnly, studentOnly } from '../middleware/authorize.js';
+import { uploadLimiter, bulkLimiter, exportLimiter } from '../middleware/security.js';
 import {
   validate,
   teamSchema,
@@ -228,9 +229,8 @@ router.get('/capstone-groups', protect, getAllCapstoneGroups);
 router.get('/capstone-group/current', protect, getCurrentCapstoneGroup);
 
 // PRIORITY 3.1: Admin - Export teams to CSV (MUST BE BEFORE /:id route!)
-// Note: No middleware to avoid issues with res.end() and CSV response
-// Auth check done manually in controller
-router.get('/capstone-group/export-csv', exportTeamsCSV);
+// Note: Auth check done manually in controller
+router.get('/capstone-group/export-csv', protect, adminOnly, exportLimiter, exportTeamsCSV);
 
 // Get team by ID (MUST BE AFTER specific routes like /export-csv)
 router.get('/capstone-group/:id', protect, getCapstoneGroupById);
@@ -249,16 +249,16 @@ router.delete('/capstone-group/:id', protect, adminOnly, deleteCapstoneGroup);
 
 // Admin: Get unregistered students and auto-create teams
 router.get('/admin/students/unregistered', protect, adminOnly, getUnregisteredStudents);
-router.post('/admin/teams/auto-create', protect, adminOnly, autoCreateTeams);
+router.post('/admin/teams/auto-create', protect, adminOnly, bulkLimiter, autoCreateTeams);
 
 // FIX CASE 31: Admin - Remove/Replace team members
 router.put('/capstone-group/:id/remove-member', protect, adminOnly, removeTeamMember);
 router.put('/capstone-group/:id/replace-member', protect, adminOnly, replaceTeamMember);
 
 // PRIORITY 2.2 & 2.3: Admin - Bulk operations
-router.post('/capstone-group/bulk-approve', protect, adminOnly, bulkApproveTeams);
-router.post('/capstone-group/bulk-reject', protect, adminOnly, bulkRejectTeams);
-router.post('/capstone-group/bulk-delete', protect, adminOnly, bulkDeleteTeams);
+router.post('/capstone-group/bulk-approve', protect, adminOnly, bulkLimiter, bulkApproveTeams);
+router.post('/capstone-group/bulk-reject', protect, adminOnly, bulkLimiter, bulkRejectTeams);
+router.post('/capstone-group/bulk-delete', protect, adminOnly, bulkLimiter, bulkDeleteTeams);
 
 // Admin: Set team composition for use case
 router.put('/usecase/:usecaseId/team-composition', protect, adminOnly, setTeamComposition);
@@ -276,6 +276,7 @@ router.post(
   '/document/add',
   protect,
   adminOnly,
+  uploadLimiter,
   (req, res, next) => {
     upload.single('file')(req, res, (err) => {
       if (err) {
@@ -292,6 +293,7 @@ router.put(
   '/document/:id',
   protect,
   adminOnly,
+  uploadLimiter,
   (req, res, next) => {
     upload.single('file')(req, res, (err) => {
       if (err) {
