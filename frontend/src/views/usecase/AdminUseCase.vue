@@ -315,7 +315,8 @@ const totalTeamSize = computed(() => {
 
 const fetchLearningPaths = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/admin/learning-paths', {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${apiBaseUrl}/admin/learning-paths`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
