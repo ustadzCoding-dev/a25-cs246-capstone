@@ -2,12 +2,17 @@
   <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="flex items-center justify-between">
+      <div
+        class="pb-4 bg-white p-5 rounded-lg shadow-md flex justify-start items-start flex-col gap-4 md:flex-row md:items-center md:justify-between"
+      >
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Kelola Dokumen</h1>
-          <p class="mt-2 text-gray-600">Upload dan kelola dokumen panduan capstone</p>
+          <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+            Manage Documents
+          </h1>
+          <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+            Upload dan kelola dokumen panduan capstone
+          </p>
         </div>
-
         <BaseButton variant="primary" @click="showUploadModal = true">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -21,318 +26,340 @@
         </BaseButton>
       </div>
 
-      <!-- Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard label="Total Dokumen" :value="stats.total" icon="document" color="primary" />
-        <StatsCard
-          label="Diupload Bulan Ini"
-          :value="stats.thisMonth"
-          icon="document"
-          color="success"
-        />
-        <StatsCard
-          label="Total Download"
-          :value="stats.totalDownloads"
-          icon="chart"
-          color="warning"
-        />
-      </div>
-
-      <!-- Filters -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseSearch v-model="searchQuery" placeholder="Cari dokumen..." />
-
-          <BaseSelect
-            v-model="filterCategory"
-            :options="categoryOptions"
-            placeholder="Semua Kategori"
+      <div class="p-6 bg-white shadow-md rounded-lg flex flex-col gap-5">
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatsCard label="Total Dokumen" :value="stats.total" icon="document" color="primary" />
+          <StatsCard
+            label="Diupload Bulan Ini"
+            :value="stats.thisMonth"
+            icon="document"
+            color="success"
+          />
+          <StatsCard
+            label="Total Download"
+            :value="stats.totalDownloads"
+            icon="chart"
+            color="warning"
           />
         </div>
-      </div>
 
-      <!-- Documents Table -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">Daftar Dokumen</h2>
-        </div>
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <BaseSearch v-model="searchQuery" placeholder="Cari dokumen..." />
 
-        <div v-if="loading" class="p-12">
-          <BaseSpinner centered size="lg" label="Memuat dokumen..." />
-        </div>
-
-        <div v-else-if="filteredDocuments.length === 0" class="p-12 text-center">
-          <svg
-            class="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            <BaseSelect
+              v-model="filterCategory"
+              :options="categoryOptions"
+              placeholder="Semua Kategori"
             />
-          </svg>
-          <p class="mt-2 text-sm text-gray-500">Belum ada dokumen</p>
+          </div>
         </div>
 
-        <div v-else class="divide-y divide-gray-200">
-          <div
-            v-for="doc in filteredDocuments"
-            :key="doc._id"
-            class="p-6 hover:bg-gray-50 transition-colors duration-200"
-          >
-            <div class="flex items-start justify-between">
-              <div class="flex-1">
-                <div class="flex items-center space-x-3">
-                  <svg
-                    class="w-8 h-8 text-primary-600 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  <div>
-                    <h3 class="text-base font-semibold text-gray-900">{{ doc.title }}</h3>
-                    <p class="text-sm text-gray-600 mt-1">{{ doc.description }}</p>
-                    <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                      <span>{{ formatDate(doc.createdAt) }}</span>
-                      <span>•</span>
-                      <span>{{ doc.fileName }}</span>
-                      <span>•</span>
-                      <span>{{ doc.downloadCount }} downloads</span>
-                      <span>•</span>
-                      <BaseBadge size="sm" :variant="getCategoryVariant(doc.category)">
-                        {{ doc.category }}
-                      </BaseBadge>
+        <!-- Documents Table -->
+        <div class="bg-white rounded-lg shadow">
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="font-semibold text-gray-900 lg:text-lg md:text-base sm:text-base text-sm">
+              Daftar Dokumen
+            </h2>
+          </div>
+
+          <div v-if="loading" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
+
+          <div v-else-if="filteredDocuments.length === 0" class="p-12 text-center">
+            <svg
+              class="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">Belum ada dokumen</p>
+          </div>
+
+          <div v-else class="divide-y divide-gray-200 overflow-x-auto">
+            <div
+              v-for="doc in filteredDocuments"
+              :key="doc._id"
+              class="p-6 hover:bg-gray-50 transition-colors duration-200"
+            >
+              <div class="flex items-start justify-between gap-4 md:gap-0 flex-col md:flex-row">
+                <div class="flex-1">
+                  <div class="flex items-center space-x-3">
+                    <svg
+                      class="lg:size-8 md:size-8 sm:size-6 size-6 text-primary-600 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <div class="min-w-max">
+                      <h3 class="lg:text-base md:text-base sm:text-sm text-sm font-semibold text-gray-900">{{ doc.title }}</h3>
+                      <p class="lg:text-sm md:text-sm sm:text-xs text-xs text-gray-600">{{ doc.description }}</p>
+                      <div class="flex items-center space-x-4 mt-3 lg:text-sm md:text-sm sm:text-xs text-xs text-gray-500">
+                        <span>{{ formatDate(doc.createdAt) }}</span>
+                        <span>•</span>
+                        <span>{{ doc.fileName }}</span>
+                        <span>•</span>
+                        <span>{{ doc.downloadCount }} downloads</span>
+                        <span>•</span>
+                        <BaseBadge size="sm" :variant="getCategoryVariant(doc.category)">
+                          {{ doc.category }}
+                        </BaseBadge>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="flex items-center space-x-2 ml-4">
-                <button
-                  @click="downloadDocument(doc)"
-                  class="text-primary-600 hover:text-primary-700 p-2"
-                  title="Download"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                </button>
+                <div class="flex items-center space-x-2 ml-4 ">
+                  <button
+                    @click="downloadDocument(doc)"
+                    class="text-primary-600 hover:text-primary-700 p-2"
+                    title="Download"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                  </button>
 
-                <button
-                  @click="editDocument(doc)"
-                  class="text-warning-600 hover:text-warning-700 p-2"
-                  title="Edit"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </button>
+                  <button
+                    @click="editDocument(doc)"
+                    class="text-warning-600 hover:text-warning-700 p-2"
+                    title="Edit"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
 
-                <button
-                  @click="deleteDocument(doc)"
-                  class="text-danger-600 hover:text-danger-700 p-2"
-                  title="Hapus"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
+                  <button
+                    @click="deleteDocument(doc)"
+                    class="text-danger-600 hover:text-danger-700 p-2"
+                    title="Hapus"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Upload/Edit Document Modal -->
-    <BaseModal
-      v-model="showUploadModal"
-      :title="editingDocument ? '✏️ Edit Dokumen' : '📤 Upload Dokumen Baru'"
-      size="lg"
-    >
-      <form @submit.prevent="handleSubmit" class="space-y-6">
-        <!-- MODE INDICATOR -->
-        <div v-if="editingDocument" class="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-          <span class="text-xs font-semibold text-blue-700 uppercase">Mode Edit</span>
-          <span class="text-xs text-blue-600">Ubah informasi atau file dokumen</span>
-        </div>
-
-        <!-- METADATA SECTION -->
-        <div class="space-y-4">
-          <h3 class="text-sm font-semibold text-gray-900">📋 Informasi Dokumen</h3>
-
-          <BaseInput
-            v-model="form.title"
-            label="Judul Dokumen"
-            placeholder="Masukkan judul dokumen"
-            :error="errors.title"
-            required
-          />
-
-          <BaseTextarea
-            v-model="form.description"
-            label="Deskripsi"
-            placeholder="Masukkan deskripsi dokumen"
-            :rows="3"
-            :error="errors.description"
-            required
-          />
-
-          <div class="grid grid-cols-2 gap-4">
-            <BaseSelect
-              v-model="form.category"
-              label="Kategori"
-              :options="categoryOptions"
-              :error="errors.category"
-              required
-            />
-
-            <BaseSelect
-              v-model="form.visibility"
-              label="Visibilitas"
-              :options="[
-                { value: 'public', label: 'Public (Semua siswa)' },
-                { value: 'private', label: 'Private (Admin saja)' },
-              ]"
-              :error="errors.visibility"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- FILE/LINK SECTION -->
-        <div class="space-y-4 pt-4 border-t border-gray-200">
-          <h3 class="text-sm font-semibold text-gray-900">📁 File & Link</h3>
-
-          <!-- File upload -->
-          <div>
-            <BaseFileUpload
-              v-model="form.file"
-              :label="editingDocument ? 'File Dokumen (Pilih untuk mengganti)' : 'File Dokumen'"
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif"
-              :max-size="10"
-              :error="errors.file"
-              :required="!editingDocument"
-            />
-            <p v-if="editingDocument" class="mt-2 text-xs text-gray-600">
-              💡 Biarkan kosong jika tidak ingin mengganti file
-            </p>
+      <!-- Upload/Edit Document Modal -->
+      <BaseModal
+        v-model="showUploadModal"
+        :title="editingDocument ? '✏️ Edit Dokumen' : '📤 Upload Dokumen Baru'"
+        size="lg"
+      >
+        <form @submit.prevent="handleSubmit" class="space-y-6">
+          <!-- MODE INDICATOR -->
+          <div
+            v-if="editingDocument"
+            class="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg"
+          >
+            <span class="text-xs font-semibold text-blue-700 uppercase">Mode Edit</span>
+            <span class="text-xs text-blue-600">Ubah informasi atau file dokumen</span>
           </div>
 
-          <!-- Current file info (after input) -->
-          <div v-if="editingDocument && editingDocument.fileUrl" class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p class="text-xs font-medium text-blue-900 mb-1">📄 File Saat Ini:</p>
-            <p class="text-sm text-blue-700 break-all">{{ editingDocument.fileName }}</p>
-            <p v-if="editingDocument.fileUrl" class="text-xs text-blue-600 mt-1">
-              Ukuran: {{ formatFileSize(editingDocument.fileUrl) }}
-            </p>
-          </div>
+          <!-- METADATA SECTION -->
+          <div class="space-y-4">
+            <h3 class="text-sm font-semibold text-gray-900">📋 Informasi Dokumen</h3>
 
-          <!-- Link input -->
-          <div>
             <BaseInput
-              v-model="form.link"
-              label="Link Eksternal (Opsional)"
-              placeholder="https://drive.google.com/... atau https://..."
-              :error="errors.link"
-              hint="Gunakan jika dokumen tersimpan di cloud storage"
+              v-model="form.title"
+              label="Judul Dokumen"
+              placeholder="Masukkan judul dokumen"
+              :error="errors.title"
+              required
             />
-            <p v-if="editingDocument" class="mt-2 text-xs text-gray-600">
-              💡 Kosongkan untuk menghapus link
+
+            <BaseTextarea
+              v-model="form.description"
+              label="Deskripsi"
+              placeholder="Masukkan deskripsi dokumen"
+              :rows="3"
+              :error="errors.description"
+              required
+            />
+
+            <div class="grid grid-cols-2 gap-4">
+              <BaseSelect
+                v-model="form.category"
+                label="Kategori"
+                :options="categoryOptions"
+                :error="errors.category"
+                required
+              />
+
+              <BaseSelect
+                v-model="form.visibility"
+                label="Visibilitas"
+                :options="[
+                  { value: 'public', label: 'Public (Semua siswa)' },
+                  { value: 'private', label: 'Private (Admin saja)' },
+                ]"
+                :error="errors.visibility"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- FILE/LINK SECTION -->
+          <div class="space-y-4 pt-4 border-t border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-900">📁 File & Link</h3>
+
+            <!-- File upload -->
+            <div>
+              <BaseFileUpload
+                v-model="form.file"
+                :label="editingDocument ? 'File Dokumen (Pilih untuk mengganti)' : 'File Dokumen'"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif"
+                :max-size="10"
+                :error="errors.file"
+                :required="!editingDocument"
+              />
+              <p v-if="editingDocument" class="mt-2 text-xs text-gray-600">
+                💡 Biarkan kosong jika tidak ingin mengganti file
+              </p>
+            </div>
+
+            <!-- Current file info (after input) -->
+            <div
+              v-if="editingDocument && editingDocument.fileUrl"
+              class="p-3 bg-blue-50 border border-blue-200 rounded-lg"
+            >
+              <p class="text-xs font-medium text-blue-900 mb-1">📄 File Saat Ini:</p>
+              <p class="text-sm text-blue-700 break-all">{{ editingDocument.fileName }}</p>
+              <p v-if="editingDocument.fileUrl" class="text-xs text-blue-600 mt-1">
+                Ukuran: {{ formatFileSize(editingDocument.fileUrl) }}
+              </p>
+            </div>
+
+            <!-- Link input -->
+            <div>
+              <BaseInput
+                v-model="form.link"
+                label="Link Eksternal (Opsional)"
+                placeholder="https://drive.google.com/... atau https://..."
+                :error="errors.link"
+                hint="Gunakan jika dokumen tersimpan di cloud storage"
+              />
+              <p v-if="editingDocument" class="mt-2 text-xs text-gray-600">
+                💡 Kosongkan untuk menghapus link
+              </p>
+            </div>
+
+            <!-- Current link info (after input) -->
+            <div
+              v-if="editingDocument && editingDocument.link"
+              class="p-3 bg-green-50 border border-green-200 rounded-lg"
+            >
+              <p class="text-xs font-medium text-green-900 mb-1">🔗 Link Saat Ini:</p>
+              <a
+                :href="editingDocument.link"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sm text-green-700 hover:underline break-all"
+              >
+                {{ editingDocument.link }}
+              </a>
+            </div>
+          </div>
+
+          <!-- ERROR MESSAGE -->
+          <div v-if="error" class="p-3 bg-danger-50 border border-danger-200 rounded-lg">
+            <p class="text-sm text-danger-700">⚠️ {{ error }}</p>
+          </div>
+        </form>
+
+        <template #footer>
+          <div class="flex justify-end space-x-3">
+            <BaseButton variant="outline" @click="closeModal"> Batal </BaseButton>
+            <BaseButton variant="primary" :loading="submitting" @click="handleSubmit">
+              {{ editingDocument ? 'Simpan Perubahan' : 'Upload Dokumen' }}
+            </BaseButton>
+          </div>
+        </template>
+      </BaseModal>
+
+      <!-- Delete Confirmation Modal -->
+      <BaseModal v-model="showDeleteModal" title="⚠️ Konfirmasi Hapus Permanen" size="md">
+        <div class="space-y-4">
+          <p class="text-gray-700">
+            Apakah Anda yakin ingin menghapus dokumen ini secara <strong>permanen</strong>?
+          </p>
+
+          <!-- Document Details -->
+          <div
+            v-if="selectedDocument"
+            class="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-2"
+          >
+            <div>
+              <p class="text-xs font-semibold text-gray-600 uppercase">Judul</p>
+              <p class="text-sm text-gray-900">{{ selectedDocument.title }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-gray-600 uppercase">File</p>
+              <p class="text-sm text-gray-900">{{ selectedDocument.fileName }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-gray-600 uppercase">Kategori</p>
+              <p class="text-sm text-gray-900">{{ selectedDocument.category }}</p>
+            </div>
+          </div>
+
+          <!-- Warning -->
+          <div class="bg-danger-50 border border-danger-200 rounded-lg p-4">
+            <p class="text-sm text-danger-700">
+              ⚠️ <strong>Perhatian:</strong> Dokumen dan file akan dihapus dari sistem secara
+              permanen. Tindakan ini tidak dapat dibatalkan.
             </p>
           </div>
+        </div>
 
-          <!-- Current link info (after input) -->
-          <div v-if="editingDocument && editingDocument.link" class="p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p class="text-xs font-medium text-green-900 mb-1">🔗 Link Saat Ini:</p>
-            <a :href="editingDocument.link" target="_blank" rel="noopener noreferrer" class="text-sm text-green-700 hover:underline break-all">
-              {{ editingDocument.link }}
-            </a>
+        <template #footer>
+          <div class="flex justify-end space-x-3">
+            <BaseButton variant="outline" @click="showDeleteModal = false"> Batal </BaseButton>
+            <BaseButton variant="danger" :loading="deleting" @click="confirmDelete">
+              Ya, Hapus
+            </BaseButton>
           </div>
-        </div>
-
-        <!-- ERROR MESSAGE -->
-        <div v-if="error" class="p-3 bg-danger-50 border border-danger-200 rounded-lg">
-          <p class="text-sm text-danger-700">⚠️ {{ error }}</p>
-        </div>
-      </form>
-
-      <template #footer>
-        <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="closeModal"> Batal </BaseButton>
-          <BaseButton variant="primary" :loading="submitting" @click="handleSubmit">
-            {{ editingDocument ? 'Simpan Perubahan' : 'Upload Dokumen' }}
-          </BaseButton>
-        </div>
-      </template>
-    </BaseModal>
-
-    <!-- Delete Confirmation Modal -->
-    <BaseModal v-model="showDeleteModal" title="⚠️ Konfirmasi Hapus Permanen" size="md">
-      <div class="space-y-4">
-        <p class="text-gray-700">
-          Apakah Anda yakin ingin menghapus dokumen ini secara <strong>permanen</strong>?
-        </p>
-
-        <!-- Document Details -->
-        <div v-if="selectedDocument" class="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-2">
-          <div>
-            <p class="text-xs font-semibold text-gray-600 uppercase">Judul</p>
-            <p class="text-sm text-gray-900">{{ selectedDocument.title }}</p>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-gray-600 uppercase">File</p>
-            <p class="text-sm text-gray-900">{{ selectedDocument.fileName }}</p>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-gray-600 uppercase">Kategori</p>
-            <p class="text-sm text-gray-900">{{ selectedDocument.category }}</p>
-          </div>
-        </div>
-
-        <!-- Warning -->
-        <div class="bg-danger-50 border border-danger-200 rounded-lg p-4">
-          <p class="text-sm text-danger-700">
-            ⚠️ <strong>Perhatian:</strong> Dokumen dan file akan dihapus dari sistem secara permanen. Tindakan ini tidak dapat dibatalkan.
-          </p>
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="showDeleteModal = false"> Batal </BaseButton>
-          <BaseButton variant="danger" :loading="deleting" @click="confirmDelete">
-            Ya, Hapus
-          </BaseButton>
-        </div>
-      </template>
-    </BaseModal>
+        </template>
+      </BaseModal>
+    </div>
   </DashboardLayout>
 </template>
 
@@ -419,7 +446,6 @@ const { adminMenuItems } = useAdminMenu()
 
 const filteredDocuments = computed(() => {
   let result = documents.value
-
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
@@ -558,7 +584,7 @@ const handleSubmit = async () => {
           description: form.description,
           category: form.category,
           visibility: form.visibility,
-          link: form.link || null
+          link: form.link || null,
         }
 
         console.log('Updating metadata/link only')
@@ -586,7 +612,10 @@ const handleSubmit = async () => {
       console.log('Description:', form.description)
       console.log('Category:', form.category)
       console.log('Visibility:', form.visibility)
-      console.log('File:', form.file ? { name: form.file.name, size: form.file.size, type: form.file.type } : null)
+      console.log(
+        'File:',
+        form.file ? { name: form.file.name, size: form.file.size, type: form.file.type } : null
+      )
 
       await documentStore.uploadDocument(formData)
     }
@@ -625,7 +654,7 @@ const editDocument = doc => {
   form.description = doc.description
   form.category = doc.category
   form.link = doc.link || ''
-  form.file = null  // Reset file - user must select new file if they want to replace
+  form.file = null // Reset file - user must select new file if they want to replace
   showUploadModal.value = true
 }
 
@@ -677,7 +706,7 @@ const fetchDocuments = async () => {
   try {
     const params = {
       category: filterCategory.value,
-      search: searchQuery.value
+      search: searchQuery.value,
     }
     await documentStore.fetchDocuments(params)
   } catch (err) {
