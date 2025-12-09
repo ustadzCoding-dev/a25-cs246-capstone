@@ -303,7 +303,8 @@ const filteredPaths = computed(() => {
 const fetchLearningPaths = async () => {
   loading.value = true;
   try {
-    const response = await fetch('http://localhost:8000/api/admin/learning-paths', {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${apiBaseUrl}/admin/learning-paths`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
@@ -347,9 +348,10 @@ const handleSubmit = async () => {
 
   loading.value = true;
   try {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
     const url = editingId.value
-      ? `http://localhost:8000/api/admin/learning-paths/${editingId.value}`
-      : 'http://localhost:8000/api/admin/learning-paths';
+      ? `${apiBaseUrl}/admin/learning-paths/${editingId.value}`
+      : `${apiBaseUrl}/admin/learning-paths`;
 
     const method = editingId.value ? 'PUT' : 'POST';
 
@@ -399,7 +401,8 @@ const editPath = (path) => {
 const toggleStatus = async (id) => {
   loading.value = true;
   try {
-    const response = await fetch(`http://localhost:8000/api/admin/learning-paths/${id}/toggle`, {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${apiBaseUrl}/admin/learning-paths/${id}/toggle`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -437,7 +440,8 @@ const deletePath = async (id) => {
 
   loading.value = true;
   try {
-    const response = await fetch(`http://localhost:8000/api/admin/learning-paths/${id}`, {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${apiBaseUrl}/admin/learning-paths/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
