@@ -120,6 +120,7 @@
                         <span>•</span>
                         <BaseBadge size="sm" :variant="getCategoryVariant(doc.category)">
                           {{ doc.category }}
+                          {{ getCategoryVariant(doc.category) }}
                         </BaseBadge>
                       </div>
                     </div>
