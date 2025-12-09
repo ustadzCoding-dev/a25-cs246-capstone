@@ -28,15 +28,21 @@ export const getDashboardStats = async (req, res) => {
     const rejectedTeams = await CapstoneGroup.countDocuments({ status: 'rejected' });
 
     // Hitung total documents (only active documents)
-    const totalDocuments = await Document.countDocuments({ isActive: true });
-    const publicDocuments = await Document.countDocuments({ visibility: 'public', isActive: true });
+    // Include docs without isActive field (existing docs) for backward compatibility
+    const totalDocuments = await Document.countDocuments({
+      $or: [{ isActive: true }, { isActive: { $exists: false } }]
+    });
+    const publicDocuments = await Document.countDocuments({
+      visibility: 'public',
+      $or: [{ isActive: true }, { isActive: { $exists: false } }]
+    });
 
     // Hitung documents uploaded this month
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const firstDayOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     const thisMonthDocuments = await Document.countDocuments({
-      isActive: true,
+      $or: [{ isActive: true }, { isActive: { $exists: false } }],
       createdAt: {
         $gte: firstDayOfMonth,
         $lt: firstDayOfNextMonth
@@ -45,7 +51,7 @@ export const getDashboardStats = async (req, res) => {
 
     // Hitung total downloads dari semua dokumen
     const downloadStats = await Document.aggregate([
-      { $match: { isActive: true } },
+      { $match: { $or: [{ isActive: true }, { isActive: { $exists: false } }] } },
       { $group: { _id: null, totalDownloads: { $sum: '$downloadCount' } } }
     ]);
     const totalDownloads = downloadStats[0]?.totalDownloads || 0;
