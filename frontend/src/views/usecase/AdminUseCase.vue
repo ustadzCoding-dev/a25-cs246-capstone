@@ -333,7 +333,8 @@ const fetchUseCases = async () => {
   loading.value = true
   try {
     // Fetch use cases from API
-    const response = await fetch('http://localhost:8000/api/usecases', {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${apiBaseUrl}/usecases`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
@@ -385,8 +386,9 @@ const saveComposition = async () => {
 
   saving.value = true
   try {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
     const response = await fetch(
-      `http://localhost:8000/api/usecase/${selectedUseCase.value.id || selectedUseCase.value._id}/team-composition`,
+      `${apiBaseUrl}/usecase/${selectedUseCase.value.id || selectedUseCase.value._id}/team-composition`,
       {
         method: 'PUT',
         headers: {
@@ -455,7 +457,8 @@ const saveUseCase = async () => {
 
   saving.value = true
   try {
-    const response = await fetch('http://localhost:8000/api/usecases', {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const response = await fetch(`${apiBaseUrl}/usecases`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -507,8 +510,9 @@ const deleteUseCase = async useCase => {
   if (!result.isConfirmed) return
 
   try {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
     const response = await fetch(
-      `http://localhost:8000/api/usecases/${useCase.id || useCase._id}`,
+      `${apiBaseUrl}/usecases/${useCase.id || useCase._id}`,
       {
         method: 'DELETE',
         headers: {
