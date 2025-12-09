@@ -429,7 +429,7 @@ const stats = computed(() => {
   }
   return {
     total: dashboardStats.value.documents?.total || 0,
-    thisMonth: dashboardStats.value.documents?.total || 0,
+    thisMonth: dashboardStats.value.documents?.thisMonth || 0,
     totalDownloads: dashboardStats.value.documents?.totalDownloads || 0,
   }
 })

@@ -31,6 +31,18 @@ export const getDashboardStats = async (req, res) => {
     const totalDocuments = await Document.countDocuments({ isActive: true });
     const publicDocuments = await Document.countDocuments({ visibility: 'public', isActive: true });
 
+    // Hitung documents uploaded this month
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const firstDayOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const thisMonthDocuments = await Document.countDocuments({
+      isActive: true,
+      createdAt: {
+        $gte: firstDayOfMonth,
+        $lt: firstDayOfNextMonth
+      }
+    });
+
     // Hitung total downloads dari semua dokumen
     const downloadStats = await Document.aggregate([
       { $match: { isActive: true } },
@@ -82,6 +94,7 @@ export const getDashboardStats = async (req, res) => {
         documents: {
           total: totalDocuments,
           public: publicDocuments,
+          thisMonth: thisMonthDocuments,
           totalDownloads: totalDownloads
         },
         timelines: {
