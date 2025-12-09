@@ -141,9 +141,6 @@ export const getStudentDashboardStats = async (req, res) => {
     // Get user's team
     const userTeam = await CapstoneGroup.findOne({ membersUserId: userId });
 
-    // Get user's documents count
-    const userDocuments = await Document.countDocuments();
-
     // Get timelines for user's team
     let teamTimelines = [];
     if (userTeam) {
