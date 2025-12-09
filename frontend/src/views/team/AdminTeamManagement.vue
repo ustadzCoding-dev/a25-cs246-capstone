@@ -109,8 +109,8 @@
                   : 'text-gray-600 hover:text-gray-900',
               ]"
             >
-              <span v-if="tab === 'pending'" class="flex items-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span v-if="tab === 'pending'" class="flex items-center space-x-1">
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -120,8 +120,8 @@
                 </svg>
                 <span>Pending ({{ pendingCount }})</span>
               </span>
-              <span v-else class="flex items-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span v-else class="flex items-center space-x-1">
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -151,7 +151,7 @@
         <!-- Teams Table -->
         <div class="bg-white rounded-lg shadow">
           <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 class="text-xl font-semibold text-gray-900">Daftar Tim</h2>
+            <h2 class="font-semibold text-gray-900 lg:text-lg md:text-base sm:text-base text-sm">Daftar Tim</h2>
             <!-- Select All Checkbox -->
             <div v-if="filteredTeams.length > 0" class="flex items-center space-x-3">
               <input
@@ -174,10 +174,10 @@
             </div>
           </div>
 
-          <!-- Teams List -->
-          <div v-if="loading" class="p-12 text-center">
-            <BaseSpinner centered size="lg" label="Memuat data..." />
-          </div>
+          <!-- Loading State -->
+        <div v-if="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
 
           <div v-else-if="filteredTeams.length === 0" class="p-12 text-center">
             <svg
@@ -345,7 +345,7 @@
 
                 <button
                   @click="deleteTeam(team)"
-                  class="text-gray-400 hover:text-danger-600 p-2"
+                  class="text-danger-600 hover:text-danger-700 p-2"
                   title="Hapus"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
