@@ -723,8 +723,10 @@ onMounted(async () => {
   try {
     // Fetch dashboard stats from API
     const statsResponse = await getAdminDashboardStats()
-    if (statsResponse.success) {
+    console.log('Dashboard stats response:', statsResponse)
+    if (statsResponse && statsResponse.data) {
       dashboardStats.value = statsResponse.data
+      console.log('Dashboard stats loaded:', dashboardStats.value)
     }
   } catch (err) {
     console.error('Failed to fetch dashboard stats:', err)
