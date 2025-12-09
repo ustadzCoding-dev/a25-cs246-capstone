@@ -2,6 +2,7 @@ import express from 'express';
 import passport from 'passport';
 import * as authController from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
+import { authLimiter } from '../middleware/security.js';
 
 const router = express.Router();
 
@@ -39,21 +40,21 @@ router.get(
  * @desc    Register new local user
  * @access  Public
  */
-router.post('/register', authController.registerUser);
+router.post('/register', authLimiter, authController.registerUser);
 
 /**
  * @route   POST /api/auth/login
  * @desc    Local login with email/password
  * @access  Public
  */
-router.post('/login', authController.localLogin);
+router.post('/login', authLimiter, authController.localLogin);
 
 /**
  * @route   POST /api/auth/refresh
  * @desc    Refresh access token
  * @access  Public
  */
-router.post('/refresh', authController.refreshAccessToken);
+router.post('/refresh', authLimiter, authController.refreshAccessToken);
 
 // ========== PROTECTED ROUTES ==========
 

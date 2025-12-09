@@ -64,6 +64,11 @@ const documentSchema = new mongoose.Schema({
   lastDownloadedAt: {
     type: Date,
     default: null
+  },
+  // Active status for soft delete
+  isActive: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true,
