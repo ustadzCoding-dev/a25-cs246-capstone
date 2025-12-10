@@ -24,6 +24,9 @@
         </BaseButton>
       </div>
 
+      <div class="p-6 bg-white shadow-md rounded-lg flex flex-col gap-5">
+
+
       <!-- Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
@@ -184,6 +187,7 @@
         </div>
       </template>
     </BaseModal>
+    </div>
   </DashboardLayout>
 </template>
 
