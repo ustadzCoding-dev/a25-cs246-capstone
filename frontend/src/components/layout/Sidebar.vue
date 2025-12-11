@@ -38,10 +38,9 @@
         custom
       >
         <a
-          :href="item.path"
           @click.prevent="$router.push(item.path)"
           :class="[
-            'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200',
+            'flex items-center px-4 py-3 text-sm font-medium transition-colors duration-200 cursor-pointer',
             isActive ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100',
           ]"
         >
@@ -151,27 +150,29 @@ const handleLogout = () => {
 
 const profilePicture = ref(null)
 
-const fetchUser = async () => {
-  try {
-    // Use the properly configured API service instead of raw fetch
-    const response = await api.get('/auth/me')
+// COMMENTED OUT: This function might override user data and cause role conflicts
+// const fetchUser = async () => {
+//   try {
+//     // Use the properly configured API service instead of raw fetch
+//     const response = await api.get('/auth/me')
+//
+//     if (response.success && response.data) {
+//       profilePicture.value = response.data
+//     }
+//   } catch (error) {
+//     console.error('Gagal mengambil data user:', error)
+//
+//     // Handle token expiration
+//     if (error.status === 401) {
+//       console.log('Token expired or invalid')
+//       localStorage.removeItem('token')
+//       localStorage.removeItem('user')
+//     }
+//   }
+// }
 
-    if (response.success && response.data) {
-      profilePicture.value = response.data
-    }
-  } catch (error) {
-    console.error('Gagal mengambil data user:', error)
-
-    // Handle token expiration
-    if (error.status === 401) {
-      console.log('Token expired or invalid')
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-    }
-  }
-}
-
-onMounted(() => {
-  fetchUser()
-})
+// COMMENTED OUT: Not calling fetchUser on mount to prevent user data conflicts
+// onMounted(() => {
+//   fetchUser()
+// })
 </script>

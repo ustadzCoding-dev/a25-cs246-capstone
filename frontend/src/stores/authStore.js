@@ -90,23 +90,9 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = data.user
       token.value = data.token
 
-      // Fetch fresh user data to ensure dicodingId is populated
-      // This is important for users logging in again after profile completion
-      console.log('📥 Fetching fresh user data after Google login...')
-      try {
-        const freshUserData = await authService.getProfile()
-        if (freshUserData) {
-          user.value = freshUserData
-          console.log('✅ User data refreshed:', {
-            email: user.value.email,
-            dicodingId: user.value.dicodingId,
-            learningPath: user.value.learningPath,
-          })
-        }
-      } catch (err) {
-        console.warn('⚠️ Failed to refresh user data:', err.message)
-        // Continue anyway - user data from callback is still valid
-      }
+      // NOTE: We no longer fetch fresh user data here as it might override
+      // role changes made by the router guard for admin-by-email users
+      // The user data from the callback should be sufficient
 
       return data
     } catch (err) {
