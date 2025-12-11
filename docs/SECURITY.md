@@ -169,14 +169,45 @@ const { error, value } = schema.validate(data);
 ```javascript
 import rateLimit from "express-rate-limit";
 
-const limiter = rateLimit({
+// Global rate limiter
+const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per window
-  message: "Too many requests",
+  max: process.env.NODE_ENV === "production" ? 300 : 100,
+  message: "Too many requests, please try again later",
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-app.use("/api/", limiter);
+// Auth rate limiter (stricter)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === "production" ? 50 : 10,
+  skipSuccessfulRequests: true, // Don't count successful requests
+  message: "Too many login attempts, please try again later",
+});
+
+app.use("/api/", globalLimiter);
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
 ```
+
+**Rate Limits by Environment:**
+
+| Endpoint Type | Development | Production |
+| ------------- | ----------- | ---------- |
+| Global API    | 100/15min   | 300/15min  |
+| Auth (login)  | 10/15min    | 50/15min   |
+| Upload        | 50/15min    | 100/15min  |
+| Export        | 20/15min    | 50/15min   |
+
+**Configuration Location:** `backend/src/middleware/security.js`
+
+**Adjustment Tips:**
+
+- Increase limits if legitimate users are blocked
+- Decrease limits if under attack
+- Use `skipSuccessfulRequests` for auth endpoints
+- Monitor rate limit hits in logs
 
 ### Security Headers
 
@@ -398,4 +429,45 @@ npm install package@latest
 
 ---
 
-**Last Updated:** December 8, 2025 | **Version:** 1.0.0
+## Database Security
+
+### MongoDB Transactions
+
+**Best Practices:**
+
+- Use transactions for multi-document operations
+- Require replica set for transactions
+- Move long-running operations outside transactions
+- Implement proper error handling and rollback
+
+**Configuration:**
+
+```env
+# CRITICAL: Must include replicaSet parameter
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/db?retryWrites=true&w=majority&replicaSet=atlas-l46ddf-shard-0
+```
+
+**Example - Correct Pattern:**
+
+```javascript
+// ✅ CORRECT - Email outside transaction
+const result = await withTransaction(async (session) => {
+  // Database operations only
+  const team = await CapstoneGroup.create([teamData], { session });
+  await User.updateMany(
+    { _id: { $in: memberIds } },
+    { capstoneGroupId: team._id },
+    { session }
+  );
+  return team;
+});
+
+// Send email asynchronously (non-blocking)
+(async () => {
+  await EmailService.sendInvitationEmail(memberEmail);
+})();
+```
+
+---
+
+**Last Updated:** December 11, 2025 | **Version:** 1.0.1

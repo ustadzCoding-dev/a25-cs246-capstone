@@ -2,7 +2,9 @@
 
 **Sistem manajemen capstone project terintegrasi** untuk Dicoding Academy dengan fitur team management, document repository, timeline tracking, dan announcement system.
 
-**Status:** ✅ MVP Ready (v1.0.0) | **Last Updated:** December 8, 2025 | **Repository:** [GitHub](https://github.com/ustadzCoding/A25-CS246)
+**Status:** ✅ Production Ready (v1.0.1) | **Last Updated:** December 11, 2025 | **Repository:** [GitHub](https://github.com/ustadzCoding/A25-CS246)
+
+**Latest Release:** [v1.0.1](./CHANGELOG.md#101---2025-12-11) - MongoDB replicaSet support, SMTP improvements, rate limiting fixes
 
 ---
 
