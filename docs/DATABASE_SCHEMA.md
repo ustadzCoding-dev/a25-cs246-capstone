@@ -200,6 +200,10 @@ db.invitations.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
   fileType: String (e.g., 'pdf', 'docx'),
   uploadedBy: ObjectId (reference to User),
   category: String (enum: ['guidance', 'reference', 'template', 'other']),
+  visibility: String (enum: ['public', 'private'], default: 'public'),
+  downloadCount: Number (default: 0),
+  lastDownloadedAt: Date,
+  isActive: Boolean (default: true, for soft deletes),
   isPublished: Boolean (default: true),
   createdAt: Date (auto),
   updatedAt: Date (auto)
@@ -208,18 +212,22 @@ db.invitations.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 ### Field Descriptions
 
-| Field         | Type     | Required | Description               |
-| ------------- | -------- | -------- | ------------------------- |
-| `_id`         | ObjectId | ✓        | MongoDB auto-generated ID |
-| `title`       | String   | ✓        | Document title            |
-| `description` | String   |          | Document description      |
-| `fileUrl`     | String   |          | Cloudinary file URL       |
-| `link`        | String   |          | External link             |
-| `fileSize`    | Number   |          | File size in bytes        |
-| `fileType`    | String   |          | File type/extension       |
-| `uploadedBy`  | ObjectId | ✓        | Uploader user ID          |
-| `category`    | String   | ✓        | Document category         |
-| `isPublished` | Boolean  | ✓        | Publication status        |
+| Field              | Type     | Required | Description                          |
+| ------------------ | -------- | -------- | ------------------------------------ |
+| `_id`              | ObjectId | ✓        | MongoDB auto-generated ID            |
+| `title`            | String   | ✓        | Document title                       |
+| `description`      | String   |          | Document description                 |
+| `fileUrl`          | String   |          | Cloudinary file URL                  |
+| `link`             | String   |          | External link                        |
+| `fileSize`         | Number   |          | File size in bytes                   |
+| `fileType`         | String   |          | File type/extension                  |
+| `uploadedBy`       | ObjectId | ✓        | Uploader user ID                     |
+| `category`         | String   | ✓        | Document category                    |
+| `visibility`       | String   | ✓        | Document visibility (public/private) |
+| `downloadCount`    | Number   | ✓        | Total download count                 |
+| `lastDownloadedAt` | Date     |          | Last download timestamp              |
+| `isActive`         | Boolean  | ✓        | Soft delete flag (default: true)     |
+| `isPublished`      | Boolean  | ✓        | Publication status                   |
 
 ### Indexes
 
@@ -227,7 +235,14 @@ db.invitations.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 db.documents.createIndex({ category: 1 });
 db.documents.createIndex({ uploadedBy: 1 });
 db.documents.createIndex({ isPublished: 1 });
+db.documents.createIndex({ isActive: 1 });
+db.documents.createIndex({ visibility: 1 });
 ```
+
+### Notes
+
+- **isActive Field:** Added in v1.0.1 for soft deletes. Existing documents without this field are treated as active (true).
+- **Backward Compatibility:** Queries automatically include `isActive: true` to maintain compatibility with existing data.
 
 ---
 
@@ -719,4 +734,4 @@ db.announcements.find({ isPublished: true }).sort({ createdAt: -1 }).limit(5);
 
 ---
 
-**Last Updated:** December 8, 2025 | **Version:** 1.0.0
+**Last Updated:** December 11, 2025 | **Version:** 1.0.1

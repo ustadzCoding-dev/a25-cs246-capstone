@@ -59,17 +59,26 @@ cd frontend && npm run dev
 ```env
 NODE_ENV=development
 PORT=8000
+
+# MongoDB - Use local or Atlas
+# Local: mongodb://localhost:27017/capstone-db
+# Atlas: mongodb+srv://user:pass@cluster.mongodb.net/capstone-db?retryWrites=true&w=majority&replicaSet=atlas-l46ddf-shard-0
 MONGODB_URI=mongodb://localhost:27017/capstone-db
+
 JWT_SECRET=dev_secret_key
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+
+# Email Configuration
 SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
+SMTP_PORT=465
+SMTP_SECURE=true
 SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
+SMTP_PASSWORD=your_app_password
+SMTP_FROM_EMAIL=your_email@gmail.com
 ```
 
 **Frontend (.env):**
@@ -532,4 +541,46 @@ npm test
 
 ---
 
-**Last Updated:** December 8, 2025 | **Version:** 1.0.0
+## Important Notes
+
+### MongoDB Setup
+
+**For Local Development:**
+
+```bash
+# Start MongoDB locally
+mongosh  # or mongo
+
+# Create replica set (required for transactions)
+rs.initiate()
+```
+
+**For MongoDB Atlas:**
+
+- Replica set is automatically configured
+- Add `replicaSet` parameter to connection string
+- Example: `mongodb+srv://user:pass@cluster.mongodb.net/db?retryWrites=true&w=majority&replicaSet=atlas-l46ddf-shard-0`
+
+### Email Configuration
+
+**Gmail SMTP Setup:**
+
+1. Enable 2FA on Gmail account
+2. Generate App Password: https://myaccount.google.com/apppasswords
+3. Use port 465 (SSL) for better reliability
+4. Set `SMTP_SECURE=true`
+
+**Note:** Gmail SMTP may timeout on Railway. For production, consider SendGrid or Mailgun.
+
+### Rate Limiting
+
+Production rate limits:
+
+- Global: 300 requests/15 minutes
+- Auth: 50 requests/15 minutes
+
+Adjust in `backend/src/middleware/security.js` if needed.
+
+---
+
+**Last Updated:** December 11, 2025 | **Version:** 1.0.1
