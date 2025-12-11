@@ -13,21 +13,27 @@ class EmailService {
     console.log('[EmailService] SMTP_FROM_EMAIL:', process.env.SMTP_FROM_EMAIL);
 
     // Initialize email transporter
+    // Try port 465 (SSL) first, fallback to 587 (TLS)
+    const port = parseInt(process.env.SMTP_PORT) || 465;
+    const secure = process.env.SMTP_SECURE === 'true' || port === 465;
+
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true' || false,
+      port: port,
+      secure: secure,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD
       },
       // Add timeout configurations
-      connectionTimeout: 10000, // 10 seconds for connection
-      socketTimeout: 10000,     // 10 seconds for socket
-      greetingTimeout: 10000,   // 10 seconds for greeting
+      connectionTimeout: 15000, // 15 seconds for connection
+      socketTimeout: 15000,     // 15 seconds for socket
+      greetingTimeout: 15000,   // 15 seconds for greeting
       logger: true,             // Enable logging
       debug: true               // Enable debug mode
     });
+
+    console.log('[EmailService] Using port:', port, 'with secure:', secure);
 
     this.fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
     this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
