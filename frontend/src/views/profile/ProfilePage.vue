@@ -41,10 +41,11 @@
                 class="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden"
               >
                 <img
-                  v-if="user?.profilePicture"
+                  v-if="user?.profilePicture && !imageError"
                   :src="user.profilePicture"
                   :alt="user?.name || 'avatar'"
                   class="w-full h-full object-cover rounded-full"
+                  @error="handleImageError"
                 />
                 <div
                   v-else
@@ -390,11 +391,20 @@ const profileError = ref('')
 const initials = computed(() => {
   const name = user.value?.name || ''
   if (!name) return ''
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
-  const first = parts[0].charAt(0)
-  const last = parts[parts.length - 1].charAt(0)
-  return (first + last).toUpperCase()
+
+  // Split by whitespace and filter out parts containing numbers (checking for IDs)
+  const parts = name.trim().split(/\s+/).filter(part => !/\d/.test(part))
+
+  // If no parts left (e.g. name was only numbers), fallback to original split
+  const finalParts = parts.length > 0 ? parts : name.trim().split(/\s+/)
+
+  if (finalParts.length === 0) return ''
+  if (finalParts.length === 1) return finalParts[0].substring(0, 2).toUpperCase()
+
+  // Take first char of first two parts
+  const first = finalParts[0].charAt(0)
+  const second = finalParts[1].charAt(0)
+  return (first + second).toUpperCase()
 })
 
 const passwordForm = reactive({
@@ -412,6 +422,12 @@ const passwordErrors = reactive({
 const passwordError = ref('')
 
 const profilePicture = ref(null)
+const imageError = ref(false)
+
+const handleImageError = () => {
+  imageError.value = true
+}
+
 
 const fetchUser = async () => {
   try {

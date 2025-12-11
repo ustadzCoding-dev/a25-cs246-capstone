@@ -57,10 +57,11 @@
           class="size-20 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden"
         >
           <img
-            v-if="user?.profilePicture"
+            v-if="user?.profilePicture && !imageError"
             :src="user.profilePicture"
             :alt="user?.name || 'avatar'"
             class="w-full h-full object-cover rounded-full"
+            @error="handleImageError"
           />
           <div
             v-else
@@ -137,18 +138,33 @@ const visibleMenuItems = computed(() => {
 const initials = computed(() => {
   const name = props.user?.name || ''
   if (!name) return ''
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
-  const first = parts[0].charAt(0)
-  const last = parts[parts.length - 1].charAt(0)
-  return (first + last).toUpperCase()
+
+  // Split by whitespace and filter out parts containing numbers (checking for IDs)
+  const parts = name.trim().split(/\s+/).filter(part => !/\d/.test(part))
+
+  // If no parts left (e.g. name was only numbers), fallback to original split
+  const finalParts = parts.length > 0 ? parts : name.trim().split(/\s+/)
+
+  if (finalParts.length === 0) return ''
+  if (finalParts.length === 1) return finalParts[0].substring(0, 2).toUpperCase()
+
+  // Take first char of first two parts
+  const first = finalParts[0].charAt(0)
+  const second = finalParts[1].charAt(0)
+  return (first + second).toUpperCase()
 })
 
 const handleLogout = () => {
   emit('logout')
 }
 
-const profilePicture = ref(null)
+  const profilePicture = ref(null)
+  const imageError = ref(false)
+
+  const handleImageError = () => {
+    imageError.value = true
+  }
+
 
 // COMMENTED OUT: This function might override user data and cause role conflicts
 // const fetchUser = async () => {
