@@ -129,11 +129,16 @@ export class TeamService {
     // This prevents transaction timeout from email service delays
     // Fire and forget - don't await
     (async () => {
+      console.log('[createTeam] Starting async email sending for', team.invitationIds.length, 'members');
       for (const { memberId } of team.invitationIds) {
         try {
           const member = await User.findById(memberId);
+          if (!member) {
+            console.error('[createTeam] Member not found:', memberId);
+            continue;
+          }
           console.log('[createTeam] Sending invitation email to:', member.email);
-          await EmailService.sendInvitationEmail({
+          const result = await EmailService.sendInvitationEmail({
             memberEmail: member.email,
             memberName: member.name,
             teamName: team.team.teamName,
@@ -141,12 +146,18 @@ export class TeamService {
             leaderName: team.leader.name,
             invitationId: team.invitationIds.find(inv => inv.memberId.toString() === memberId.toString()).invitationId
           });
-          console.log('[createTeam] Email sent to:', member.email);
+          if (result) {
+            console.log('[createTeam] ✅ Email sent successfully to:', member.email);
+          } else {
+            console.warn('[createTeam] ⚠️ Email send returned false for:', member.email);
+          }
         } catch (emailErr) {
-          console.error('[createTeam] Email error for', memberId, ':', emailErr.message);
+          console.error('[createTeam] ❌ Email error for', memberId, ':', emailErr.message);
+          console.error('[createTeam] Error stack:', emailErr.stack);
           // Don't throw - email is non-critical
         }
       }
+      console.log('[createTeam] Async email sending completed');
     })();
 
     return team.team;
