@@ -107,6 +107,7 @@ export class TeamService {
       console.log('[createTeam] Other members for invitations:', otherMembers.length);
 
       const leader = await User.findById(userId);
+      const invitationIds = [];
 
       for (const memberId of otherMembers) {
         const invitation = await Invitation.create([{
@@ -115,32 +116,40 @@ export class TeamService {
           teamId: createdTeam._id,
           status: 'pending'
         }], { session });
+        invitationIds.push({ memberId, invitationId: invitation[0]._id });
+      }
+      console.log('[createTeam] Invitations created!');
 
-        // Send invitation email (outside transaction - non-critical)
+      return { team: createdTeam, invitationIds, leader, useCase };
+    });
+
+    console.log('[createTeam] TEAM REGISTRATION COMPLETE!');
+
+    // Send invitation emails OUTSIDE transaction (async, non-blocking)
+    // This prevents transaction timeout from email service delays
+    // Fire and forget - don't await
+    (async () => {
+      for (const { memberId } of team.invitationIds) {
         try {
           const member = await User.findById(memberId);
           console.log('[createTeam] Sending invitation email to:', member.email);
           await EmailService.sendInvitationEmail({
             memberEmail: member.email,
             memberName: member.name,
-            teamName: createdTeam.teamName,
-            useCaseName: useCase.title || 'Unknown Use Case',
-            leaderName: leader.name,
-            invitationId: invitation[0]._id
+            teamName: team.team.teamName,
+            useCaseName: team.useCase.title || 'Unknown Use Case',
+            leaderName: team.leader.name,
+            invitationId: team.invitationIds.find(inv => inv.memberId.toString() === memberId.toString()).invitationId
           });
           console.log('[createTeam] Email sent to:', member.email);
         } catch (emailErr) {
           console.error('[createTeam] Email error for', memberId, ':', emailErr.message);
-          // Don't throw - continue with other members even if email fails
+          // Don't throw - email is non-critical
         }
       }
-      console.log('[createTeam] Invitations created!');
+    })();
 
-      return createdTeam;
-    });
-
-    console.log('[createTeam] TEAM REGISTRATION COMPLETE!');
-    return team;
+    return team.team;
   }
 
   /**
