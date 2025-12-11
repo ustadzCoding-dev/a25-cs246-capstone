@@ -2,31 +2,37 @@
   <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Kelola Use Case</h1>
-        <p class="mt-2 text-gray-600">Manage use cases dan set team composition requirements</p>
-      </div>
-
-      <!-- Add Use Case Button -->
-      <div class="flex justify-end">
-        <button
-          @click="showCreateModal = true"
-          class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
-        >
-          + Tambah Use Case
-        </button>
+      <div
+        class="pb-4 bg-white p-5 rounded-lg shadow-md flex justify-start items-start flex-col gap-4 md:flex-row md:items-center md:justify-between"
+      >
+        <div>
+          <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+            Manage Use Cases
+          </h1>
+          <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+            Kelola use case dan set team composisition sesuai kebutuhan proyek
+          </p>
+        </div>
+        <div class="flex justify-end">
+          <button
+            @click="showCreateModal = true"
+            class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+          >
+            + Tambah Use Case
+          </button>
+        </div>
       </div>
 
       <!-- Use Cases List -->
       <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">Daftar Use Case</h2>
+          <h2 class="lg:text-lg md:text-base sm:text-base text-sm font-semibold text-gray-900">
+            Daftar Use Case
+          </h2>
         </div>
 
-        <div v-if="loading" class="p-12 text-center">
-          <div class="inline-block">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-          </div>
+        <div v-if="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
 
         <div v-else-if="useCases.length === 0" class="p-12 text-center">
@@ -42,18 +48,28 @@
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-3">
-                  <h3 class="text-lg font-semibold text-gray-900">{{ useCase.title }}</h3>
+                  <h3
+                    class="lg:text-md md:text-md sm:text-sm xs:text-sm text-sm font-semibold text-gray-900"
+                  >
+                    {{ useCase.title }}
+                  </h3>
                   <span
                     class="inline-block bg-primary-100 text-primary-800 text-xs font-semibold px-2.5 py-0.5 rounded"
                   >
                     {{ useCase.usecaseId }}
                   </span>
                 </div>
-                <p class="text-sm text-gray-600 mt-1">{{ useCase.description }}</p>
+                <p class="lg:text-sm md:text-sm sm:text-xs xs:text-xs text-xs text-gray-600 mt-1">
+                  {{ useCase.description }}
+                </p>
 
                 <!-- Current Composition -->
-                <div class="mt-4 bg-gray-50 rounded p-3">
-                  <p class="text-sm font-medium text-gray-700 mb-2">Komposisi Tim Saat Ini:</p>
+                <div class="mt-4 bg-gray-200 max-w-max py-3 px-6">
+                  <p
+                    class="lg:text-sm md:text-sm sm:text-xs xs:text-xs text-xs font-medium text-gray-700"
+                  >
+                    Komposisi Tim Saat Ini:
+                  </p>
                   <div
                     v-if="useCase.teamComposition && useCase.teamComposition.length > 0"
                     class="space-y-1"
@@ -76,15 +92,31 @@
               <div class="ml-4 flex space-x-2">
                 <button
                   @click="openCompositionModal(useCase)"
-                  class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+                  class="text-warning-600 hover:text-warning-700 p-2"
+                  title="Edit"
                 >
-                  Set Komposisi
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
                 </button>
                 <button
                   @click="deleteUseCase(useCase)"
-                  class="px-4 py-2 bg-danger-600 text-white rounded-lg hover:bg-danger-700 transition-colors text-sm font-medium"
+                  class="text-danger-600 hover:text-danger-700 p-2"
+                  title="Hapus"
                 >
-                  Hapus
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -315,7 +347,7 @@ const totalTeamSize = computed(() => {
 
 const fetchLearningPaths = async () => {
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
     const response = await fetch(`${apiBaseUrl}/admin/learning-paths`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -333,7 +365,7 @@ const fetchUseCases = async () => {
   loading.value = true
   try {
     // Fetch use cases from API
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
     const response = await fetch(`${apiBaseUrl}/usecases`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -386,7 +418,7 @@ const saveComposition = async () => {
 
   saving.value = true
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
     const response = await fetch(
       `${apiBaseUrl}/usecase/${selectedUseCase.value.id || selectedUseCase.value._id}/team-composition`,
       {
@@ -457,7 +489,7 @@ const saveUseCase = async () => {
 
   saving.value = true
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
     const response = await fetch(`${apiBaseUrl}/usecases`, {
       method: 'POST',
       headers: {
@@ -510,16 +542,13 @@ const deleteUseCase = async useCase => {
   if (!result.isConfirmed) return
 
   try {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-    const response = await fetch(
-      `${apiBaseUrl}/usecases/${useCase.id || useCase._id}`,
-      {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      }
-    )
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+    const response = await fetch(`${apiBaseUrl}/usecases/${useCase.id || useCase._id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    })
 
     if (response.ok) {
       useCases.value = useCases.value.filter(
