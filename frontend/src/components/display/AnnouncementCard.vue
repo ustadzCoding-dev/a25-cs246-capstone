@@ -34,7 +34,7 @@
         </p>
           </div>
 
-          <div class="flex items-center">
+          <div class="flex items-center" v-if="canDelete">
             <button
               @click="$emit('edit')"
               class="text-warning-600 hover:text-warning-700 p-2"
