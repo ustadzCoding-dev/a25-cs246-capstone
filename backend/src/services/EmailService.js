@@ -20,7 +20,13 @@ class EmailService {
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD
-      }
+      },
+      // Add timeout configurations
+      connectionTimeout: 10000, // 10 seconds for connection
+      socketTimeout: 10000,     // 10 seconds for socket
+      greetingTimeout: 10000,   // 10 seconds for greeting
+      logger: true,             // Enable logging
+      debug: true               // Enable debug mode
     });
 
     this.fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER;
