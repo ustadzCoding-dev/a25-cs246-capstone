@@ -285,10 +285,18 @@ router.beforeEach((to, from, next) => {
         return
       }
 
-      // If admin by email, update the user role in store
+      // If admin by email, update the user role in store and localStorage
       if (authStore.user) {
         authStore.user.role = 'admin'
+        localStorage.setItem('user', JSON.stringify(authStore.user))
       }
+    }
+
+    // Additional safeguard: If user is not admin but trying to access admin routes, redirect
+    if (to.path.startsWith('/admin/') && !isAdminUser) {
+      console.log('❌ Non-admin trying to access admin route, redirecting to student dashboard')
+      next({ name: 'student-dashboard' })
+      return
     }
   }
 

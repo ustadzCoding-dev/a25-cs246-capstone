@@ -67,8 +67,8 @@
           </div>
 
           <div v-if="loading" class="flex justify-center items-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-      </div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
 
           <div v-else-if="filteredAnnouncements.length === 0" class="p-12 text-center">
             <svg
@@ -150,6 +150,11 @@ import BaseSpinner from '../../components/base/BaseSpinner.vue'
 const router = useRouter()
 const authStore = useAuthStore()
 const announcementStore = useAnnouncementStore()
+
+// Ensure this is the student announcements page
+console.log('Loading student announcements page')
+console.log('User role:', authStore.user?.role)
+console.log('Is admin:', authStore.isAdmin)
 
 const user = computed(() => authStore.user)
 const loading = computed(() => announcementStore.announcementsLoading)
