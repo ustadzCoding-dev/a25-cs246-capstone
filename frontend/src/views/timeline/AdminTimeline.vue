@@ -2,111 +2,108 @@
   <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="flex items-center justify-between">
+      <div
+        class="pb-4 bg-white p-5 rounded-lg shadow-md flex justify-start items-start flex-col gap-4 md:flex-row md:items-center md:justify-between"
+      >
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Kelola Timeline</h1>
-          <p class="mt-2 text-gray-600">Kelola timeline dan deadline capstone project</p>
+          <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+            Manage Timelines
+          </h1>
+          <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+            Kelola timeline dan deadline capstone project
+          </p>
         </div>
-
         <div class="flex items-center space-x-3">
           <router-link
             to="/admin/timeline/stats"
             class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
             </svg>
             Analytics
           </router-link>
-          <BaseButton
-            variant="primary"
-            @click="showCreateModal = true"
-          >
+          <BaseButton variant="primary" @click="showCreateModal = true">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
             </svg>
             Tambah Timeline
           </BaseButton>
         </div>
       </div>
 
+      <div class="p-6 bg-white shadow-md rounded-lg flex flex-col gap-5">
+
+
       <!-- Stats -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatsCard
-          label="Total Timeline"
-          :value="stats.total"
-          icon="timeline"
-          color="primary"
-        />
-        <StatsCard
-          label="Aktif"
-          :value="stats.active"
-          icon="timeline"
-          color="success"
-        />
-        <StatsCard
-          label="Mendatang"
-          :value="stats.upcoming"
-          icon="clock"
-          color="warning"
-        />
-        <StatsCard
-          label="Selesai"
-          :value="stats.completed"
-          icon="timeline"
-          color="secondary"
-        />
+        <StatsCard label="Total Timeline" :value="stats.total" icon="timeline" color="primary" />
+        <StatsCard label="Aktif" :value="stats.active" icon="timeline" color="success" />
+        <StatsCard label="Mendatang" :value="stats.upcoming" icon="clock" color="warning" />
+        <StatsCard label="Selesai" :value="stats.completed" icon="timeline" color="secondary" />
       </div>
 
       <!-- Timeline List -->
       <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">Daftar Timeline</h2>
+          <h2 class="lg:text-lg md:text-base sm:text-base text-sm font-semibold text-gray-900">
+            Daftar Timeline
+          </h2>
         </div>
 
-        <div v-if="loading" class="p-12">
-          <BaseSpinner centered size="lg" label="Memuat timeline..." />
+        <div v-if="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
 
         <div v-else-if="timelineItems.length === 0" class="p-12 text-center">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <svg
+            class="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
           </svg>
           <p class="mt-2 text-sm text-gray-500">Belum ada timeline</p>
         </div>
 
         <div v-else class="p-6">
           <div class="space-y-8">
-            <div
-              v-for="(item, index) in timelineItems"
-              :key="item._id"
-              class="relative"
-            >
+            <div v-for="(item, index) in timelineItems" :key="item._id" class="relative">
               <!-- Timeline Line -->
               <div
                 v-if="index < timelineItems.length - 1"
-                class="absolute left-4 top-12 bottom-0 w-0.5 bg-gray-200"
+                class="absolute left-4 top-12 bottom-0 w-0.5 bg-gray-400"
               ></div>
 
               <!-- Timeline Item -->
               <div class="flex items-start space-x-4">
                 <!-- Icon -->
                 <div
-                  :class="[
-                    'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center z-10',
-                    getStatusColor(item.status)
-                  ]"
+                  class="size-8 bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0"
                 >
-                  <svg v-if="item.status === 'completed'" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <svg v-else class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <div class="w-4 h-4 bg-white rounded-full"></div>
                 </div>
 
                 <!-- Content -->
-                <div class="flex-1 bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200">
+                <div
+                  class="flex-1 bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200"
+                >
                   <div class="flex items-start justify-between">
                     <div class="flex-1">
                       <div class="flex items-center space-x-3">
@@ -127,11 +124,16 @@
                     <div class="flex items-center space-x-2 ml-4">
                       <button
                         @click="editTimeline(item)"
-                        class="text-gray-600 hover:text-gray-700 p-2"
+                        class="text-warning-600 hover:text-warning-700 p-2"
                         title="Edit"
                       >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
                         </svg>
                       </button>
 
@@ -141,7 +143,12 @@
                         title="Hapus"
                       >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -187,7 +194,7 @@
               { value: 'deadline', label: 'Deadline' },
               { value: 'submission', label: 'Submission' },
               { value: 'meeting', label: 'Meeting' },
-              { value: 'event', label: 'Event' }
+              { value: 'event', label: 'Event' },
             ]"
             required
           />
@@ -199,7 +206,7 @@
               { value: 'low', label: 'Rendah' },
               { value: 'medium', label: 'Sedang' },
               { value: 'high', label: 'Tinggi' },
-              { value: 'critical', label: 'Kritis' }
+              { value: 'critical', label: 'Kritis' },
             ]"
             placeholder="Pilih prioritas"
             required
@@ -230,14 +237,8 @@
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="closeModal">
-            Batal
-          </BaseButton>
-          <BaseButton
-            variant="primary"
-            :loading="submitting"
-            @click="handleSubmit"
-          >
+          <BaseButton variant="outline" @click="closeModal"> Batal </BaseButton>
+          <BaseButton variant="primary" :loading="submitting" @click="handleSubmit">
             {{ editingTimeline ? 'Simpan Perubahan' : 'Tambah Timeline' }}
           </BaseButton>
         </div>
@@ -245,37 +246,27 @@
     </BaseModal>
 
     <!-- Delete Confirmation Modal -->
-    <BaseModal
-      v-model="showDeleteModal"
-      title="Konfirmasi Hapus"
-      size="md"
-    >
+    <BaseModal v-model="showDeleteModal" title="Konfirmasi Hapus" size="md">
       <div class="space-y-4">
         <p class="text-gray-700">
-          Apakah Anda yakin ingin menghapus timeline <strong>{{ selectedTimeline?.title }}</strong>?
+          Apakah Anda yakin ingin menghapus timeline <strong>{{ selectedTimeline?.title }}</strong
+          >?
         </p>
         <div class="bg-danger-50 border border-danger-200 rounded-lg p-4">
-          <p class="text-sm text-danger-700">
-            Timeline yang dihapus tidak dapat dikembalikan.
-          </p>
+          <p class="text-sm text-danger-700">Timeline yang dihapus tidak dapat dikembalikan.</p>
         </div>
       </div>
 
       <template #footer>
         <div class="flex justify-end space-x-3">
-          <BaseButton variant="outline" @click="showDeleteModal = false">
-            Batal
-          </BaseButton>
-          <BaseButton
-            variant="danger"
-            :loading="deleting"
-            @click="confirmDelete"
-          >
+          <BaseButton variant="outline" @click="showDeleteModal = false"> Batal </BaseButton>
+          <BaseButton variant="danger" :loading="deleting" @click="confirmDelete">
             Ya, Hapus
           </BaseButton>
         </div>
       </template>
     </BaseModal>
+    </div>
   </DashboardLayout>
 </template>
 
@@ -316,7 +307,7 @@ const form = reactive({
   type: 'milestone',
   startDate: '',
   endDate: '',
-  priority: 'medium'
+  priority: 'medium',
 })
 
 const errors = reactive({
@@ -324,7 +315,7 @@ const errors = reactive({
   description: '',
   startDate: '',
   endDate: '',
-  status: ''
+  status: '',
 })
 
 // Get data from store
@@ -335,52 +326,56 @@ const timelineItems = computed(() => timelineStore.sortedTimelines)
 const stats = computed(() => ({
   total: timelineItems.value.length,
   active: timelineStore.ongoingTimelines.length,
-  upcoming: timelineItems.value.filter(t => t.status === 'upcoming').length,
-  completed: timelineStore.completedTimelines.length
+  upcoming: timelineStore.upcomingTimelines.length,
+  completed: timelineStore.overdueTimelines.length,
 }))
 
 const statusOptions = [
   { value: 'upcoming', label: 'Mendatang' },
   { value: 'active', label: 'Aktif' },
-  { value: 'completed', label: 'Selesai' }
+  { value: 'completed', label: 'Selesai' },
 ]
 
 const { adminMenuItems } = useAdminMenu()
 
-const getStatusColor = (status) => {
+const getStatusColor = status => {
   const colors = {
-    'upcoming': 'bg-gray-400',
-    'active': 'bg-warning-500',
-    'completed': 'bg-success-500'
+    upcoming: 'bg-gray-400',
+    active: 'bg-warning-500',
+    completed: 'bg-success-500',
   }
   return colors[status] || 'bg-gray-400'
 }
 
-const getStatusVariant = (status) => {
+const getStatusVariant = status => {
   const variants = {
-    'upcoming': 'secondary',
-    'active': 'warning',
-    'completed': 'success'
+    upcoming: 'secondary',
+    active: 'warning',
+    completed: 'success',
   }
   return variants[status] || 'secondary'
 }
 
-const getStatusLabel = (status) => {
+const getStatusLabel = status => {
   const labels = {
-    'upcoming': 'Mendatang',
-    'active': 'Aktif',
-    'completed': 'Selesai'
+    upcoming: 'Mendatang',
+    ongoing: 'Aktif',
+    overdue: 'Selesai',
   }
   return labels[status] || status
 }
 
 const formatDateRange = (start, end) => {
   const startDate = new Date(start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-  const endDate = new Date(end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+  const endDate = new Date(end).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
   return `${startDate} - ${endDate}`
 }
 
-const getDaysRemaining = (endDate) => {
+const getDaysRemaining = endDate => {
   const today = new Date()
   const end = new Date(endDate)
   const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24))
@@ -388,7 +383,7 @@ const getDaysRemaining = (endDate) => {
 }
 
 const validateForm = () => {
-  Object.keys(errors).forEach(key => errors[key] = '')
+  Object.keys(errors).forEach(key => (errors[key] = ''))
   let isValid = true
 
   if (!form.title.trim()) {
@@ -440,11 +435,14 @@ const handleSubmit = async () => {
       type: form.type,
       priority: form.priority,
       startDate: form.startDate,
-      endDate: form.endDate
+      endDate: form.endDate,
     }
 
     if (editingTimeline.value) {
-      await timelineStore.updateTimeline(editingTimeline.value._id || editingTimeline.value.id, timelineData)
+      await timelineStore.updateTimeline(
+        editingTimeline.value._id || editingTimeline.value.id,
+        timelineData
+      )
     } else {
       await timelineStore.createTimeline(timelineData)
     }
@@ -458,7 +456,7 @@ const handleSubmit = async () => {
   }
 }
 
-const editTimeline = (item) => {
+const editTimeline = item => {
   editingTimeline.value = item
   form.title = item.title
   form.description = item.description
@@ -469,7 +467,7 @@ const editTimeline = (item) => {
   showCreateModal.value = true
 }
 
-const deleteTimeline = (item) => {
+const deleteTimeline = item => {
   selectedTimeline.value = item
   showDeleteModal.value = true
 }
@@ -495,7 +493,7 @@ const closeModal = () => {
   form.startDate = ''
   form.endDate = ''
   error.value = ''
-  Object.keys(errors).forEach(key => errors[key] = '')
+  Object.keys(errors).forEach(key => (errors[key] = ''))
 }
 
 const handleLogout = () => {

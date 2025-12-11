@@ -2,12 +2,17 @@
   <DashboardLayout :user="user" :menu-items="adminMenuItems" @logout="handleLogout">
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="flex items-center justify-between">
+      <div
+        class="pb-4 bg-white p-5 rounded-lg shadow-md flex justify-start items-start flex-col gap-4 md:flex-row md:items-center md:justify-between"
+      >
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Kelola Pengumuman</h1>
-          <p class="mt-2 text-gray-600">Buat dan kelola pengumuman untuk siswa</p>
+          <h1 class="font-semibold text-gray-900 lg:text-2xl md:text-xl sm:text-lg text-base">
+            Manage Announcements
+          </h1>
+          <p class="text-gray-600 lg:text-lg md:text-lg sm:text-sm text-sm">
+            Buat dan kelola pengumuman untuk peserta
+          </p>
         </div>
-
         <BaseButton
           variant="primary"
           @click="showCreateModal = true"
@@ -18,6 +23,9 @@
           Buat Pengumuman
         </BaseButton>
       </div>
+
+      <div class="p-6 bg-white shadow-md rounded-lg flex flex-col gap-5">
+
 
       <!-- Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -43,11 +51,13 @@
 
       <!-- Filters -->
       <div class="bg-white rounded-lg shadow p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BaseSearch
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-2">
+            <BaseSearch
             v-model="searchQuery"
             placeholder="Cari pengumuman..."
-          />
+            />
+          </div>
 
           <BaseSelect
             v-model="filterPriority"
@@ -60,12 +70,12 @@
       <!-- Announcements List -->
       <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">Daftar Pengumuman</h2>
+          <h2 class="lg:text-lg md:text-base sm:text-base text-sm font-semibold text-gray-900">Daftar Pengumuman</h2>
         </div>
 
-        <div v-if="loading" class="p-12">
-          <BaseSpinner centered size="lg" label="Memuat pengumuman..." />
-        </div>
+        <div v-if="loading" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
 
         <div v-else-if="filteredAnnouncements.length === 0" class="p-12 text-center">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +84,7 @@
           <p class="mt-2 text-sm text-gray-500">Belum ada pengumuman</p>
         </div>
 
-        <div v-else class="divide-y divide-gray-200">
+        <div v-else class="divide-y divide-gray-200 space-y-3">
           <AnnouncementCard
             v-for="announcement in filteredAnnouncements"
             :key="announcement._id"
@@ -177,6 +187,7 @@
         </div>
       </template>
     </BaseModal>
+    </div>
   </DashboardLayout>
 </template>
 
