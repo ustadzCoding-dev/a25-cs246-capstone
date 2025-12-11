@@ -97,38 +97,100 @@ Panduan mengatasi masalah umum pada DC-09 Capstone Project Management System.
 
 ### Email Not Sending
 
-**Problem:** Emails not received
+**Problem:** Emails not received or "Connection timeout" error
 
 **Causes & Solutions:**
 
-1. **Gmail App Password**
+1. **SMTP Connection Timeout (Railway)**
+
+   **Symptom:** `Connection timeout` error in logs
+
+   ```
+   [ERROR] Failed to send invitation email: Connection timeout
+   ```
+
+   **Causes:**
+
+   - Railway IP blocked by Gmail security
+   - Port 587 (TLS) may be blocked
+   - Network firewall restrictions
+
+   **Solutions:**
+
+   a) **Use Port 465 (SSL) instead of 587:**
+
+   ```env
+   SMTP_PORT=465
+   SMTP_SECURE=true
+   ```
+
+   b) **Use SendGrid (Recommended for Production):**
+
+   ```env
+   SENDGRID_API_KEY=your_api_key
+   SENDGRID_FROM_EMAIL=noreply@yourdomain.com
+   ```
+
+   - Sign up: https://sendgrid.com
+   - Free tier: 100 emails/day
+   - More reliable than Gmail SMTP from Railway
+
+   c) **Use Mailgun (Alternative):**
+
+   ```env
+   MAILGUN_API_KEY=your_api_key
+   MAILGUN_DOMAIN=your_domain
+   ```
+
+   - Sign up: https://mailgun.com
+   - Free tier: 5000 emails/month
+
+2. **Gmail App Password Issues**
 
    ```bash
    # Use App Password, not regular password
    # Generate at: https://myaccount.google.com/apppasswords
 
+   # Requirements:
+   # - 2FA must be enabled
+   # - Use 16-character app password
+   # - Not your Gmail password
+
    # Verify SMTP credentials in .env
    echo $SMTP_USER
-   echo $SMTP_PASS
+   echo $SMTP_PASSWORD
    ```
 
-2. **SMTP Configuration**
+3. **SMTP Configuration**
 
    ```bash
-   # Test SMTP connection
+   # Test SMTP connection locally
+   telnet smtp.gmail.com 465
+   # or
    telnet smtp.gmail.com 587
    ```
 
-3. **Email Blocked**
+4. **Email Blocked**
    - Check Gmail spam folder
    - Check email filters
+   - Verify sender email is whitelisted
 
-**Solution:**
+**Solution Priority:**
 
-1. Use Gmail App Password
-2. Enable 2FA on Gmail
-3. Check spam folder
-4. Verify SMTP settings
+1. **Local Development:** Use Gmail SMTP (port 465)
+2. **Production (Railway):** Use SendGrid or Mailgun
+3. **Conditional Setup:** Use environment-based email service
+
+**Example Conditional Setup:**
+
+```javascript
+// EmailService.js
+if (process.env.NODE_ENV === "production") {
+  // Use SendGrid
+} else {
+  // Use Gmail SMTP
+}
+```
 
 ---
 
@@ -600,4 +662,70 @@ db.users.getIndexes()
 
 ---
 
-**Last Updated:** December 8, 2025 | **Version:** 1.0.0
+---
+
+## MongoDB Transaction Issues
+
+### Write Conflict Error
+
+**Problem:** `Write conflict during plan execution and yielding is disabled`
+
+**Causes & Solutions:**
+
+1. **Missing Replica Set**
+
+   **Symptom:**
+
+   ```
+   Write conflict during plan execution and yielding is disabled
+   ```
+
+   **Cause:** MongoDB transactions require a replica set
+
+   **Solution:**
+
+   ```env
+   # Add replicaSet parameter to MONGODB_URI
+   MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/db?retryWrites=true&w=majority&replicaSet=atlas-l46ddf-shard-0
+   ```
+
+   **How to find replica set name:**
+
+   1. Go to MongoDB Atlas → Clusters
+   2. Click "Connect"
+   3. Choose "Connect your application"
+   4. Copy connection string
+   5. Extract replica set name (e.g., `atlas-l46ddf-shard-0`)
+
+2. **Connection Timeout During Transaction**
+
+   **Symptom:**
+
+   ```
+   timeout of 60000ms exceeded
+   ```
+
+   **Cause:** Long-running operations inside transaction (e.g., email sending)
+
+   **Solution:** Move non-critical operations outside transaction
+
+   ```javascript
+   // ❌ WRONG - Email inside transaction
+   await withTransaction(async (session) => {
+     // ... database operations ...
+     await EmailService.sendEmail(); // BLOCKS transaction
+   });
+
+   // ✅ CORRECT - Email outside transaction
+   await withTransaction(async (session) => {
+     // ... database operations ...
+   });
+   // Send email asynchronously (fire and forget)
+   (async () => {
+     await EmailService.sendEmail();
+   })();
+   ```
+
+---
+
+**Last Updated:** December 11, 2025 | **Version:** 1.1.0

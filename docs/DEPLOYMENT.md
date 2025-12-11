@@ -41,7 +41,7 @@ NODE_ENV=production
 PORT=8000
 FRONTEND_URL=https://yourdomain.com
 
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/capstone-db?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/capstone-db?retryWrites=true&w=majority&replicaSet=atlas-l46ddf-shard-0
 
 JWT_SECRET=your_super_secret_key_change_this
 JWT_EXPIRE=7d
@@ -55,10 +55,11 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
 SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
+SMTP_PORT=465
+SMTP_SECURE=true
 SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-SMTP_FROM=noreply@yourdomain.com
+SMTP_PASSWORD=your_app_password
+SMTP_FROM_EMAIL=noreply@yourdomain.com
 
 CORS_ORIGIN=https://yourdomain.com
 ```
@@ -167,9 +168,11 @@ vercel logs
    - `CLOUDINARY_API_KEY=...`
    - `CLOUDINARY_API_SECRET=...`
    - `SMTP_HOST=smtp.gmail.com`
-   - `SMTP_PORT=587`
+   - `SMTP_PORT=465`
+   - `SMTP_SECURE=true`
    - `SMTP_USER=...`
-   - `SMTP_PASS=...`
+   - `SMTP_PASSWORD=...`
+   - `SMTP_FROM_EMAIL=...`
    - `CORS_ORIGIN=https://yourdomain.com`
 
 3. Click "Save"
@@ -643,4 +646,45 @@ git push origin main
 
 ---
 
-**Last Updated:** December 8, 2025 | **Version:** 1.0.0
+## Important Notes
+
+### MongoDB Replica Set
+
+⚠️ **CRITICAL:** MongoDB transactions require a replica set. The `replicaSet` parameter MUST be included in the `MONGODB_URI`.
+
+**How to find your replica set name:**
+1. Go to MongoDB Atlas → Clusters
+2. Click "Connect"
+3. Choose "Connect your application"
+4. Copy the connection string
+5. Extract the replica set name from the string (e.g., `atlas-l46ddf-shard-0`)
+
+### Email Configuration
+
+**Important:** Gmail SMTP from Railway may experience connection timeouts due to network restrictions. If email sending fails:
+
+1. **Use port 465 (SSL)** instead of 587 (TLS) for better reliability
+2. **Enable 2FA** on Gmail account
+3. **Generate App Password** instead of using account password
+4. **Consider SendGrid** for production (more reliable, free tier available)
+
+**Email Service Options:**
+- **Gmail SMTP:** Free, but may timeout from Railway
+- **SendGrid:** Recommended for production (100 emails/day free)
+- **Mailgun:** Good alternative (5000 emails/month free)
+
+### Rate Limiting
+
+Production rate limits have been increased:
+- Global limit: 300 requests per 15 minutes
+- Auth limit: 50 requests per 15 minutes
+
+Adjust in `backend/src/middleware/security.js` if needed.
+
+### Document Model Update
+
+The `Document` model now includes an `isActive` field (default: true) for soft deletes. Existing documents without this field are treated as active.
+
+---
+
+**Last Updated:** December 11, 2025 | **Version:** 1.1.0

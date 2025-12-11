@@ -133,6 +133,87 @@ Dokumentasi perubahan dan rilis untuk DC-09 Capstone Project Management System.
 
 ---
 
+## [1.0.1] - 2025-12-11
+
+### Bug Fixes & Improvements
+
+**Status:** ✅ Production Hotfix
+
+### Fixed
+
+#### MongoDB Transactions
+
+- ✅ Added `replicaSet` parameter to `MONGODB_URI` for transaction support
+- ✅ Fixed "Write conflict during plan execution" error
+- ✅ Ensured MongoDB Atlas replica set configuration
+
+#### Team Creation
+
+- ✅ Moved email sending outside transaction to prevent timeout
+- ✅ Implemented async email sending (fire-and-forget pattern)
+- ✅ Added comprehensive logging for email operations
+- ✅ Fixed `timeout of 60000ms exceeded` error during team creation
+
+#### Email Service
+
+- ✅ Updated SMTP port from 587 (TLS) to 465 (SSL) for better reliability
+- ✅ Added `SMTP_SECURE=true` configuration
+- ✅ Added timeout configurations (connectionTimeout, socketTimeout, greetingTimeout)
+- ✅ Enabled debug logging for SMTP operations
+- ✅ Documented email service limitations on Railway
+
+#### Rate Limiting
+
+- ✅ Increased production global rate limit from 100 to 300 requests/15min
+- ✅ Increased production auth rate limit from 5 to 50 requests/15min
+- ✅ Prevented legitimate users from being rate-limited
+
+#### Dashboard Statistics
+
+- ✅ Added `isActive` field to Document model for soft deletes
+- ✅ Fixed document count calculations
+- ✅ Added "this month" statistics to dashboard
+- ✅ Backward compatible with existing documents
+
+### Changed
+
+- Updated SMTP configuration in `.env` and Railway variables
+- Modified `EmailService.js` to use port 465 with SSL
+- Refactored `TeamService.createTeam()` to move email outside transaction
+- Updated rate limiting middleware for production environment
+- Enhanced logging in email sending process
+
+### Documentation
+
+- ✅ Updated `DEPLOYMENT.md` with MongoDB replicaSet instructions
+- ✅ Updated `DEPLOYMENT.md` with SMTP port 465 configuration
+- ✅ Added email service options (SendGrid, Mailgun) to `DEPLOYMENT.md`
+- ✅ Enhanced `TROUBLESHOOTING.md` with email timeout solutions
+- ✅ Added MongoDB transaction troubleshooting section
+- ✅ Added conditional email service setup example
+
+### Known Limitations
+
+- **Gmail SMTP from Railway:** May experience connection timeouts due to network restrictions
+  - **Workaround:** Use port 465 (SSL) or switch to SendGrid/Mailgun for production
+- **Email Delivery:** Currently using Gmail SMTP; consider SendGrid for production reliability
+
+### Migration Notes
+
+**For existing deployments:**
+
+1. Update `MONGODB_URI` with `replicaSet` parameter
+2. Update `SMTP_PORT` to 465 and set `SMTP_SECURE=true`
+3. Redeploy backend to Railway
+4. Test team creation and email sending
+
+**For new deployments:**
+
+- Follow updated `DEPLOYMENT.md` guide
+- Use SendGrid or Mailgun for production email service
+
+---
+
 ## [1.1.0] - 2026-Q1 (Planned)
 
 ### Planned Features
@@ -201,4 +282,4 @@ We follow Semantic Versioning (MAJOR.MINOR.PATCH):
 
 ---
 
-**Last Updated:** December 8, 2025 | **Version:** 1.0.0
+**Last Updated:** December 11, 2025 | **Version:** 1.0.1
