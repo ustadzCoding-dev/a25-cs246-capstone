@@ -14,8 +14,8 @@
 
 | Role             | Start Here             | Key Features                                                                                                               |
 | ---------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| **👨‍🎓 Student**   | [SETUP.md](./SETUP.md) | Register team, view documents, check timeline, accept invitations                                                          |
-| **👨‍💼 Admin**     | [SETUP.md](./SETUP.md) | Approve teams, manage documents, create announcements, view stats                                                          |
+| **👨‍🎓 Student**   | [USER_GUIDE](./USER_GUIDE.md) | Register team, view documents, check timeline, accept invitations                                                          |
+| **👨‍💼 Admin**     | [USER_GUIDE](./USER_GUIDE.md) | Approve teams, manage documents, create announcements, view stats                                                          |
 | **👨‍💻 Developer** | [SETUP.md](./SETUP.md) | [Architecture](./docs/ARCHITECTURE.md), [API Docs](http://localhost:8000/api-docs), [Contributing](./docs/CONTRIBUTING.md) |
 
 ### Documentation Quick Links
@@ -171,6 +171,21 @@ cd frontend && npm run dev
 - 📋 **Performance Tracking** - Contribution metrics & leaderboard
 - 📋 **Mobile App** - iOS/Android native apps
 - 📋 **Advanced Reporting** - Custom reports & data visualization
+
+### Phase 4 Features (Planned Q4 2026) 🔗
+
+- 🔗 **Dicoding Integration** - Integrate with Dicoding Academic Dashboard
+- 🔗 **API Gateway Enhancement** - OAuth 2.0, webhooks, rate limiting
+- 🔗 **Dashboard Module** - Capstone module in Dicoding Dashboard
+- 🔗 **Real-time Sync** - Webhook & polling for data synchronization
+- 🔗 **Security Enhancements** - OAuth 2.0 & API security
+
+### Phase 5 Features (Planned 2027) ⚡
+
+- ⚡ **Performance Optimization** - Redis caching, query optimization
+- ⚡ **Advanced Features** - AI/ML, collaboration, automation
+- ⚡ **Mobile Integration** - Mobile API & native apps
+- ⚡ **Analytics & Reporting** - Advanced dashboards & custom reports
 
 ---
 
@@ -412,18 +427,6 @@ This project is licensed under the **MIT License** - see [LICENSE](./LICENSE) fi
 
 ---
 
-## 🎯 Project Status
-
-| Aspect               | Status         | Details                                  |
-| -------------------- | -------------- | ---------------------------------------- |
-| **MVP Development**  | ✅ Complete    | v1.0.0 ready for production              |
-| **Documentation**    | ✅ Complete    | 14 comprehensive documents               |
-| **Testing**          | 🟡 In Progress | Unit & integration tests                 |
-| **Deployment**       | ✅ Ready       | Vercel (frontend), Railway (backend)     |
-| **Phase 2 Planning** | 📋 Planned     | Q2 2026 - Worksheet, Feedback, Analytics |
-
----
-
 ## 🔗 Quick Links
 
 - **GitHub Repository:** https://github.com/ustadzCoding/A25-CS246
@@ -432,4 +435,4 @@ This project is licensed under the **MIT License** - see [LICENSE](./LICENSE) fi
 
 ---
 
-**Last Updated:** December 8, 2025 | **Version:** 1.0.0 | **Maintained by:** A25-CS246 Team
+**Last Updated:** December 11, 2025 | **Version:** 1.0.1 | **Maintained by:** A25-CS246 Team
