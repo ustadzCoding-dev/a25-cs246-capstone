@@ -55,7 +55,13 @@ class EmailService {
 
       console.log('[sendInvitationEmail] Starting email send...');
       console.log('[sendInvitationEmail] To:', memberEmail);
-      console.log('[sendInvitationEmail] From:', this.fromEmail);
+      console.log('[sendInvitationEmail] Invitation ID:', invitationId);
+
+      if (!invitationId) {
+        console.error('[sendInvitationEmail] MISSING INVITATION ID!');
+        logger.error(`Failed to send invitation email to ${memberEmail}: Missing invitationId`);
+        return false;
+      }
 
       const acceptLink = `${this.frontendUrl}/invitations/${invitationId}/accept`;
       const rejectLink = `${this.frontendUrl}/invitations/${invitationId}/reject`;

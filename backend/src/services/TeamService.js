@@ -369,8 +369,7 @@ export class TeamService {
               teamName: populatedTeam.teamName,
               useCaseName: populatedTeam.useCaseId?.title || 'Unknown',
               leaderName: leader.name,
-              acceptLink: `${process.env.FRONTEND_URL}/invitations/${invitation._id}/accept`,
-              rejectLink: `${process.env.FRONTEND_URL}/invitations/${invitation._id}/reject`
+              invitationId: invitation._id // Pass the actual invitation ID
             });
             console.log('[editTeam] Email sent to:', member.email);
           }

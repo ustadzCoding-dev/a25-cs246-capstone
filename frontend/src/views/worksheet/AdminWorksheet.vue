@@ -1092,12 +1092,19 @@ const getValidationStatusLabel = status => {
 
 const getInitials = name => {
   if (!name) return '?'
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase()
+
+  // Split by whitespace and filter out parts containing numbers (checking for IDs)
+  const parts = name.trim().split(/\s+/).filter(part => !/\d/.test(part))
+
+  // If no parts left, fallback to original split
+  const finalParts = parts.length > 0 ? parts : name.trim().split(/\s+/)
+
+  if (finalParts.length === 0) return '?'
+  if (finalParts.length === 1) return finalParts[0].substring(0, 2).toUpperCase()
+
+  const first = finalParts[0].charAt(0)
+  const second = finalParts[1].charAt(0)
+  return (first + second).toUpperCase()
 }
 
 const openPeriodModal = (period = null) => {
