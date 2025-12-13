@@ -519,6 +519,167 @@ Dashboard
 2. **Klik pengumuman yang ingin dihapus**
 3. **Klik "Hapus"**
 
+### 3. Mengelola Use Cases
+
+#### Melihat Daftar Use Case
+
+1. **Klik menu "Use Cases"**
+
+   - Atau akses: `/admin/usecases`
+
+2. **Lihat daftar use case:**
+
+   - Use Case ID
+   - Judul
+   - Deskripsi
+   - Komposisi tim saat ini
+   - Total anggota tim
+
+3. **Lihat komposisi tim:**
+   - Learning path yang dibutuhkan
+   - Jumlah anggota per learning path
+   - Total team size
+
+#### Menambah Use Case Baru
+
+1. **Klik "Tambah Use Case"**
+
+   - Tombol berwarna hijau di halaman Use Cases
+
+2. **Isi form use case:**
+
+   - **Use Case ID:** Identitas unik (contoh: DC-01)
+   - **Judul:** Nama use case (contoh: E-Commerce Platform)
+   - **Deskripsi:** Penjelasan detail tentang use case
+   - **Partner:** Nama perusahaan partner (opsional)
+   - **Total Slots:** Jumlah tim yang bisa mengambil use case ini
+   - **Difficulty:** Tingkat kesulitan (Easy/Medium/Hard)
+
+3. **Klik "Simpan"**
+   - Use case akan ditambahkan ke daftar
+   - Komposisi tim bisa diatur setelah dibuat
+
+#### Edit Komposisi Tim
+
+1. **Buka daftar use case**
+2. **Klik tombol edit (pensil)** pada use case yang ingin diubah
+3. **Atur komposisi tim:**
+
+   - Pilih learning path dari dropdown
+   - Masukkan jumlah anggota untuk setiap learning path
+   - Sistem otomatis menghitung total team size
+
+4. **Tambah learning path (opsional):**
+
+   - Klik "Tambah Learning Path"
+   - Pilih learning path baru
+   - Masukkan jumlah anggota
+
+5. **Hapus learning path (opsional):**
+
+   - Klik "Hapus" pada learning path yang ingin dihapus
+   - Minimal harus ada 1 learning path
+
+6. **Klik "Simpan"**
+   - Komposisi tim akan disimpan
+   - Akan ditampilkan di daftar use case
+
+#### Hapus Use Case
+
+1. **Buka daftar use case**
+2. **Klik tombol hapus (trash)** pada use case yang ingin dihapus
+3. **Konfirmasi penghapusan**
+
+   - Sistem akan menampilkan dialog konfirmasi
+   - Pastikan tidak ada tim yang sudah menggunakan use case ini
+
+4. **Klik "Ya, Hapus"**
+   - Use case akan dihapus dari sistem
+
+### 4. Mengelola Users
+
+#### Melihat Daftar User
+
+1. **Klik menu "Users"**
+
+   - Atau akses: `/admin/users`
+
+2. **Lihat statistik user:**
+
+   - Total Users: Jumlah seluruh user di sistem
+   - Students: Jumlah user dengan role student
+   - Admins: Jumlah user dengan role admin
+
+3. **Lihat informasi user dalam tabel:**
+   - Nama
+   - Email
+   - Student ID (Dicoding ID)
+   - Role (Student/Admin)
+   - Learning Path
+   - Status (Active/Inactive - hanya untuk student)
+
+#### Search & Filter User
+
+1. **Search user:**
+
+   - Masukkan nama, email, atau student ID di kolom search
+   - Sistem akan menampilkan user yang sesuai secara real-time
+
+2. **Filter berdasarkan role:**
+
+   - Klik dropdown "Filter by Role"
+   - Pilih "Student" atau "Admin"
+   - Sistem akan menampilkan user dengan role yang dipilih
+
+3. **Reset filter:**
+   - Klik tombol "Reset Filters"
+   - Semua filter akan dihapus
+   - Daftar user akan kembali normal
+
+#### Lihat Detail User
+
+1. **Buka daftar user**
+2. **Klik tombol "Lihat"** pada user yang ingin dilihat detailnya
+3. **Modal detail user akan muncul dengan informasi:**
+
+   - Nama lengkap
+   - Email
+   - Student ID (Dicoding ID)
+   - Role
+   - Learning Path
+   - Status (Active/Inactive)
+   - Tanggal dibuat
+
+4. **Klik "Tutup"** untuk menutup modal
+
+#### Ubah Role User
+
+1. **Buka daftar user**
+2. **Klik tombol "Ubah Role"** pada user yang ingin diubah rolenya
+3. **Modal ubah role akan muncul:**
+
+   - Pilih role baru dari dropdown (Student/Admin)
+   - Pastikan Anda yakin dengan perubahan ini
+
+4. **Klik "Ubah Role"**
+
+   - Role user akan diubah
+   - User akan memiliki akses sesuai role baru
+
+5. **Klik "Batal"** jika ingin membatalkan perubahan
+
+#### Pagination
+
+1. **Navigasi halaman:**
+
+   - Klik tombol "Sebelumnya" untuk halaman sebelumnya
+   - Klik tombol "Selanjutnya" untuk halaman berikutnya
+   - Klik nomor halaman untuk langsung ke halaman tertentu
+
+2. **Lihat informasi pagination:**
+   - Menampilkan X-Y dari Z users
+   - Contoh: "Menampilkan 1-10 dari 45 users"
+
 ---
 
 ## ❓ FAQ
